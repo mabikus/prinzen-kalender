@@ -19,8 +19,8 @@ import type { Gruppe, Termin } from "../lib/types";
 import { slug } from "../lib/slug.ts";
 
 // ───────────── Gruppen ─────────────
-// Kürzel aus den Teilnahme-Spalten im KG-Plan. Unbekannte bitte in der
-// Verwaltung umbenennen, Personenzahl eintragen (für die Kartenberechnung).
+// Kürzel aus den Teilnahme-Spalten im KG-Plan. Personenzahl bitte in der
+// Verwaltung eintragen (für die Kartenberechnung).
 
 function g(
   sortierung: number,
@@ -35,18 +35,18 @@ function g(
 
 export const startGruppen: Gruppe[] = [
   g(10, "prinz", "P", "Prinz", "rot", {
-    beschreibung: "Prinz(en) + Adjutant – „wir drei“",
+    beschreibung: "Prinz + zwei Adjutanten",
     personen: 3,
   }),
   g(20, "senat", "S", "Senat", "blau"),
   g(30, "elferrat", "E", "Elferrat", "gelb"),
   g(40, "funken", "F", "Funken", "orange"),
-  g(50, "c", "C", "C (bitte benennen)", "tuerkis"),
+  g(50, "corps", "C", "Corps", "tuerkis"),
   g(60, "vorstand", "V", "Vorstand", "lila"),
-  g(70, "kt", "KT", "KT (bitte benennen)", "pink"),
-  g(80, "kf", "KF", "KF (bitte benennen)", "gruen"),
-  g(90, "ktp", "KTP", "KTP (bitte benennen)", "pink"),
-  g(100, "mtp", "MTP", "MTP (bitte benennen)", "gruen"),
+  g(70, "kindertollitaet", "KT", "Kindertollität", "pink"),
+  g(80, "kinderfunken", "KF", "Kinderfunken", "gruen"),
+  g(90, "kindertanzpaar", "KTP", "Kindertanzpaar", "pink"),
+  g(100, "mittleres-tanzpaar", "MTP", "Mittleres Tanzpaar", "gruen"),
   g(200, "familie", "Fam", "Familie", "grau", {
     beschreibung: "Frau & Kinder",
     in_alle: false,

@@ -56,6 +56,17 @@ Planungskalender für die Karnevalssession 2026/27. Er zeigt Termine, Treffzeite
 
 Ohne Supabase zeigt die App auf Vercel nur die Startdaten an, Bearbeiten ist dann nicht möglich.
 
+### ZUGANG_TOKEN und BEARBEITEN_TOKEN – was ist das?
+
+Das sind einfach **selbst ausgedachte geheime Wörter**, ähnlich wie ein Passwort.
+
+- **ZUGANG_TOKEN** steckt im Einladungslink und in den Kalender-Abos. Er sollte lang und nicht zu erraten sein, z. B. drei bis vier zufällige Wörter mit Bindestrich und eine Zahl. Bitte nur Buchstaben (ohne Umlaute), Ziffern und `-` verwenden, weil der Wert in einer Internetadresse steht. Merken muss sich den niemand, er wird nur über den Link verteilt.
+- **BEARBEITEN_TOKEN** ist das Passwort für die Verwaltung. Das tippt man einmal pro Gerät ein.
+
+Eintragen in Vercel: Projekt → **Settings → Environment Variables** → *Key* `ZUGANG_TOKEN`, *Value* das ausgedachte Wort → **Save**. Danach unter **Deployments** beim obersten Eintrag „⋯ → **Redeploy**“ wählen. Erst dann gilt der neue Wert.
+
+Wird der ZUGANG_TOKEN später geändert, funktionieren alter Link und alte Abos nicht mehr. Das ist praktisch, falls der Link mal in falsche Hände gerät.
+
 ### Lokal entwickeln
 
 ```bash

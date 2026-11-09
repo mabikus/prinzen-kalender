@@ -3,16 +3,16 @@
 -- Im Supabase SQL Editor nach 0001_init.sql ausführen.
 
 insert into gruppen (id, kuerzel, name, beschreibung, personen, farbe, in_alle, sortierung) values
-  ('prinz', 'P', 'Prinz', 'Prinz(en) + Adjutant – „wir drei“', 3, 'rot', true, 10),
+  ('prinz', 'P', 'Prinz', 'Prinz + zwei Adjutanten', 3, 'rot', true, 10),
   ('senat', 'S', 'Senat', null, null, 'blau', true, 20),
   ('elferrat', 'E', 'Elferrat', null, null, 'gelb', true, 30),
   ('funken', 'F', 'Funken', null, null, 'orange', true, 40),
-  ('c', 'C', 'C (bitte benennen)', null, null, 'tuerkis', true, 50),
+  ('corps', 'C', 'Corps', null, null, 'tuerkis', true, 50),
   ('vorstand', 'V', 'Vorstand', null, null, 'lila', true, 60),
-  ('kt', 'KT', 'KT (bitte benennen)', null, null, 'pink', true, 70),
-  ('kf', 'KF', 'KF (bitte benennen)', null, null, 'gruen', true, 80),
-  ('ktp', 'KTP', 'KTP (bitte benennen)', null, null, 'pink', true, 90),
-  ('mtp', 'MTP', 'MTP (bitte benennen)', null, null, 'gruen', true, 100),
+  ('kindertollitaet', 'KT', 'Kindertollität', null, null, 'pink', true, 70),
+  ('kinderfunken', 'KF', 'Kinderfunken', null, null, 'gruen', true, 80),
+  ('kindertanzpaar', 'KTP', 'Kindertanzpaar', null, null, 'pink', true, 90),
+  ('mittleres-tanzpaar', 'MTP', 'Mittleres Tanzpaar', null, null, 'gruen', true, 100),
   ('familie', 'Fam', 'Familie', 'Frau & Kinder', null, 'grau', false, 200)
 on conflict (id) do nothing;
 
