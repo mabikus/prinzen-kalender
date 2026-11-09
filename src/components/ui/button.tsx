@@ -1,8 +1,8 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { Loader2 } from "lucide-react";
 import { Slot } from "radix-ui";
 import type { ComponentProps } from "react";
 import { cn } from "./cn";
+import { Punkte } from "./laden";
 
 export const buttonVariants = cva(
   "ui-control inline-flex shrink-0 select-none items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] text-[13.5px] font-medium transition-[background-color,color,box-shadow] duration-150 disabled:pointer-events-none disabled:opacity-45 aria-busy:cursor-progress disabled:aria-busy:opacity-100 [&_svg]:size-4 [&_svg]:shrink-0",
@@ -35,9 +35,8 @@ export type ButtonProps = ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
     /**
-     * Lädt (Speichern, Senden): Knopf gesperrt, gleiche Breite und Farbe, Text unsichtbar, Kreisel mittig darüber.
-     * Kein Text-, Breiten- oder Deckkraftwechsel – das ließ Knöpfe auf dem iPhone flackern (alter und neuer Zustand
-     * kurz übereinander). Nicht mit asChild.
+     * Lädt (Speichern, Senden): Knopf gesperrt, gleiche Breite und Farbe. Nach einer Viertelsekunde blendet der Text
+     * sanft zu drei ruhig pulsierenden Punkten über – kurze Aktionen flackern so nicht. Nicht mit asChild.
      */
     loading?: boolean;
   };
@@ -59,8 +58,9 @@ export function Button({ className, variant, size, asChild, type, loading, disab
     >
       {loading ? (
         <>
-          <span className="invisible inline-flex items-center gap-2">{children}</span>
-          <Loader2 aria-hidden className="absolute animate-spin" />
+          {/* Text bleibt kurz stehen und blendet erst bei längeren Aktionen zu den Punkten über */}
+          <span className="ui-laden-text inline-flex items-center gap-2">{children}</span>
+          <Punkte className="absolute" />
         </>
       ) : (
         children

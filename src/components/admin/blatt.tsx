@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog as D } from "radix-ui";
-import { Loader2 } from "lucide-react";
+import { Punkte } from "@/components/ui/laden";
 import type { ReactNode } from "react";
 
 /**
@@ -50,10 +50,16 @@ export function Blatt({
               type="submit"
               form={formId}
               disabled={laeuft}
-              className="inline-flex items-center gap-1.5 justify-self-end rounded-md px-2.5 py-2 text-[16px] font-semibold text-accent-ink hover:bg-hover disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 justify-self-end rounded-md px-2.5 py-2 text-[16px] font-semibold text-accent-ink hover:bg-hover"
             >
-              {laeuft ? <Loader2 className="size-4 animate-spin" /> : null}
-              {sichernText}
+              {laeuft ? (
+                <span className="relative inline-grid place-items-center">
+                  <span className="ui-laden-text">{sichernText}</span>
+                  <Punkte className="absolute" />
+                </span>
+              ) : (
+                sichernText
+              )}
             </button>
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-5 sm:px-6">
