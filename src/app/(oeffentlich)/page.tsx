@@ -66,40 +66,46 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
           </p>
           <Link
             href={`/termin/${encodeURIComponent(naechster.id)}`}
-            className="group flex items-start gap-5 p-5 hover:bg-papier"
+            className="group grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 p-4 hover:bg-papier sm:grid-cols-[auto_1fr_auto] sm:gap-x-5 sm:p-5"
           >
-            {naechsterStart != null && (
-              <div className="shrink-0 border-r border-linie pr-5 text-center">
-                <div className="font-serif lining-nums text-4xl font-semibold tabular-nums leading-none text-marke-700">
+            {naechsterStart != null ? (
+              <div className="row-span-1 shrink-0 border-r border-linie pr-4 text-center sm:row-span-2 sm:pr-5">
+                <div className="font-serif text-[34px] font-semibold tabular-nums leading-none text-marke-700 sm:text-4xl">
                   {zeitText(naechsterStart)}
                 </div>
-                <div className="mt-1.5 text-[10px] font-medium uppercase tracking-[0.15em] text-grau">
+                <div className="mt-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-grau">
                   {naechster.treffzeit ? "Treffen" : "Beginn"}
                 </div>
               </div>
+            ) : (
+              <div />
             )}
-            <div className="min-w-0 flex-1 space-y-2">
-              <h2 className="font-serif lining-nums text-2xl font-semibold leading-tight group-hover:text-marke-700">
+            <div className="min-w-0 self-center">
+              <p className="text-[15px] font-semibold text-marke-700">{datumLang(naechster.datum)}</p>
+            </div>
+            <span className="hidden self-start sm:row-span-2 sm:block">
+              <I icon={ArrowRight} className="mt-2 size-5 text-grau group-hover:text-marke-700" />
+            </span>
+            <div className="col-span-2 min-w-0 space-y-2 sm:col-span-1 sm:col-start-2">
+              <h2 className="font-serif text-[24px] font-semibold leading-tight group-hover:text-marke-700 sm:text-[28px]">
                 {naechster.tagesprogramm ? `${naechster.tagesprogramm}: ` : ""}
                 {naechster.titel}
               </h2>
-              <p className="text-sm text-tinte/80">{datumLang(naechster.datum)}</p>
               <Orte t={naechster} />
               <TerminBadges t={naechster} gruppen={gruppen} />
             </div>
-            <I icon={ArrowRight} className="mt-2 size-5 text-grau group-hover:text-marke-700" />
           </Link>
         </section>
       )}
 
-      <nav aria-label="Filter" className="-mx-4 overflow-x-auto px-4">
+      <nav aria-label="Filter" className="-mx-4 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <ul className="flex gap-2 whitespace-nowrap">
           {filterAuswahl.map(({ key: f, label, beschreibung }) => (
             <li key={f}>
               <Link
                 href={link(f)}
                 title={beschreibung}
-                className={`inline-block rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset transition ${
+                className={`inline-block rounded-md px-3.5 py-2 text-[15px] font-semibold ring-1 ring-inset transition ${
                   f === filter
                     ? "bg-marke-700 text-white ring-marke-700"
                     : "bg-white text-tinte/80 ring-linie hover:ring-marke-300 hover:text-marke-700"
@@ -128,7 +134,7 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
         const [jahr, m] = monat.split("-").map(Number);
         return (
           <section key={monat} className="space-y-4">
-            <h2 className="sticky top-[59px] z-10 -mx-4 flex items-baseline gap-3 bg-papier/95 px-4 py-2.5 backdrop-blur">
+            <h2 className="sticky top-[calc(59px+env(safe-area-inset-top))] z-10 -mx-4 flex items-baseline gap-3 bg-papier/95 px-4 py-2.5 backdrop-blur">
               <span className="font-serif lining-nums text-2xl font-semibold text-marke-800">{MONATE[m - 1]}</span>
               <span className="text-sm text-grau">{jahr}</span>
               <span className="h-px flex-1 self-center bg-linie" aria-hidden />

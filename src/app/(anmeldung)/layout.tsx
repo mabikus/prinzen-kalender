@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Crown } from "lucide-react";
+import { APP_KURZ, APP_NAME } from "@/lib/marke";
 
 /** Rahmen der Anmeldeseiten: Karte in der Mitte, rote Kopfzeile. */
 export default function AnmeldungLayout({ children }: { children: React.ReactNode }) {
@@ -11,8 +12,8 @@ export default function AnmeldungLayout({ children }: { children: React.ReactNod
             <Crown className="size-5" strokeWidth={1.75} aria-hidden />
           </span>
           <div>
-            <div className="font-display text-lg font-semibold leading-tight">Prinzen-Kalender</div>
-            <div className="text-xs text-white/75">Session 2026/27</div>
+            <div className="font-display text-lg font-semibold leading-tight">{APP_NAME}</div>
+            <div className="text-xs text-white/75">{APP_KURZ}</div>
           </div>
         </div>
         <div className="p-6">{children}</div>

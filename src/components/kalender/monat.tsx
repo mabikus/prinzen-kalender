@@ -35,7 +35,7 @@ export function Monatsansicht({
   onAnlegen: (tag: string) => void;
   onTag: (tag: string) => void;
 }) {
-  const zug = useRef<{ e: Eintrag; x0: number; y0: number; aktiv: boolean } | null>(null);
+  const zug = useRef<{ e: Eintrag; x0: number; y0: number; aktiv: boolean; touch: boolean } | null>(null);
   const zielRef = useRef<string | null>(null);
   const [ziel, setZielState] = useState<string | null>(null);
   const [gezogen, setGezogen] = useState<string | null>(null);
@@ -45,7 +45,11 @@ export function Monatsansicht({
       const z = zug.current;
       if (!z) return;
       if (!z.aktiv) {
-        if (Math.hypot(ev.clientX - z.x0, ev.clientY - z.y0) < 4) return;
+        if (Math.hypot(ev.clientX - z.x0, ev.clientY - z.y0) < (z.touch ? 10 : 4)) return;
+        if (z.touch) {
+          zug.current = null;
+          return;
+        }
         z.aktiv = true;
         setGezogen(z.e.t.id);
         document.body.style.userSelect = "none";
@@ -74,7 +78,13 @@ export function Monatsansicht({
     };
     window.addEventListener("pointermove", bewegen);
     window.addEventListener("pointerup", loslassen);
+    // Browser übernimmt (z. B. Scrollen mit dem Finger): Zug verwerfen
+    const abbrechen = () => {
+      zug.current = null;
+    };
+    window.addEventListener("pointercancel", abbrechen);
     return () => {
+      window.removeEventListener("pointercancel", abbrechen);
       window.removeEventListener("pointermove", bewegen);
       window.removeEventListener("pointerup", loslassen);
     };
@@ -96,7 +106,7 @@ export function Monatsansicht({
           </div>
         ))}
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-7" style={{ gridTemplateRows: `repeat(${wochen}, minmax(110px, 1fr))` }}>
+      <div className="grid min-h-0 flex-1 grid-cols-7" style={{ gridTemplateRows: `repeat(${wochen}, minmax(var(--zeile, 110px), 1fr))` }}>
         {tage.map((tag, i) => {
           const liste = eintraege.filter((e) => e.tag === tag).sort((a, b) => Number(!a.ganztags) - Number(!b.ganztags) || a.start - b.start);
           const fremd = !tag.startsWith(monat);
@@ -133,8 +143,8 @@ export function Monatsansicht({
                         role="button"
                         tabIndex={-1}
                         onPointerDown={(ev) => {
-                          if (ev.button !== 0 || ev.pointerType === "touch") return;
-                          zug.current = { e, x0: ev.clientX, y0: ev.clientY, aktiv: false };
+                          if (ev.button !== 0) return;
+                          zug.current = { e, x0: ev.clientX, y0: ev.clientY, aktiv: false, touch: ev.pointerType === "touch" };
                         }}
                         onDoubleClick={() => onDoppelklick(e.t)}
                         className={cn(

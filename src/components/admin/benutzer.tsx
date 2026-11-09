@@ -20,6 +20,7 @@ import { PageHeader, Section } from "@/components/ui/page";
 import { toast } from "@/components/ui/toast";
 import type { BenutzerZeile } from "@/lib/benutzer";
 import { zeitpunkt } from "@/lib/protokoll-text";
+import { APP_NAME } from "@/lib/marke";
 
 interface EinladungInfo {
   id: string;
@@ -235,7 +236,7 @@ export function BenutzerVerwaltung({
             <div className="flex flex-wrap gap-2">
               <Kopieren text={link.link} />
               <a
-                href={`https://wa.me/?text=${encodeURIComponent(`Prinzen-Kalender – dein Link: ${link.link}`)}`}
+                href={`https://wa.me/?text=${encodeURIComponent(`${APP_NAME} – dein Link: ${link.link}`)}`}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-tinte ring-1 ring-inset ring-linie hover:text-marke-700 hover:ring-marke-300"
@@ -244,7 +245,7 @@ export function BenutzerVerwaltung({
                 WhatsApp
               </a>
               <a
-                href={`mailto:${link.email}?subject=${encodeURIComponent("Prinzen-Kalender")}&body=${encodeURIComponent(`Hallo,\n\nhier ist dein Link für den Prinzen-Kalender:\n${link.link}\n`)}`}
+                href={`mailto:${link.email}?subject=${encodeURIComponent(APP_NAME)}&body=${encodeURIComponent(`Hallo,\n\nhier ist dein Link für den ${APP_NAME}:\n${link.link}\n`)}`}
                 className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-tinte ring-1 ring-inset ring-linie hover:text-marke-700 hover:ring-marke-300"
               >
                 <Mail className="size-4" strokeWidth={1.75} />

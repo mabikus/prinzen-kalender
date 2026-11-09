@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Crown, TriangleAlert } from "lucide-react";
 import { NavLinks, Navigation } from "@/components/navigation";
 import { datenquelle } from "@/lib/daten";
+import { APP_KURZ, APP_NAME } from "@/lib/marke";
 import { zugangsToken } from "@/lib/zugang";
 
 export default function OeffentlichLayout({ children }: { children: React.ReactNode }) {
@@ -10,24 +11,25 @@ export default function OeffentlichLayout({ children }: { children: React.ReactN
   const offen = !zugangsToken();
   return (
     <>
-      <header className="sticky top-0 z-20 border-b-[3px] border-marke-800 bg-marke-700 text-white">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-2 px-4">
-          <Link href="/" className="flex items-center gap-2.5 whitespace-nowrap">
-            <span className="flex size-8 items-center justify-center rounded-full bg-white text-marke-700">
-              <Crown className="size-[18px]" strokeWidth={1.75} aria-hidden />
+      {/* Kopfzeile – als App unter der Statusleiste (Safe-Area) */}
+      <header className="sticky top-0 z-20 border-b-[3px] border-marke-800 bg-marke-700 pt-[env(safe-area-inset-top)] text-white">
+        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
+          <Link href="/" className="flex min-w-0 items-center gap-2.5">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-marke-700">
+              <Crown className="size-5" strokeWidth={1.75} aria-hidden />
             </span>
-            <span className="font-serif lining-nums text-lg font-semibold tracking-wide">
-              <span className="hidden min-[400px]:inline">Prinzen-</span>Kalender
-              <span className="ml-1.5 hidden font-sans text-sm font-normal text-white/70 sm:inline">Session 26/27</span>
+            <span className="min-w-0 leading-tight">
+              <span className="block truncate font-serif text-[19px] font-semibold">{APP_NAME}</span>
+              <span className="block text-[12px] text-white/75">{APP_KURZ}</span>
             </span>
           </Link>
-          <Suspense fallback={<NavLinks pfad={null} />}>
-            <Navigation />
+          <Suspense fallback={<NavLinks pfad={null} variante="oben" />}>
+            <Navigation variante="oben" />
           </Suspense>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-4 py-6">{children}</main>
-      <footer className="mx-auto max-w-3xl space-y-1 px-4 pb-10 text-xs text-grau">
+      <main className="mx-auto max-w-3xl px-4 pb-6 pt-5 sm:pt-6">{children}</main>
+      <footer className="mx-auto max-w-3xl space-y-1 px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-xs text-grau sm:pb-10">
         {quelle === "startdaten" && <p>Datenquelle: Startdaten im Repo (Datenbank noch nicht verbunden).</p>}
         {offen && (
           <p className="flex items-center gap-1.5">
@@ -36,6 +38,9 @@ export default function OeffentlichLayout({ children }: { children: React.ReactN
           </p>
         )}
       </footer>
+      <Suspense fallback={<NavLinks pfad={null} variante="unten" />}>
+        <Navigation variante="unten" />
+      </Suspense>
     </>
   );
 }

@@ -28,6 +28,7 @@ import { TooltipProvider, Tooltip } from "@/components/ui/controls";
 import { Initials, Kbd } from "@/components/ui/display";
 import { ConfirmProvider, Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/components/ui/overlay";
 import { Befehlspalette } from "./befehle";
+import { APP_NAME } from "@/lib/marke";
 
 export interface AdminInfo {
   id: string;
@@ -110,7 +111,7 @@ export function AdminShell({ admin, children }: { admin: AdminInfo; children: Re
   return (
     <TooltipProvider delayDuration={300}>
       <ConfirmProvider>
-        <div className="flex h-dvh overflow-hidden bg-bg">
+        <div className="flex h-dvh overflow-hidden bg-bg pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]">
           <a
             href="#inhalt"
             className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50 focus:rounded-md focus:bg-accent focus:px-3 focus:py-2 focus:text-accent-fg"
@@ -129,7 +130,7 @@ export function AdminShell({ admin, children }: { admin: AdminInfo; children: Re
           <D.Root open={mobil} onOpenChange={setMobil}>
             <D.Portal>
               <D.Overlay className="fixed inset-0 z-40 bg-black/40 md:hidden" />
-              <D.Content className="fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] shadow-[var(--shadow-pop)] outline-none md:hidden">
+              <D.Content className="fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] bg-panel shadow-[var(--shadow-pop)] outline-none md:hidden">
                 <D.Title className="sr-only">Navigation</D.Title>
                 <D.Description className="sr-only">Hauptnavigation der Verwaltung</D.Description>
                 <Seitenleiste admin={admin} schmal={false} suchen={() => setPalette(true)} />
@@ -142,7 +143,7 @@ export function AdminShell({ admin, children }: { admin: AdminInfo; children: Re
           </D.Root>
 
           <div className="flex min-w-0 flex-1 flex-col">
-            <div className="flex h-14 shrink-0 items-center gap-2 border-b border-line bg-panel px-3 md:hidden">
+            <div className="flex shrink-0 items-center gap-2 border-b border-line bg-panel px-3 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] md:hidden">
               <button
                 type="button"
                 onClick={() => setMobil(true)}
@@ -161,7 +162,7 @@ export function AdminShell({ admin, children }: { admin: AdminInfo; children: Re
                 <Search className="size-[18px]" />
               </button>
             </div>
-            <main id="inhalt" className="min-h-0 flex-1 overflow-y-auto">
+            <main id="inhalt" className="min-h-0 flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
               {children}
             </main>
           </div>
@@ -180,7 +181,7 @@ function Logo({ nurZeichen }: { nurZeichen?: boolean }) {
       </span>
       {nurZeichen ? null : (
         <span className="leading-tight">
-          <span className="block font-display text-[15px] font-semibold text-ink">Prinzen-Kalender</span>
+          <span className="block font-display text-[15px] font-semibold text-ink">{APP_NAME}</span>
           <span className="block text-[11px] text-subtle">Verwaltung</span>
         </span>
       )}

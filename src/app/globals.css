@@ -78,16 +78,19 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-text), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
-  --font-display: var(--font-playfair), Georgia, serif;
+  --font-serif: var(--font-titel), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-titel), Georgia, serif;
 }
 
 @layer base {
   body {
     background: var(--bg);
     color: var(--ink);
+    font-size: 16px;
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
   }
   ::selection {
     background: var(--accent-soft);
@@ -167,4 +170,19 @@ select:focus-visible {
 /* Aufklapp-Pfeil von <summary> ausblenden */
 summary::-webkit-details-marker {
   display: none;
+}
+
+/* Als App (vom Home-Bildschirm): kein Gummiband der ganzen Seite, kein Text-Markieren auf Bedienelementen */
+@media (display-mode: standalone) {
+  html,
+  body {
+    overscroll-behavior-y: none;
+  }
+}
+@media (pointer: coarse) {
+  :is(button, [role="button"], a, summary) {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
 }

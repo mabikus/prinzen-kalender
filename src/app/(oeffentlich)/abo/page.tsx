@@ -6,6 +6,7 @@ import { I } from "@/components/termin";
 import { ladeDaten } from "@/lib/daten";
 import { filterListe, type Filter } from "@/lib/labels";
 import { feedToken } from "@/lib/zugang";
+import { APP_NAME } from "@/lib/marke";
 
 export const metadata = { title: "Kalender-Abo" };
 
@@ -74,7 +75,7 @@ function Knoepfe({ f, host, proto, token, haupt }: { f: Filter; host: string; pr
   const pfad = `${host}/kalender/${encodeURIComponent(token)}/${f.key}.ics`;
   const https = `${proto}://${pfad}`;
   const webcal = `webcal://${pfad}`;
-  const name = f.key === "alle" ? "Prinzen-Kalender" : `Prinzen-Kalender – ${f.label}`;
+  const name = f.key === "alle" ? APP_NAME : `${APP_NAME} – ${f.label}`;
   const zweit = `${KNOPF} bg-white text-tinte ring-linie hover:text-marke-700 hover:ring-marke-300`;
   return (
     <div className="flex flex-wrap gap-2">

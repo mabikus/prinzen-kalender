@@ -35,6 +35,8 @@ type Modus = "bewegen" | "groesse" | "anlegen";
 
 interface Zug {
   modus: Modus;
+  /** Finger: nur Tippen (auswählen), Ziehen scrollt die Seite */
+  touch: boolean;
   eintrag?: Eintrag;
   x0: number;
   y0: number;
@@ -115,7 +117,11 @@ export function Zeitraster({
       const z = zug.current;
       if (!z) return;
       if (!z.aktiv) {
-        if (Math.hypot(ev.clientX - z.x0, ev.clientY - z.y0) < 4) return;
+        if (Math.hypot(ev.clientX - z.x0, ev.clientY - z.y0) < (z.touch ? 10 : 4)) return;
+        if (z.touch) {
+          zug.current = null;
+          return;
+        }
         z.aktiv = true;
         document.body.style.userSelect = "none";
       }
@@ -155,17 +161,32 @@ export function Zeitraster({
     };
     window.addEventListener("pointermove", bewegen);
     window.addEventListener("pointerup", loslassen);
+    // Browser übernimmt (z. B. Scrollen mit dem Finger): Zug verwerfen
+    const abbrechen = () => {
+      zug.current = null;
+    };
+    window.addEventListener("pointercancel", abbrechen);
     return () => {
+      window.removeEventListener("pointercancel", abbrechen);
       window.removeEventListener("pointermove", bewegen);
       window.removeEventListener("pointerup", loslassen);
     };
   }, [punkt, tage, onVerschieben, onGroesse, onAnlegen, onAuswahl, setVorschau]);
 
   const starte = (ev: React.PointerEvent, modus: Modus, eintrag?: Eintrag) => {
-    if (ev.button !== 0 || ev.pointerType === "touch") return;
+    if (ev.button !== 0) return;
     ev.stopPropagation();
     const p = punkt(ev.clientX, ev.clientY);
-    zug.current = { modus, eintrag, x0: ev.clientX, y0: ev.clientY, min0: p.min, tag0: p.tagIndex, aktiv: false };
+    zug.current = {
+      modus,
+      touch: ev.pointerType === "touch",
+      eintrag,
+      x0: ev.clientX,
+      y0: ev.clientY,
+      min0: p.min,
+      tag0: p.tagIndex,
+      aktiv: false,
+    };
   };
 
   const ganztags = eintraege.filter((e) => e.ganztags);

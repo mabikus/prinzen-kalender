@@ -6,6 +6,7 @@ import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { APP_NAME } from "./marke";
 
 // Anmeldung (Better Auth): E-Mail + Passwort und Passkeys. Keine Selbst-Registrierung –
 // Administratoren werden eingeladen (src/lib/benutzer.ts). Der Super-Admin entsteht bei der Einrichtung.
@@ -30,7 +31,7 @@ function vertrauteHerkuenfte(): string[] {
 
 function erstelleAuth() {
   return betterAuth({
-    appName: "Prinzen-Kalender",
+    appName: APP_NAME,
     baseURL: basisUrl(),
     trustedOrigins: vertrauteHerkuenfte(),
     secret: process.env.BETTER_AUTH_SECRET,
@@ -83,7 +84,7 @@ function erstelleAuth() {
         },
       },
     },
-    plugins: [passkey({ rpName: "Prinzen-Kalender" }), nextCookies()],
+    plugins: [passkey({ rpName: APP_NAME }), nextCookies()],
   });
 }
 

@@ -1,28 +1,37 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Playfair_Display } from "next/font/google";
+import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
+import { DienstHelfer } from "@/components/pwa";
 import { Toaster } from "@/components/ui/toast";
+import { APP_BESCHREIBUNG, APP_NAME, FARBE_ROT } from "@/lib/marke";
 import "./globals.css";
 
-const geist = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const playfair = Playfair_Display({ variable: "--font-playfair", subsets: ["latin"], weight: ["600", "700"] });
+// Schriften: Source Sans 3 (Text) und Source Serif 4 (Überschriften, Uhrzeiten) – klassisch und gut lesbar
+const sans = Source_Sans_3({ variable: "--font-text", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const serif = Source_Serif_4({ variable: "--font-titel", subsets: ["latin"], weight: ["600", "700"] });
 
 export const metadata: Metadata = {
-  title: { default: "Prinzen-Kalender", template: "%s · Prinzen-Kalender" },
-  description: "Termine, Treffpunkte und Gruppen der Session 2026/27",
+  title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
+  description: APP_BESCHREIBUNG,
+  applicationName: APP_NAME,
   robots: { index: false, follow: false },
-  appleWebApp: { capable: true, title: "Prinzen-Kalender", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "black-translucent" },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#9a1219",
+  themeColor: FARBE_ROT,
+  viewportFit: "cover",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="de" className={`${geist.variable} ${playfair.variable} h-full antialiased`}>
+    <html lang="de" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
       <body className="min-h-full font-sans">
         {children}
         <Toaster />
+        <DienstHelfer />
       </body>
     </html>
   );

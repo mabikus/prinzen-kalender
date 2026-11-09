@@ -16,7 +16,7 @@ export default function Seite({ searchParams }: PageProps<"/verwaltung/kalender"
 async function Inhalt({ searchParams }: Pick<PageProps<"/verwaltung/kalender">, "searchParams">) {
   const sp = await searchParams;
   const daten = await ladeDaten();
-  const ansicht: Ansicht = sp.ansicht === "tag" || sp.ansicht === "monat" ? sp.ansicht : "woche";
+  const ansicht: Ansicht | null = sp.ansicht === "tag" || sp.ansicht === "woche" || sp.ansicht === "monat" ? sp.ansicht : null;
   const datum = typeof sp.datum === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.datum) ? sp.datum : null;
   return (
     <div className="h-full">

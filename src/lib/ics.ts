@@ -97,7 +97,7 @@ export function kalender(
   const zeilen = [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Prinzen-Kalender//Session 2026-27//DE",
+    "PRODID:-//Sessionskalender//Session 2026-27//DE",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${text(opts.name)}`,

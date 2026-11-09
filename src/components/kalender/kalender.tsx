@@ -49,6 +49,7 @@ import {
   type Eintrag,
 } from "./geometrie";
 import { AktionenKontext, type KalenderAktionen } from "./menue";
+import { useMedien } from "./medien";
 import { Monatsansicht } from "./monat";
 import { Zeitraster } from "./zeitraster";
 
@@ -78,7 +79,8 @@ export function Kalender({
 }: {
   termine: Termin[];
   gruppen: Gruppe[];
-  startAnsicht: Ansicht;
+  /** null = je nach Bildschirm (Handy: Tag, sonst Woche) */
+  startAnsicht: Ansicht | null;
   startDatum: string | null;
 }) {
   // Lokaler Stand (sofort sichtbar), abgeglichen mit dem Server
@@ -95,7 +97,10 @@ export function Kalender({
     return () => clearInterval(t);
   }, []);
 
-  const [ansicht, setAnsicht] = useState<Ansicht>(startAnsicht);
+  const handy = useMedien("(max-width: 639px)");
+  const breit = useMedien("(min-width: 1024px)");
+  const [gewaehlteAnsicht, setAnsicht] = useState<Ansicht | null>(startAnsicht);
+  const ansicht: Ansicht = gewaehlteAnsicht ?? (handy ? "tag" : "woche");
   const [datum, setDatum] = useState(startDatum ?? jetzt.datum);
   const [auswahl, setAuswahl] = useState<string | null>(null);
   const [fokusTag, setFokusTag] = useState<string | null>(null);
@@ -336,12 +341,14 @@ export function Kalender({
               <ChevronRight />
             </Button>
           </div>
-          <h1 className="mr-auto font-display text-[20px] font-semibold lining-nums text-ink">{titel(ansicht, tage, datum)}</h1>
+          <h1 className="order-first w-full min-w-0 truncate font-display text-[18px] font-semibold text-ink sm:order-none sm:mr-auto sm:w-auto sm:text-[20px]">
+            {titel(ansicht, tage, datum)}
+          </h1>
           <Select
             value={filter || "alle"}
             onValueChange={(v) => setFilter(v === "alle" ? "" : v)}
             options={[{ value: "alle", label: "Alle Gruppen" }, ...gruppen.map((g) => ({ value: g.id, label: g.name }))]}
-            className="h-8 w-40"
+            className="hidden h-8 w-40 md:flex"
           />
           <Segmented<Ansicht>
             value={ansicht}
@@ -354,12 +361,12 @@ export function Kalender({
               { value: "monat", label: "Monat" },
             ]}
           />
-          <Button variant="ghost" size="icon-sm" aria-label="Tastenkürzel" onClick={() => setHilfe(true)}>
+          <Button variant="ghost" size="icon-sm" aria-label="Tastenkürzel" className="hidden md:inline-flex" onClick={() => setHilfe(true)}>
             <Keyboard />
           </Button>
-          <Button variant="primary" size="sm" onClick={() => neu(fokusTag ?? datum, 18 * 60, 20 * 60)}>
+          <Button variant="primary" size="sm" aria-label="Neuer Termin" onClick={() => neu(fokusTag ?? datum, 18 * 60, 20 * 60)}>
             <CalendarPlus />
-            Neuer Termin
+            <span className="hidden sm:inline">Neuer Termin</span>
           </Button>
         </div>
 
@@ -396,6 +403,7 @@ export function Kalender({
           </div>
           {gewaehlt ? (
             <Details
+              breit={breit}
               t={gewaehlt}
               gruppen={gruppen}
               alle={termine}
@@ -499,6 +507,7 @@ function Zeile({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function Details({
+  breit,
   t,
   gruppen,
   alle,
@@ -507,6 +516,7 @@ function Details({
   duplizieren,
   loeschen,
 }: {
+  breit: boolean;
   t: Termin;
   gruppen: Gruppe[];
   alle: Termin[];
@@ -516,8 +526,42 @@ function Details({
   loeschen: () => void;
 }) {
   const vorher = t.anschluss_an ? alle.find((x) => x.id === t.anschluss_an) : undefined;
+  // Handy/Tablet: Details als Blatt von unten statt Seitenleiste
+  if (!breit)
+    return (
+      <Dialog
+        open
+        onOpenChange={(o) => !o && schliessen()}
+        title={t.titel}
+        description={datumLang(t.datum)}
+        footer={
+          <div className="grid w-full grid-cols-2 gap-2">
+            <Button variant="primary" onClick={bearbeiten}>
+              <Pencil />
+              Bearbeiten
+            </Button>
+            <Button variant="secondary" onClick={duplizieren}>
+              <Copy />
+              Duplizieren
+            </Button>
+            <Button variant="secondary" asChild>
+              <Link href={`/termin/${encodeURIComponent(t.id)}`}>
+                <Eye />
+                Ansicht
+              </Link>
+            </Button>
+            <Button variant="danger-ghost" onClick={loeschen}>
+              <Trash2 />
+              Löschen
+            </Button>
+          </div>
+        }
+      >
+        <DetailsInhalt t={t} gruppen={gruppen} vorher={vorher} />
+      </Dialog>
+    );
   return (
-    <aside className="hidden w-[320px] shrink-0 flex-col border-l border-line bg-panel lg:flex">
+    <aside className="flex w-[320px] shrink-0 flex-col border-l border-line bg-panel">
       <div className="flex items-start justify-between gap-2 border-b border-line px-4 py-3">
         <div className="min-w-0">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-ink">
@@ -530,7 +574,36 @@ function Details({
           <X />
         </Button>
       </div>
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+        <DetailsInhalt t={t} gruppen={gruppen} vorher={vorher} />
+      </div>
+      <div className={cn("grid grid-cols-2 gap-2 border-t border-line p-3")}>
+        <Button variant="primary" size="sm" onClick={bearbeiten}>
+          <Pencil />
+          Bearbeiten
+        </Button>
+        <Button variant="secondary" size="sm" onClick={duplizieren}>
+          <Copy />
+          Duplizieren
+        </Button>
+        <Button variant="secondary" size="sm" asChild>
+          <Link href={`/termin/${encodeURIComponent(t.id)}`} target="_blank">
+            <Eye />
+            Ansicht
+          </Link>
+        </Button>
+        <Button variant="danger-ghost" size="sm" onClick={loeschen}>
+          <Trash2 />
+          Löschen
+        </Button>
+      </div>
+    </aside>
+  );
+}
+
+function DetailsInhalt({ t, gruppen, vorher }: { t: Termin; gruppen: Gruppe[]; vorher?: Termin }) {
+  return (
+    <div className="space-y-4">
         {t.hinweis ? (
           <p className="flex items-start gap-2 rounded-[var(--radius-control)] bg-accent-soft p-2.5 text-[13px] font-medium text-accent-ink">
             <TriangleAlert className="mt-0.5 size-4 shrink-0" />
@@ -582,27 +655,6 @@ function Details({
             Treffpunkt auf der Karte
           </a>
         ) : null}
-      </div>
-      <div className={cn("grid grid-cols-2 gap-2 border-t border-line p-3")}>
-        <Button variant="primary" size="sm" onClick={bearbeiten}>
-          <Pencil />
-          Bearbeiten
-        </Button>
-        <Button variant="secondary" size="sm" onClick={duplizieren}>
-          <Copy />
-          Duplizieren
-        </Button>
-        <Button variant="secondary" size="sm" asChild>
-          <Link href={`/termin/${encodeURIComponent(t.id)}`} target="_blank">
-            <Eye />
-            Ansicht
-          </Link>
-        </Button>
-        <Button variant="danger-ghost" size="sm" onClick={loeschen}>
-          <Trash2 />
-          Löschen
-        </Button>
-      </div>
-    </aside>
+          </div>
   );
 }

@@ -46,6 +46,6 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     // Alles außer statischen Dateien, Kalender-Feeds (eigenes Token) und der Hinweisseite
-    "/((?!_next/static|_next/image|kalender/|kein-zugang|icon|apple-icon|manifest|robots\\.txt).*)",
+    "/((?!_next/static|_next/image|kalender/|kein-zugang|offline|sw\\.js|app-icon|icon|apple-icon|manifest|robots\\.txt).*)",
   ],
 };
