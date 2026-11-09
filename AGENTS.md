@@ -10,13 +10,19 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Projekt
 
-Prinzen-Kalender: Termine, Treffpunkte, Gruppen (wer ist dabei?) und Eintrittskarten der Karnevalssession, mit Kalender-Abos (ICS) und Verwaltung.
+Prinzen-Kalender: Termine, Treffpunkte, Gruppen (wer ist dabei?) und Eintrittskarten der Karnevalssession –
+öffentliche Ansicht mit Kalender-Abos (ICS) und eine Verwaltung mit Login und Desktop-Kalender.
+Stack wie Inkfuchs: Next.js 16 (App Router, Cache Components) · Better Auth · Drizzle ORM (1.0 rc) · Postgres (Supabase) ·
+Tailwind 4 · Radix · lucide · sonner · cmdk. Oberfläche und Texte auf Deutsch.
 
-- Datenmodell: `src/lib/types.ts` – muss zu `supabase/migrations/*.sql` passen.
-- Startdaten: `src/data/session-2026-27.ts` → `npm run seed:sql` erzeugt `supabase/seed.sql`.
-- Datenzugriff nur über `src/lib/daten.ts` (Supabase / lokale Datei / Startdaten).
-- Gruppenlogik, Filter, Kartenbedarf: `src/lib/labels.ts`.
-- Zeitlogik (Start/Ende, „im Anschluss“, Sortierung): `src/lib/zeit.ts`; Kalender-Feed: `src/lib/ics.ts`.
-- Bearbeiten: Server Actions in `src/app/verwaltung/aktionen.ts` – jede Aktion prüft `darfBearbeiten()`.
-- Zugriffsschutz: `src/proxy.ts` + `src/lib/zugang.ts`; Bearbeiten-Recht: `src/lib/bearbeiten.ts`.
-- Oberfläche und Texte auf Deutsch.
+- Datenbank: Schema `src/db/schema.ts` → `npm run db:generate` erzeugt Migrationen in `drizzle/`.
+  `npm run db:einrichten` (läuft vor jedem Produktions-Build) wendet sie an und spielt beim ersten Mal die Startdaten ein.
+- Datenzugriff nur über `src/lib/daten.ts` (mit Protokoll). Ohne `DATABASE_URL`: Startdaten, nur lesen.
+- Login: `src/lib/auth.ts` (Better Auth, Passwort + Passkeys), Sitzung `src/lib/sitzung.ts`, Benutzer `src/lib/benutzer.ts`.
+  Nur Administratoren; genau ein Super-Admin (Trigger in `drizzle/*_sicherheit` schützt ihn).
+- Verwaltung: `src/app/verwaltung/*`, alle Änderungen über `src/app/verwaltung/aktionen.ts` (jede Aktion prüft die Anmeldung).
+- UI-Bausteine aus Inkfuchs: `src/components/ui/*` – Farben nur über Tokens in `globals.css` (Rot-Weiß), keine Hex-Werte.
+- Kalender: `src/components/kalender/*` – Rechenlogik in `geometrie.ts` (mit Vitest-Tests).
+- Gruppenlogik, Filter, Kartenbedarf: `src/lib/labels.ts`; Zeitlogik: `src/lib/zeit.ts`; Feed: `src/lib/ics.ts`.
+- Zugriffsschutz Ansicht: `src/proxy.ts` + `src/lib/zugang.ts`.
+- Prüfen vor dem Commit: `npx tsc --noEmit`, `npm run lint`, `npm test`.

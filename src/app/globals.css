@@ -1,7 +1,60 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-/* Klassisches Rot-Weiß. Farben nur hier ändern. */
+/* Design-Tokens. Farben nur hier – Komponenten nutzen nur die Namen.
+   Die Token-Namen (bg, panel, ink, accent …) sind dieselben wie im Inkfuchs-Design-System,
+   damit die Bausteine aus src/components/ui unverändert passen. Werte: klassisches Rot-Weiß. */
+:root {
+  color-scheme: light;
+  --bg: #f8f6f3;
+  --panel: #ffffff;
+  --elevated: #ffffff;
+  --line: #e7e1da;
+  --line-strong: #d6cec5;
+  --ink: #1f1a17;
+  --muted: #4f4842;
+  --subtle: #6f6760;
+  --hover: #f3efea;
+  --active: #ebe5de;
+  --accent: #9a1219;
+  --accent-hover: #7c0f15;
+  --accent-fg: #ffffff;
+  --accent-soft: color-mix(in srgb, #9a1219 9%, transparent);
+  --accent-ink: #9a1219;
+  --success: #1f7a4d;
+  --warning: #9a6700;
+  --info: #1d5fa8;
+  --danger: #b4141c;
+  --shadow-pop: 0 12px 32px -8px rgb(31 26 23 / 0.22), 0 0 0 1px rgb(31 26 23 / 0.06);
+}
+
 @theme {
+  /* Inkfuchs-Tokens */
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-elevated: var(--elevated);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-danger: var(--danger);
+
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-dialog: 14px;
+
+  /* Rot-Abstufungen und Papier-Töne der öffentlichen Seiten */
   --color-marke-50: #fdf4f4;
   --color-marke-100: #fbe6e6;
   --color-marke-200: #f3c7c8;
@@ -10,29 +63,105 @@
   --color-marke-700: #9a1219;
   --color-marke-800: #7c0f15;
   --color-marke-900: #5a0b10;
+  --color-papier: var(--bg);
+  --color-linie: var(--line);
+  --color-tinte: var(--ink);
+  --color-grau: var(--subtle);
 
-  --color-papier: #f8f6f3;
-  --color-linie: #e7e1da;
-  --color-tinte: #1f1a17;
-  --color-grau: #6f6760;
+  --animate-fade-in: fade-in 160ms ease-out;
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
 }
 
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-display: var(--font-playfair), Georgia, serif;
 }
 
-:root {
-  color-scheme: light;
-}
-
-body {
-  background: var(--color-papier);
-  color: var(--color-tinte);
+@layer base {
+  body {
+    background: var(--bg);
+    color: var(--ink);
+  }
+  ::selection {
+    background: var(--accent-soft);
+  }
+  td,
+  th,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 html {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Fokus immer sichtbar */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+/* iOS vergrößert die Seite beim Tippen in Felder unter 16 px */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+@media (pointer: coarse) {
+  .ui-control {
+    min-height: 44px;
+  }
+}
+@layer components {
+  @media (pointer: coarse) {
+    .ui-hit {
+      position: relative;
+    }
+    .ui-hit::after {
+      content: "";
+      position: absolute;
+      inset: min(0px, calc((100% - 44px) / 2));
+    }
+  }
+}
+
+.ui-skeleton {
+  background: linear-gradient(90deg, var(--hover) 25%, var(--active) 50%, var(--hover) 75%);
+  background-size: 200% 100%;
+  animation: ui-shimmer 1.2s linear infinite;
+}
+@keyframes ui-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Aufklapp-Pfeil von <summary> ausblenden */

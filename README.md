@@ -1,93 +1,101 @@
 # 👑 Prinzen-Kalender
 
-Planungskalender für die Karnevalssession 2026/27. Er zeigt Termine, Treffzeiten und Treffpunkte, **wer dabei ist** (Gruppen) und **wie viele Eintrittskarten** gebraucht werden. Die Termine lassen sich als **Kalender-Abo** auf allen Geräten einbinden.
+Planungskalender für die Karnevalssession 2026/27. Er zeigt Termine, Treffzeiten und Treffpunkte, **wer dabei ist** (Gruppen) und **wie viele Eintrittskarten** gebraucht werden. Dazu gibt es Kalender-Abos für alle Geräte und eine **Verwaltung** mit Login und Desktop-Kalender.
 
-**Technik:** Next.js 16 · Supabase (Postgres) · Vercel
+**Technik** (wie Inkfuchs):
+- Next.js 16 (App Router, Cache Components)
+- Better Auth: Passwort und Passkeys
+- Drizzle ORM und Postgres (Supabase)
+- Tailwind 4, Radix, lucide, sonner, cmdk
+- Hosting auf Vercel
 
-## Funktionen
+## Bereiche
 
-- **Terminliste**: Karte „Als Nächstes“, dazu Filter je Gruppe sowie für Karten/Anmeldung, Intern und Extern. Tagesprogramme mit vielen Punkten (z. B. *Weiberdonnerstag*) sind zu einer Karte zusammengefasst und lassen sich aufklappen.
-- **Monatsansicht**: farbig nach Gruppe; „Alle“ ist rot, „Jeder Verfügbare“ grau.
-- **Termin-Detail**: Treffen, Beginn, Ende (optional, sonst geschätzt), wer dabei ist, und der **Kartenbedarf**. Dieser wird aus den Personenzahlen der Gruppen errechnet und dem bestellten Stand gegenübergestellt. Treffpunkte öffnen die Karte.
-- **Kalender-Abos (ICS)**: ein Feed für alles und einer **pro Gruppe**. Buttons für Apple, Google und Outlook.
-- **Verwaltung** (`/verwaltung`):
-  - **Gruppen** anlegen und bearbeiten: Kürzel, Name, Personenzahl, Farbe und ob die Gruppe zu „Alle“ zählt.
-  - **Termine** anlegen, bearbeiten und löschen. „Wer ist dabei?“ lässt sich per Schnellbutton **Alle** oder **Jeder Verfügbare** setzen, oder man kreuzt einzelne Gruppen an.
-- **Zugriffsschutz**: Zugang per geheimem Link, Bearbeiten mit Passwort, die Seite wird nicht von Suchmaschinen indexiert.
+| Bereich | Adresse | Zugang |
+|---|---|---|
+| Ansicht (Termine, Monat, Abo) | `/` | Geheimer Link `/?k=<ZUGANG_TOKEN>` |
+| Kalender-Abos | `/kalender/<ZUGANG_TOKEN>/<filter>.ics` | Token in der Adresse |
+| Verwaltung | `/verwaltung` | Login (nur Administratoren) |
+| Ersteinrichtung | `/einrichtung` | Nur solange es noch kein Konto gibt |
 
-## Datenmodell
+### Verwaltung
 
-**Gruppen**: `id` (steht auch in der Abo-URL), `kuerzel`, `name`, `beschreibung`, `personen`, `farbe`, `in_alle` (z. B. Familie: nein), `sortierung`
-
-**Termine**:
-
-| Feld | Bedeutung |
-|---|---|
-| `treffzeit` / `treffpunkt` | Wann und wo wir uns treffen. Mit dieser Zeit beginnt der Kalendereintrag. |
-| `beginn` / `ort` | Offizieller Beginn und Veranstaltungsort |
-| `ende` | Optional. Fehlt es, wird die Dauer geschätzt. |
-| `anschluss_an` | „Im Anschluss an“ einen anderen Termin, für Termine ohne eigene Uhrzeit |
-| `tagesprogramm` | Fasst Programmpunkte eines Tages zusammen, z. B. *Weiberdonnerstag* |
-| `veranstalter`, `art` | Veranstalter; `intern` (eigene KG) oder `extern` |
-| `status` | `bestaetigt` / `vorbehalt` |
-| `umfang` + Gruppen | `alle`, `jeder_verfuegbare` oder `auswahl`; welche Gruppen angekreuzt sind, steht in der Tabelle `termin_gruppen` |
-| `anmeldung` / `karten_bestellt` | `eintrittskarte` / `voranmeldung` und wie viele bereits bestellt sind |
-| `hinweis`, `bemerkung`, `pruefen` | Wichtiger Hinweis (rot), freie Bemerkung, offene Frage |
+- **Kalender** (Tag, Woche, Monat):
+  - Termine ziehen verschiebt sie, unten ziehen ändert die Dauer, Ziehen auf freier Fläche legt einen neuen Termin an.
+  - **Rechtsklick-Menüs**: Details, Bearbeiten, Status, Kopieren / Einfügen, Duplizieren, Löschen, Neuer Termin um …
+  - Doppelklick bearbeitet. Die Detail-Seitenleiste zeigt den gewählten Termin.
+  - Tastatur: `T` heute, `←` `→` blättern, `D` `W` `M` Ansicht, `N` neu, `E` bearbeiten, `⌫` löschen, `⌘C` / `⌘V` kopieren und einfügen, `⌘Z` rückgängig, `?` Hilfe.
+- **Termine**: Liste mit Suche und Filtern (kommend, prüfen, Karten), Bearbeiten-Seite mit Verlauf.
+- **Gruppen**: Kürzel, Name, Personenzahl (für die Kartenberechnung), „zählt zu Alle“.
+- **Benutzer**: nur Administratoren, keine Rechte-Stufen.
+  - Den **Super-Admin** gibt es genau einmal. Er wird bei der Einrichtung angelegt und kann weder gelöscht noch deaktiviert werden; das sichert die Datenbank zusätzlich ab.
+  - Weitere Administratoren kommen per **Einladungslink** (zum Weitergeben per WhatsApp oder E-Mail). Für vergessene Passwörter gibt es einen **Passwort-Link**.
+  - Konten lassen sich deaktivieren und löschen.
+- **Mein Konto**: Name, Passwort, **Passkeys** (Face ID, Fingerabdruck), angemeldete Geräte.
+- **Protokoll**: wer hat wann was geändert. Bei jedem Termin ist der Verlauf sichtbar.
+- **⌘K**: Suche über Seiten, Aktionen und Termine.
 
 ## Einrichtung
 
 ### 1. Supabase
 
-1. Auf [supabase.com](https://supabase.com) ein neues Projekt anlegen, Region **Frankfurt (eu-central-1)**.
-2. Im **SQL Editor** nacheinander ausführen:
-   - `supabase/migrations/0001_init.sql` (Tabellen anlegen)
-   - `supabase/seed.sql` (Gruppen und Termine der Session 2026/27)
-3. Unter **Project Settings → API** die Project URL und den **Secret key** kopieren.
+1. Auf [supabase.com](https://supabase.com) ein Projekt anlegen, Region **Frankfurt (eu-central-1)**. Das Datenbank-Passwort notieren.
+2. Oben auf **Connect** klicken, dann **„Transaction pooler“** wählen und die URI kopieren. Sie sieht so aus:
+   `postgresql://postgres.xxxx:[YOUR-PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`
+   `[YOUR-PASSWORD]` durch das Datenbank-Passwort ersetzen.
 
-### 2. Vercel
+SQL von Hand ist **nicht nötig**: Tabellen und Startdaten legt die App beim Deploy selbst an.
 
-1. Das Repo in Vercel importieren (Framework: Next.js).
-2. Unter **Environment Variables** eintragen (siehe `.env.example`):
-   - `ZUGANG_TOKEN`: ein langes, zufälliges Wort, z. B. `openssl rand -base64 18 | tr '+/' '-_'`
-   - `BEARBEITEN_TOKEN`: Passwort für die Verwaltung
-   - `SUPABASE_URL` und `SUPABASE_SECRET_KEY`
-3. Deployen.
-4. Den Einladungslink `https://<domain>/?k=<ZUGANG_TOKEN>` in der Gruppe teilen. Danach merkt sich jeder Browser den Zugang.
+### 2. Vercel → Settings → Environment Variables
 
-Ohne Supabase zeigt die App auf Vercel nur die Startdaten an, Bearbeiten ist dann nicht möglich.
+| Variable | Wert |
+|---|---|
+| `DATABASE_URL` | die URI aus Schritt 1 |
+| `BETTER_AUTH_SECRET` | zufällig, mind. 32 Zeichen (`openssl rand -base64 32` oder ein Passwort-Generator) |
+| `ZUGANG_TOKEN` | geheimes Wort für den Ansichts-Link (Buchstaben, Ziffern, `-`) |
+| `SUPERADMIN_EMAIL` | deine E-Mail – nur damit geht die Ersteinrichtung |
 
-### ZUGANG_TOKEN und BEARBEITEN_TOKEN – was ist das?
+Danach unter **Deployments → ⋯ → Redeploy** neu bauen. Beim Build:
+- legt `db:einrichten` die Tabellen an und
+- spielt beim ersten Mal die Termine und Gruppen der Session ein.
 
-Das sind einfach **selbst ausgedachte geheime Wörter**, ähnlich wie ein Passwort.
+### 3. Super-Admin anlegen
 
-- **ZUGANG_TOKEN** steckt im Einladungslink und in den Kalender-Abos. Er sollte lang und nicht zu erraten sein, z. B. drei bis vier zufällige Wörter mit Bindestrich und eine Zahl. Bitte nur Buchstaben (ohne Umlaute), Ziffern und `-` verwenden, weil der Wert in einer Internetadresse steht. Merken muss sich den niemand, er wird nur über den Link verteilt.
-- **BEARBEITEN_TOKEN** ist das Passwort für die Verwaltung. Das tippt man einmal pro Gerät ein.
+`https://<deine-domain>/einrichtung` öffnen, Name und Passwort festlegen und danach unter **Mein Konto** einen Passkey hinzufügen.
 
-Eintragen in Vercel: Projekt → **Settings → Environment Variables** → *Key* `ZUGANG_TOKEN`, *Value* das ausgedachte Wort → **Save**. Danach unter **Deployments** beim obersten Eintrag „⋯ → **Redeploy**“ wählen. Erst dann gilt der neue Wert.
-
-Wird der ZUGANG_TOKEN später geändert, funktionieren alter Link und alte Abos nicht mehr. Das ist praktisch, falls der Link mal in falsche Hände gerät.
-
-### Lokal entwickeln
+## Lokal entwickeln
 
 ```bash
 npm install
+cp .env.example .env.local   # DATABASE_URL auf eine lokale Postgres-Datenbank, BETTER_AUTH_SECRET setzen
+npm run db:einrichten        # Migrationen + Startdaten
 npm run dev
 ```
 
-Ohne Supabase-Werte speichert die App lokal in `.daten/daten.json`. Die Datei ist nicht im Git; zum Zurücksetzen einfach löschen.
+| Befehl | Zweck |
+|---|---|
+| `npm run db:generate` | neue Migration nach Änderungen an `src/db/schema.ts` |
+| `npm run db:einrichten` | Migrationen anwenden (+ Startdaten, wenn leer) |
+| `npm test` | Unit-Tests (Vitest) |
+| `npm run lint` | ESLint |
 
-Startdaten geändert? Dann mit `npm run seed:sql` die Datei `supabase/seed.sql` neu erzeugen.
+Ohne `DATABASE_URL` läuft die Ansicht mit den Startdaten aus dem Repo, nur lesend, ohne Login.
 
 ## Kalender-Abo
 
-Feed-URL: `/kalender/<ZUGANG_TOKEN>/<filter>.ics`. Als Filter gehen `alle`, jede Gruppen-ID (z. B. `senat`), `karten`, `intern` und `extern`. Die Seite **/abo** zeigt fertige Buttons.
+Mögliche Filter sind `alle`, jede Gruppen-ID (z. B. `senat`), `karten`, `intern` und `extern`. Die Seite **/abo** zeigt fertige Buttons für Apple, Google und Outlook.
 
-- **Apple**: Aktualisierung etwa stündlich; in den Einstellungen bis auf 15 Minuten einstellbar.
-- **Google**: Aktualisierung nur etwa alle 8–24 Stunden. Für kurzfristige Änderungen deshalb die Webseite prüfen.
-- Jeder Termin hat eine feste UID. Änderungen aktualisieren also den bestehenden Eintrag und erzeugen keine Duplikate.
+- Apple aktualisiert etwa stündlich (einstellbar bis 15 Minuten), Google nur alle 8–24 Stunden.
+- Jeder Termin hat eine feste UID. Änderungen ersetzen also den Eintrag und erzeugen keine Duplikate.
 
-## Ausblick
+## Sicherheit
 
-- Warnung bei Überschneidungen
-- Personen in Gruppen (Namen statt nur Anzahl), Zu- und Absagen pro Termin
-- Druckansicht im Stil des KG-Plans, Import neuer KG-Listen
+- **Ansicht**: nur mit geheimem Link, nicht indexiert (`robots: noindex`).
+- **Anmeldung**:
+  - Passwörter speichert Better Auth als Hash (scrypt).
+  - Fehlversuche sind begrenzt (10 pro Minute und Adresse sowie pro Konto).
+  - Sitzungen werden bei jeder Anfrage geprüft, damit Deaktivieren sofort wirkt.
+- **Datenbank**:
+  - Alle Tabellen haben RLS ohne Freigaben, über die öffentliche Supabase-API ist also nichts lesbar.
+  - Zugriff gibt es nur über die Server-Verbindung.
+- **Server-Aktionen**: Jede Aktion prüft selbst, ob ein Administrator angemeldet ist.
