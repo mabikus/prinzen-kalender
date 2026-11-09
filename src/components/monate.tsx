@@ -91,172 +91,176 @@ export function Monate({
   const amTag = proTag.get(tag) ?? [];
 
   return (
-    <>
-      <div
-        // Kalender bleibt oben stehen, die Termine darunter scrollen (wie beim iPhone-Kalender)
-        className="sticky top-[calc(59px+env(safe-area-inset-top))] z-10 -mx-4 -mt-5 touch-pan-y select-none border-b border-linie bg-papier px-4 pb-1 pt-2 sm:-mt-6"
-        onTouchStart={(e) => {
-          const p = e.touches[0];
-          wisch.current = { x: p.clientX, y: p.clientY };
-        }}
-        onTouchEnd={(e) => {
-          const s = wisch.current;
-          wisch.current = null;
-          if (!s) return;
-          const p = e.changedTouches[0];
-          const dx = p.clientX - s.x;
-          if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(p.clientY - s.y) * 1.5) blaettern(dx < 0 ? 1 : -1);
-        }}
-      >
-        <div className="flex items-center justify-between gap-2 pb-1">
-          <h1 className="flex items-baseline gap-2">
-            <span className="font-serif text-[22px] font-semibold leading-none text-marke-800">{MONATE[m - 1]}</span>
-            <span className="text-[14px] text-grau">{y}</span>
-          </h1>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => waehle(heute)}
-              disabled={tag === heute}
-              className="mr-1 rounded-full border border-linie bg-panel px-3 py-1 text-[14px] font-semibold text-marke-700 active:bg-marke-50 disabled:border-transparent disabled:bg-transparent disabled:text-stone-300"
-            >
-              Heute
-            </button>
-            <button
-              type="button"
-              onClick={() => blaettern(-1)}
-              disabled={monat <= vonMonat}
-              aria-label="Voriger Monat"
-              className="grid size-10 place-items-center rounded-full text-marke-700 active:bg-marke-50 disabled:text-stone-300"
-            >
-              <ChevronLeft className="size-6" strokeWidth={1.75} />
-            </button>
-            <button
-              type="button"
-              onClick={() => blaettern(1)}
-              disabled={monat >= bisMonat}
-              aria-label="Nächster Monat"
-              className="grid size-10 place-items-center rounded-full text-marke-700 active:bg-marke-50 disabled:text-stone-300"
-            >
-              <ChevronRight className="size-6" strokeWidth={1.75} />
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[1.5rem_repeat(7,minmax(0,1fr))] pb-0.5">
-          <span />
-          {WT.map((w, i) => (
-            <span key={i} className={cn("text-center text-[12px] font-semibold", i >= 5 ? "text-grau" : "text-tinte")}>
-              {w}
-            </span>
-          ))}
-        </div>
-
-        {wochen(monat).map((woche, wi) => {
-          const ersterTag = woche.find(Boolean)!;
-          const aktuelleWoche = woche.includes(heute);
-          return (
-            <div key={wi} className={cn("grid grid-cols-[1.5rem_repeat(7,minmax(0,1fr))]", "border-t border-linie")}>
-              <span className={cn("pt-0.5 text-[10px] tabular-nums", aktuelleWoche ? "font-semibold text-marke-700" : "text-grau/80")}>
-                {kalenderwoche(ersterTag)}
-              </span>
-              {woche.map((d, i) => {
-                if (!d) return <span key={i} />;
-                const ts = proTag.get(d) ?? [];
-                const istHeute = d === heute;
-                const gewaehlt = d === tag;
-                return (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => waehle(d)}
-                    aria-label={`${datumLang(d)}, ${ts.length ? `${ts.length} ${ts.length === 1 ? "Termin" : "Termine"}` : "keine Termine"}`}
-                    aria-pressed={gewaehlt}
-                    className="flex h-[40px] flex-col items-center gap-[2px] pt-[2px]"
-                  >
-                    <span
-                      className={cn(
-                        "grid size-[30px] place-items-center rounded-full text-[17px] tabular-nums transition-colors",
-                        istHeute && "bg-marke-700 font-semibold text-white",
-                        !istHeute && gewaehlt && "bg-tinte font-semibold text-papier",
-                        !istHeute && !gewaehlt && (i >= 5 ? "text-grau" : "text-tinte"),
-                      )}
-                    >
-                      {Number(d.slice(8))}
-                    </span>
-                    {ts.length ? (
-                      <span className={cn("flex h-[5px] overflow-hidden rounded-full", d < heute && "opacity-50")}>
-                        {ts.slice(0, 5).map((t) => (
-                          <span key={t.id} className={cn("h-full w-[7px]", FARBE[t.umfang], t.status === "vorbehalt" && "opacity-60")} />
-                        ))}
-                      </span>
-                    ) : null}
-                  </button>
-                );
-              })}
+    // Wie eine App: Monat steht fest zwischen Kopf- und Tab-Leiste, nur die Termine darunter scrollen
+    <div className="fixed inset-x-0 top-[calc(59px+env(safe-area-inset-top))] bottom-[calc(56px+env(safe-area-inset-bottom))] z-10 bg-papier sm:bottom-0">
+      <div className="mx-auto flex h-full max-w-3xl flex-col pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
+          <div
+            className="shrink-0 touch-pan-y select-none border-b border-linie pb-1 pt-2"
+            onTouchStart={(e) => {
+              const p = e.touches[0];
+              wisch.current = { x: p.clientX, y: p.clientY };
+            }}
+            onTouchEnd={(e) => {
+              const s = wisch.current;
+              wisch.current = null;
+              if (!s) return;
+              const p = e.changedTouches[0];
+              const dx = p.clientX - s.x;
+              if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(p.clientY - s.y) * 1.5) blaettern(dx < 0 ? 1 : -1);
+            }}
+          >
+            <div className="flex items-center justify-between gap-2 pb-1">
+              <h1 className="flex items-baseline gap-2">
+                <span className="font-serif text-[22px] font-semibold leading-none text-marke-800">{MONATE[m - 1]}</span>
+                <span className="text-[14px] text-grau">{y}</span>
+              </h1>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => waehle(heute)}
+                  disabled={tag === heute}
+                  className="mr-1 rounded-full border border-linie bg-panel px-3 py-1 text-[14px] font-semibold text-marke-700 active:bg-marke-50 disabled:border-transparent disabled:bg-transparent disabled:text-stone-300"
+                >
+                  Heute
+                </button>
+                <button
+                  type="button"
+                  onClick={() => blaettern(-1)}
+                  disabled={monat <= vonMonat}
+                  aria-label="Voriger Monat"
+                  className="grid size-10 place-items-center rounded-full text-marke-700 active:bg-marke-50 disabled:text-stone-300"
+                >
+                  <ChevronLeft className="size-6" strokeWidth={1.75} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => blaettern(1)}
+                  disabled={monat >= bisMonat}
+                  aria-label="Nächster Monat"
+                  className="grid size-10 place-items-center rounded-full text-marke-700 active:bg-marke-50 disabled:text-stone-300"
+                >
+                  <ChevronRight className="size-6" strokeWidth={1.75} />
+                </button>
+              </div>
             </div>
-          );
-        })}
-      </div>
 
-      {/* Termine des gewählten Tages */}
-      <section aria-live="polite" className="pt-3">
-        <h2 className="px-1 pb-2 text-[13px] font-semibold uppercase tracking-wide text-grau">
-          {datumLang(tag).replace(/ \d{4}$/, "")}
-          {tag === heute ? " · heute" : ""}
-        </h2>
-        {amTag.length ? (
-          <ul className="divide-y divide-linie overflow-hidden rounded-[14px] border border-linie bg-panel">
-            {amTag.map((t) => {
-              const z = plan.get(t.id);
-              const ort = t.treffzeit ? (t.treffpunkt ?? t.ort) : (t.ort ?? t.treffpunkt);
+            <div className="grid grid-cols-[1.5rem_repeat(7,minmax(0,1fr))] pb-0.5">
+              <span />
+              {WT.map((w, i) => (
+                <span key={i} className={cn("text-center text-[12px] font-semibold", i >= 5 ? "text-grau" : "text-tinte")}>
+                  {w}
+                </span>
+              ))}
+            </div>
+
+            {wochen(monat).map((woche, wi) => {
+              const ersterTag = woche.find(Boolean)!;
+              const aktuelleWoche = woche.includes(heute);
               return (
-                <li key={t.id}>
-                  <Link href={`/termin/${t.id}`} className="flex items-stretch gap-3 px-3 py-3 active:bg-papier">
-                    <span className={cn("w-1 shrink-0 rounded-full", FARBE[t.umfang], t.status === "vorbehalt" && "opacity-60")} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[17px] font-semibold leading-snug text-tinte">{t.titel}</span>
-                      {ort ? (
-                        <span className="mt-0.5 flex items-center gap-1 text-[14px] text-grau">
-                          <MapPin className="size-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
-                          <span className="truncate">{ort}</span>
+                <div key={wi} className={cn("grid grid-cols-[1.5rem_repeat(7,minmax(0,1fr))]", "border-t border-linie")}>
+                  <span className={cn("pt-0.5 text-[10px] tabular-nums", aktuelleWoche ? "font-semibold text-marke-700" : "text-grau/80")}>
+                    {kalenderwoche(ersterTag)}
+                  </span>
+                  {woche.map((d, i) => {
+                    if (!d) return <span key={i} />;
+                    const ts = proTag.get(d) ?? [];
+                    const istHeute = d === heute;
+                    const gewaehlt = d === tag;
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => waehle(d)}
+                        aria-label={`${datumLang(d)}, ${ts.length ? `${ts.length} ${ts.length === 1 ? "Termin" : "Termine"}` : "keine Termine"}`}
+                        aria-pressed={gewaehlt}
+                        className="flex h-[40px] flex-col items-center gap-[2px] pt-[2px]"
+                      >
+                        <span
+                          className={cn(
+                            "grid size-[30px] place-items-center rounded-full text-[17px] tabular-nums transition-colors",
+                            istHeute && "bg-marke-700 font-semibold text-white",
+                            !istHeute && gewaehlt && "bg-tinte font-semibold text-papier",
+                            !istHeute && !gewaehlt && (i >= 5 ? "text-grau" : "text-tinte"),
+                          )}
+                        >
+                          {Number(d.slice(8))}
                         </span>
-                      ) : null}
-                      <span className="mt-0.5 block truncate text-[13px] text-grau">
-                        {werText(t, gruppen)}
-                        {t.status === "vorbehalt" ? " · unter Vorbehalt" : ""}
-                      </span>
-                    </span>
-                    <span className="shrink-0 text-right text-[14px] leading-snug tabular-nums">
-                      {z && !z.ganztags && z.start != null ? (
-                        <>
-                          <span className="block font-semibold text-tinte">{hhmm(z.start)}</span>
-                          {t.treffzeit && t.beginn && t.treffzeit !== t.beginn ? (
-                            <span className="block text-grau">Beginn {t.beginn}</span>
-                          ) : z.ende != null ? (
-                            <span className="block text-grau">
-                              {t.ende ? "" : "ca. "}
-                              {hhmm(z.ende % 1440)}
-                            </span>
-                          ) : null}
-                        </>
-                      ) : (
-                        <span className="flex items-center gap-1 text-grau">
-                          <Clock className="size-3.5" strokeWidth={1.75} aria-hidden />
-                          offen
-                        </span>
-                      )}
-                    </span>
-                  </Link>
-                </li>
+                        {ts.length ? (
+                          <span className={cn("flex h-[5px] overflow-hidden rounded-full", d < heute && "opacity-50")}>
+                            {ts.slice(0, 5).map((t) => (
+                              <span key={t.id} className={cn("h-full w-[7px]", FARBE[t.umfang], t.status === "vorbehalt" && "opacity-60")} />
+                            ))}
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
               );
             })}
-          </ul>
-        ) : (
-          <p className="px-1 py-4 text-[16px] text-grau">Keine Termine</p>
-        )}
-      </section>
+          </div>
 
-    </>
+          {/* Termine des gewählten Tages */}
+          <section
+            aria-live="polite"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            <h2 className="px-1 pb-2 text-[13px] font-semibold uppercase tracking-wide text-grau">
+              {datumLang(tag).replace(/ \d{4}$/, "")}
+              {tag === heute ? " · heute" : ""}
+            </h2>
+            {amTag.length ? (
+              <ul className="divide-y divide-linie overflow-hidden rounded-[14px] border border-linie bg-panel">
+                {amTag.map((t) => {
+                  const z = plan.get(t.id);
+                  const ort = t.treffzeit ? (t.treffpunkt ?? t.ort) : (t.ort ?? t.treffpunkt);
+                  return (
+                    <li key={t.id}>
+                      <Link href={`/termin/${t.id}`} className="flex items-stretch gap-3 px-3 py-3 active:bg-papier">
+                        <span className={cn("w-1 shrink-0 rounded-full", FARBE[t.umfang], t.status === "vorbehalt" && "opacity-60")} />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-[17px] font-semibold leading-snug text-tinte">{t.titel}</span>
+                          {ort ? (
+                            <span className="mt-0.5 flex items-center gap-1 text-[14px] text-grau">
+                              <MapPin className="size-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
+                              <span className="truncate">{ort}</span>
+                            </span>
+                          ) : null}
+                          <span className="mt-0.5 block truncate text-[13px] text-grau">
+                            {werText(t, gruppen)}
+                            {t.status === "vorbehalt" ? " · unter Vorbehalt" : ""}
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-right text-[14px] leading-snug tabular-nums">
+                          {z && !z.ganztags && z.start != null ? (
+                            <>
+                              <span className="block font-semibold text-tinte">{hhmm(z.start)}</span>
+                              {t.treffzeit && t.beginn && t.treffzeit !== t.beginn ? (
+                                <span className="block text-grau">Beginn {t.beginn}</span>
+                              ) : z.ende != null ? (
+                                <span className="block text-grau">
+                                  {t.ende ? "" : "ca. "}
+                                  {hhmm(z.ende % 1440)}
+                                </span>
+                              ) : null}
+                            </>
+                          ) : (
+                            <span className="flex items-center gap-1 text-grau">
+                              <Clock className="size-3.5" strokeWidth={1.75} aria-hidden />
+                              offen
+                            </span>
+                          )}
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="px-1 py-4 text-[16px] text-grau">Keine Termine</p>
+            )}
+          </section>
+      </div>
+    </div>
   );
 }
