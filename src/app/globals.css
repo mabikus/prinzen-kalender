@@ -262,6 +262,12 @@ summary::-webkit-details-marker {
   }
 }
 
+/* Die ganze Seite (Kopfzeile, Tab-Leiste) nie überblenden – sonst liegen zwei Bilder übereinander */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
 /* Tab-Wechsel: alte Seite blendet kurz aus, neue gleitet weich ein (React <ViewTransition default="seite">) */
 ::view-transition-old(.seite) {
   animation: 140ms ease-out both seite-raus;

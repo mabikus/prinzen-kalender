@@ -45,6 +45,7 @@ export function NavLinks({ pfad, variante }: { pfad: string | null; variante: Va
                 <Link
                   href={n.href}
                   prefetch
+                  transitionTypes={["tab"]}
                   aria-current={aktiv ? "page" : undefined}
                   aria-label={n.label}
                   title={n.label}
@@ -70,6 +71,8 @@ export function NavLinks({ pfad, variante }: { pfad: string | null; variante: Va
           <Link
             key={n.href}
             href={n.href}
+            prefetch
+            transitionTypes={["tab"]}
             aria-current={aktiv ? "page" : undefined}
             title={n.label}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-semibold transition ${

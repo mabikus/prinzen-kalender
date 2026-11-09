@@ -36,8 +36,11 @@ export default async function OeffentlichLayout({ children, modal }: LayoutProps
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-6 pt-5 sm:pt-6">
-        {/* Weicher Übergang beim Tab-Wechsel (React View Transitions) */}
-        <ViewTransition default="seite">{children}</ViewTransition>
+        {/* Weicher Übergang nur beim Tab-Wechsel (Links mit transitionTypes={["tab"]}) – nicht beim
+            Aktualisieren, Filtern oder Öffnen eines Termins */}
+        <ViewTransition default="none" update={{ tab: "seite", default: "none" }}>
+          {children}
+        </ViewTransition>
       </main>
       <footer className="mx-auto max-w-3xl space-y-1 px-4 pb-[var(--tab-platz)] text-xs text-grau sm:pb-10">
         {quelle === "startdaten" && <p>Datenquelle: Startdaten im Repo (Datenbank noch nicht verbunden).</p>}
