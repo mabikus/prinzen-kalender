@@ -56,6 +56,10 @@ export interface Termin {
   beginn: string | null;
   /** Veranstaltungsort, falls abweichend vom Treffpunkt */
   ort: string | null;
+  /** Adresse des Veranstaltungsorts (optional, für Navigation und Kalender) */
+  strasse: string | null;
+  plz: string | null;
+  stadt: string | null;
   /** HH:MM – optional, sonst wird eine Dauer geschätzt */
   ende: string | null;
   /** ID eines Termins am selben Tag, an den dieser "im Anschluss" folgt

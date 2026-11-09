@@ -2,6 +2,7 @@
 // Funktioniert mit Apple Kalender, Google Kalender, Outlook, Thunderbird usw.
 
 import { ANMELDUNG, ART, personenBedarf, STATUS, werText } from "./labels";
+import { adresseText } from "./adresse";
 import type { Daten, Termin } from "./types";
 import { naechsterTag, verschiebe, zeitplan, ZEITZONE } from "./zeit";
 
@@ -71,6 +72,8 @@ export function beschreibung(t: Termin, daten: Daten, link?: string): string {
     z.push(`Im Anschluss${v ? ` an: ${v.titel}` : ""}`);
   }
   if (t.beginn || t.ort) z.push(`Beginn: ${[t.beginn, t.ort].filter(Boolean).join(" – ")}`);
+  const adresse = adresseText(t);
+  if (adresse) z.push(`Adresse: ${adresse}`);
   if (t.veranstalter) z.push(`Veranstalter: ${t.veranstalter}`);
   z.push(`Wer: ${werText(t, daten.gruppen)}`);
   if (t.anmeldung) {
@@ -117,9 +120,11 @@ export function kalender(
     ]
       .filter(Boolean)
       .join(" ");
-    const ort = [t.treffpunkt && t.treffpunkt !== "im Anschluss" ? t.treffpunkt : null, t.ort]
-      .filter(Boolean)
-      .join(" → ");
+    // Mit Adresse: Veranstaltungsort mit Adresse (Karten-Apps finden ihn genau), sonst Treffpunkt → Ort
+    const adresse = adresseText(t);
+    const ort = adresse
+      ? [t.ort ?? t.treffpunkt, adresse].filter(Boolean).join(", ")
+      : [t.treffpunkt && t.treffpunkt !== "im Anschluss" ? t.treffpunkt : null, t.ort].filter(Boolean).join(" → ");
 
     zeilen.push("BEGIN:VEVENT", `UID:${t.id}@${UID_DOMAIN}`, `DTSTAMP:${stempel}`);
     if (!z || z.ganztags || z.start === null || z.ende === null) {

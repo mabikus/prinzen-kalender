@@ -20,6 +20,9 @@ function leererTermin(v: Vorlage = {}): TerminEingabe {
     treffpunkt: null,
     beginn: v.beginn ?? null,
     ort: null,
+    strasse: null,
+    plz: null,
+    stadt: null,
     ende: v.ende ?? null,
     anschluss_an: null,
     titel: "",
@@ -77,6 +80,7 @@ function TextZeile({
   liste,
   pflicht,
   autoFocus,
+  autoComplete = "off",
 }: {
   /** Kleine Bezeichnung links (bei ausgefüllten Feldern sonst nicht erkennbar) */
   label?: string;
@@ -87,10 +91,11 @@ function TextZeile({
   liste?: string;
   pflicht?: boolean;
   autoFocus?: boolean;
+  autoComplete?: string;
 }) {
   return (
     <label className="flex min-h-[52px] items-center gap-3 px-4">
-      {label ? <span className="w-[6.5rem] shrink-0 text-[15px] text-subtle">{label}</span> : null}
+      {label ? <span className="w-[8rem] shrink-0 text-[15px] text-subtle">{label}</span> : null}
       <input
         value={wert ?? ""}
         onChange={(e) => setze(e.target.value || null)}
@@ -99,7 +104,7 @@ function TextZeile({
         list={liste}
         required={pflicht}
         autoFocus={autoFocus}
-        autoComplete="off"
+        autoComplete={autoComplete}
         className={cn(textfeld, gross && "font-display text-[20px] font-semibold")}
       />
     </label>
@@ -272,6 +277,7 @@ export function TerminFormular({
 }) {
   const [w, setW] = useState<TerminEingabe>(() => (termin ? { ...termin } : leererTermin(vorlage)));
   const [fehler, setFehler] = useState<string>();
+  const [adresseOffen, setAdresseOffen] = useState(() => !!(w.strasse || w.plz || w.stadt));
   const [laeuft, starte] = useTransition();
   const setze = <K extends keyof TerminEingabe>(k: K, v: TerminEingabe[K]) => setW((x) => ({ ...x, [k]: v }));
   useEffect(() => onLaeuft?.(laeuft), [laeuft, onLaeuft]);
@@ -336,15 +342,42 @@ export function TerminFormular({
 
       <Liste>
         <TextZeile wert={w.titel} setze={(v) => setze("titel", v ?? "")} platzhalter="Titel" gross pflicht autoFocus={!termin} />
-        <TextZeile label="Treffpunkt" wert={w.treffpunkt} setze={(v) => setze("treffpunkt", v)} platzhalter="z. B. Häusje" liste="pk-orte" />
-        <TextZeile label="Ort" wert={w.ort} setze={(v) => setze("ort", v)} platzhalter="falls anders" liste="pk-orte" />
+        <ZeitZeile label="Datum" typ="date" wert={w.datum || null} setze={(v) => setze("datum", v ?? "")} anzeige={w.datum ? datumLang(w.datum) : undefined} leerText="wählen" pflicht />
       </Liste>
 
-      <Liste titel="Wann" fuss="Der Termin steht ab der Treffzeit im Kalender. Ohne Ende wird die Dauer geschätzt.">
-        <ZeitZeile label="Datum" typ="date" wert={w.datum || null} setze={(v) => setze("datum", v ?? "")} anzeige={w.datum ? datumLang(w.datum) : undefined} leerText="wählen" pflicht />
+      <Liste titel="Treffen" fuss="Wann und wo wir uns treffen. Im Kalender steht der Termin ab der Treffzeit.">
         <ZeitZeile label="Treffzeit" typ="time" wert={w.treffzeit} setze={(v) => setze("treffzeit", v)} anzeige={hhmmText(w.treffzeit)} leerText="hinzufügen" loeschbar />
+        <TextZeile label="Treffpunkt" wert={w.treffpunkt} setze={(v) => setze("treffpunkt", v)} platzhalter="z. B. Hotel zum Stern" liste="pk-orte" />
+      </Liste>
+
+      <Liste titel="Veranstaltung" fuss="Ohne Ende wird die Dauer geschätzt. Die Adresse hilft bei der Navigation und steht im Kalender-Abo.">
         <ZeitZeile label="Beginn" typ="time" wert={w.beginn} setze={(v) => setze("beginn", v)} anzeige={hhmmText(w.beginn)} leerText="hinzufügen" loeschbar />
         <ZeitZeile label="Ende" typ="time" wert={w.ende} setze={(v) => setze("ende", v)} anzeige={hhmmText(w.ende)} leerText="optional" loeschbar />
+        <TextZeile label="Veranstaltungsort" wert={w.ort} setze={(v) => setze("ort", v)} platzhalter="falls anders als Treffpunkt" liste="pk-orte" />
+        {adresseOffen ? (
+          <>
+            <TextZeile label="Straße" wert={w.strasse} setze={(v) => setze("strasse", v)} platzhalter="Straße und Hausnummer" autoComplete="street-address" />
+            <label className="flex min-h-[52px] items-center gap-3 px-4">
+              <span className="w-[8rem] shrink-0 text-[15px] text-subtle">PLZ</span>
+              <input
+                value={w.plz ?? ""}
+                onChange={(e) => setze("plz", e.target.value.replace(/\D/g, "").slice(0, 5) || null)}
+                placeholder="z. B. 53474"
+                aria-label="Postleitzahl"
+                inputMode="numeric"
+                autoComplete="postal-code"
+                className={cn(textfeld, "tabular-nums")}
+              />
+            </label>
+            <TextZeile label="Stadt" wert={w.stadt} setze={(v) => setze("stadt", v)} platzhalter="z. B. Bad Neuenahr-Ahrweiler" autoComplete="address-level2" />
+          </>
+        ) : (
+          <button type="button" onClick={() => setAdresseOffen(true)} className="flex min-h-[52px] w-full items-center gap-2 px-4 text-left text-[16px] text-accent-ink active:bg-hover">
+            <Plus className="size-[18px]" />
+            Adresse hinzufügen
+          </button>
+        )}
+        <TextZeile label="Veranstalter" wert={w.veranstalter} setze={(v) => setze("veranstalter", v)} platzhalter="–" liste="pk-veranstalter" />
         {selberTag.length ? (
           <AuswahlZeile
             label="Im Anschluss an"
@@ -477,7 +510,6 @@ export function TerminFormular({
       </Liste>
 
       <Liste titel="Weitere Angaben" fuss="Gleiches Tagesprogramm am selben Tag fasst Termine zusammen, z. B. „Weiberdonnerstag“.">
-        <TextZeile label="Veranstalter" wert={w.veranstalter} setze={(v) => setze("veranstalter", v)} platzhalter="–" liste="pk-veranstalter" />
         <TextZeile label="Programm" wert={w.tagesprogramm} setze={(v) => setze("tagesprogramm", v)} platzhalter="–" liste="pk-programme" />
       </Liste>
 

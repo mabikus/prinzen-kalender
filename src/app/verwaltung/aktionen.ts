@@ -53,6 +53,9 @@ export interface TerminEingabe {
   treffpunkt: string | null;
   beginn: string | null;
   ort: string | null;
+  strasse: string | null;
+  plz: string | null;
+  stadt: string | null;
   ende: string | null;
   anschluss_an: string | null;
   titel: string;
@@ -77,6 +80,12 @@ function uhrzeit(v: unknown, feld: string): string | null {
   const m = /^(\d{1,2})[:.](\d{2})/.exec(s);
   if (!m || Number(m[1]) > 23 || Number(m[2]) > 59) throw new BenutzerFehler(`Ungültige Uhrzeit bei „${feld}“: ${s}`);
   return `${m[1].padStart(2, "0")}:${m[2]}`;
+}
+
+function postleitzahl(v: unknown): string | null {
+  const s = leer(v);
+  if (s !== null && !/^\d{4,5}$/.test(s)) throw new BenutzerFehler(`Ungültige Postleitzahl: ${s}`);
+  return s;
 }
 
 function wahl<T extends string>(v: unknown, erlaubt: readonly T[], standard: T): T {
@@ -106,6 +115,9 @@ async function zuTermin(e: TerminEingabe): Promise<Termin> {
     treffpunkt: leer(e.treffpunkt),
     beginn: uhrzeit(e.beginn, "Beginn"),
     ort: leer(e.ort),
+    strasse: leer(e.strasse),
+    plz: postleitzahl(e.plz),
+    stadt: leer(e.stadt),
     ende: uhrzeit(e.ende, "Ende"),
     anschluss_an:
       e.anschluss_an && e.anschluss_an !== id && daten.termine.some((t) => t.id === e.anschluss_an) ? e.anschluss_an : null,

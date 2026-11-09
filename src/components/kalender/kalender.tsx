@@ -32,6 +32,7 @@ import { Blatt } from "@/components/admin/blatt";
 import { TerminFormular, type Vorlage } from "@/components/admin/termin-formular";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
+import { adresseText, kartenLink } from "@/lib/adresse";
 import { Segmented, Select } from "@/components/ui/controls";
 import { Kbd } from "@/components/ui/display";
 import { Dialog, useConfirm } from "@/components/ui/overlay";
@@ -663,6 +664,7 @@ function DetailsInhalt({ t, gruppen, vorher }: { t: Termin; gruppen: Gruppe[]; v
               <strong className="tabular-nums">{t.beginn}</strong> {t.ort}
             </Zeile>
           ) : null}
+          {adresseText(t) ? <Zeile label="Adresse">{adresseText(t)}</Zeile> : null}
           {t.ende ? <Zeile label="Ende">{t.ende}</Zeile> : null}
           {t.veranstalter ? <Zeile label="Veranstalter">{t.veranstalter}</Zeile> : null}
           <Zeile label="Status">{STATUS[t.status]}</Zeile>
@@ -685,9 +687,20 @@ function DetailsInhalt({ t, gruppen, vorher }: { t: Termin; gruppen: Gruppe[]; v
             {t.pruefen}
           </p>
         ) : null}
+        {adresseText(t) ? (
+          <a
+            href={kartenLink(t.ort ?? t.treffpunkt, adresseText(t))}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-1.5 text-[13px] text-accent-ink hover:underline"
+          >
+            <MapPin className="size-4" />
+            Veranstaltungsort auf der Karte
+          </a>
+        ) : null}
         {t.treffpunkt && t.treffpunkt !== "im Anschluss" ? (
           <a
-            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${t.treffpunkt}, Kreis Ahrweiler`)}`}
+            href={kartenLink(t.treffpunkt)}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 text-[13px] text-accent-ink hover:underline"

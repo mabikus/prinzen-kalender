@@ -15,6 +15,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ANMELDUNG_ICON, GruppenBadges, I } from "@/components/termin";
+import { adresseText, kartenLink } from "@/lib/adresse";
 import { ladeDaten } from "@/lib/daten";
 import { ANMELDUNG, ART, personenBedarf, STATUS, UMFANG } from "@/lib/labels";
 import { aktuellerAdmin } from "@/lib/sitzung";
@@ -28,10 +29,6 @@ export default function TerminSeite({ params }: PageProps<"/termin/[id]">) {
   );
 }
 
-/** Link zur Kartensuche – öffnet am iPhone/Android die Karten-App. */
-function karte(ort: string) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ort}, Kreis Ahrweiler`)}`;
-}
 
 /** Weiße Karte mit Trennlinien (wie eine Liste in einer App) */
 function Karte({ titel, children }: { titel?: string; children: React.ReactNode }) {
@@ -54,7 +51,19 @@ function Info({ label, children }: { label: string; children: React.ReactNode })
 }
 
 /** Ort als antippbare Zeile – öffnet die Navigation */
-function OrtZeile({ icon, label, name, zeit }: { icon: LucideIcon; label: string; name: string; zeit?: string | null }) {
+function OrtZeile({
+  icon,
+  label,
+  name,
+  zeit,
+  adresse,
+}: {
+  icon: LucideIcon;
+  label: string;
+  name: string;
+  zeit?: string | null;
+  adresse?: string | null;
+}) {
   const inhalt = (
     <>
       <span className="grid size-10 shrink-0 place-items-center rounded-full bg-marke-50 text-marke-700">
@@ -66,12 +75,13 @@ function OrtZeile({ icon, label, name, zeit }: { icon: LucideIcon; label: string
           {zeit ? <span className="text-tinte"> · {zeit} Uhr</span> : null}
         </span>
         <span className="block text-[17px] font-semibold leading-snug text-tinte">{name}</span>
+        {adresse && adresse !== name ? <span className="block text-[15px] leading-snug text-grau">{adresse}</span> : null}
       </span>
     </>
   );
   if (name === "im Anschluss") return <div className="flex items-center gap-3 px-4 py-3">{inhalt}</div>;
   return (
-    <a href={karte(name)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-3 active:bg-papier">
+    <a href={kartenLink(name, adresse)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-3 active:bg-papier">
       {inhalt}
       <I icon={Navigation} className="size-[18px] text-marke-700" />
     </a>
@@ -89,6 +99,9 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
   const geschaetzt = !t.ende && z?.ende != null;
   const bedarf = personenBedarf(t, daten.gruppen);
   const bearbeiten = !!(await aktuellerAdmin());
+  const adresse = adresseText(t);
+  // Veranstaltungsort: eigener Name, sonst (bei Adresse) der Treffpunkt bzw. die Adresse selbst
+  const venue = (t.ort && t.ort !== t.treffpunkt) || adresse ? (t.ort ?? t.treffpunkt ?? adresse!) : null;
 
   // Zeitleiste: Treffen · Beginn · Ende (nur was es gibt)
   const zeiten: { label: string; wert: string; ca?: boolean }[] = [];
@@ -165,7 +178,7 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
       ) : null}
 
       {/* Orte */}
-      {t.treffpunkt || t.ort || vorher ? (
+      {t.treffpunkt || venue || vorher ? (
         <Karte>
           {vorher ? (
             <Link href={`/termin/${encodeURIComponent(vorher.id)}`} className="flex items-center gap-3 px-4 py-3">
@@ -180,7 +193,7 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
             </Link>
           ) : null}
           {t.treffpunkt ? <OrtZeile icon={MapPin} label="Treffpunkt" name={t.treffpunkt} zeit={t.treffzeit} /> : null}
-          {t.ort && t.ort !== t.treffpunkt ? <OrtZeile icon={Flag} label="Veranstaltungsort" name={t.ort} zeit={t.beginn} /> : null}
+          {venue ? <OrtZeile icon={Flag} label="Veranstaltungsort" name={venue} zeit={t.beginn} adresse={adresse} /> : null}
         </Karte>
       ) : null}
 
@@ -243,9 +256,20 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
           <I icon={CalendarPlus} className="size-5" />
           In meinen Kalender
         </a>
+        {venue && adresse ? (
+          <a
+            href={kartenLink(venue, adresse)}
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-[52px] items-center justify-center gap-2 rounded-[14px] border border-linie bg-panel text-[16px] font-semibold text-tinte active:bg-papier"
+          >
+            <I icon={Navigation} className="size-5" />
+            Zum Veranstaltungsort navigieren
+          </a>
+        ) : null}
         {t.treffpunkt && t.treffpunkt !== "im Anschluss" ? (
           <a
-            href={karte(t.treffpunkt)}
+            href={kartenLink(t.treffpunkt)}
             target="_blank"
             rel="noreferrer"
             className="flex h-[52px] items-center justify-center gap-2 rounded-[14px] border border-linie bg-panel text-[16px] font-semibold text-tinte active:bg-papier"
