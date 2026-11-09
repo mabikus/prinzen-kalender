@@ -2,27 +2,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import {
-  ArrowLeft,
-  ArrowUpRight,
   CalendarPlus,
-  CircleCheck,
+  ChevronLeft,
+  ChevronRight,
   CircleHelp,
   Clock,
-  FileText,
   Flag,
-  Landmark,
   MapPin,
-  MessageSquareText,
   Navigation,
   Pencil,
   TriangleAlert,
-  Users,
   type LucideIcon,
 } from "lucide-react";
 import { ANMELDUNG_ICON, GruppenBadges, I } from "@/components/termin";
-import { aktuellerAdmin } from "@/lib/sitzung";
 import { ladeDaten } from "@/lib/daten";
 import { ANMELDUNG, ART, personenBedarf, STATUS, UMFANG } from "@/lib/labels";
+import { aktuellerAdmin } from "@/lib/sitzung";
 import { datumLang, zeitplan, zeitText } from "@/lib/zeit";
 
 export default function TerminSeite({ params }: PageProps<"/termin/[id]">) {
@@ -33,40 +28,55 @@ export default function TerminSeite({ params }: PageProps<"/termin/[id]">) {
   );
 }
 
-/** Link zur Kartensuche – funktioniert auf iPhone, Android und am PC. */
+/** Link zur Kartensuche – öffnet am iPhone/Android die Karten-App. */
 function karte(ort: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ort}, Kreis Ahrweiler`)}`;
 }
 
-function Zeile({ icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
+/** Weiße Karte mit Trennlinien (wie eine Liste in einer App) */
+function Karte({ titel, children }: { titel?: string; children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[7.5rem_1fr] gap-3 border-b border-linie py-3 last:border-0">
-      <dt className="flex items-center gap-2 self-start pt-0.5 text-sm text-grau">
-        <I icon={icon} className="size-4" />
-        {label}
-      </dt>
-      <dd className="min-w-0">{children}</dd>
+    <section>
+      {titel ? <h2 className="px-1 pb-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-grau">{titel}</h2> : null}
+      <div className="divide-y divide-linie overflow-hidden rounded-[14px] border border-linie bg-white">{children}</div>
+    </section>
+  );
+}
+
+/** Info-Zeile: kleine Bezeichnung oben, Inhalt darunter – bricht nie unschön um */
+function Info({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="px-4 py-3">
+      <div className="text-[13px] font-medium text-grau">{label}</div>
+      <div className="mt-0.5 text-[16px] leading-snug text-tinte">{children}</div>
     </div>
   );
 }
 
-function Ort({ name }: { name: string }) {
-  if (name === "im Anschluss") return <>{name}</>;
+/** Ort als antippbare Zeile – öffnet die Navigation */
+function OrtZeile({ icon, label, name, zeit }: { icon: LucideIcon; label: string; name: string; zeit?: string | null }) {
+  const inhalt = (
+    <>
+      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-marke-50 text-marke-700">
+        <I icon={icon} className="size-[18px]" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-medium text-grau">
+          {label}
+          {zeit ? <span className="text-tinte"> · {zeit} Uhr</span> : null}
+        </span>
+        <span className="block text-[17px] font-semibold leading-snug text-tinte">{name}</span>
+      </span>
+    </>
+  );
+  if (name === "im Anschluss") return <div className="flex items-center gap-3 px-4 py-3">{inhalt}</div>;
   return (
-    <a
-      href={karte(name)}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex items-center gap-0.5 text-marke-700 underline decoration-marke-200 underline-offset-2 hover:decoration-marke-700"
-    >
-      {name}
-      <I icon={ArrowUpRight} className="size-3.5" />
+    <a href={karte(name)} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-4 py-3 active:bg-papier">
+      {inhalt}
+      <I icon={Navigation} className="size-[18px] text-marke-700" />
     </a>
   );
 }
-
-const KNOPF =
-  "inline-flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold ring-1 ring-inset transition";
 
 async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
   const { id } = await params;
@@ -80,176 +90,175 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
   const bedarf = personenBedarf(t, daten.gruppen);
   const bearbeiten = !!(await aktuellerAdmin());
 
+  // Zeitleiste: Treffen · Beginn · Ende (nur was es gibt)
+  const zeiten: { label: string; wert: string; ca?: boolean }[] = [];
+  if (t.treffzeit) zeiten.push({ label: "Treffen", wert: t.treffzeit });
+  if (t.beginn) zeiten.push({ label: "Beginn", wert: t.beginn });
+  if (!t.treffzeit && !t.beginn && z?.start != null) zeiten.push({ label: "danach", wert: zeitText(z.start), ca: true });
+  if (z?.ende != null) zeiten.push({ label: "Ende", wert: zeitText(z.ende), ca: geschaetzt });
+
   return (
-    <article className="space-y-6">
+    <article className="space-y-5">
+      {/* Kopf */}
       <div className="flex items-center justify-between">
-        <Link href={`/#${t.datum}`} className="inline-flex items-center gap-1.5 text-sm text-grau hover:text-marke-700">
-          <I icon={ArrowLeft} className="size-4" />
-          Übersicht
+        <Link href={`/#${t.datum}`} className="-ml-2 inline-flex items-center gap-0.5 rounded-md px-2 py-1.5 text-[16px] text-marke-700">
+          <I icon={ChevronLeft} className="size-5" />
+          Termine
         </Link>
-        {bearbeiten && (
+        {bearbeiten ? (
           <Link
             href={`/verwaltung/termine/${encodeURIComponent(t.id)}`}
-            className={`${KNOPF} bg-white py-1.5 text-tinte/80 ring-linie hover:text-marke-700 hover:ring-marke-300`}
+            className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[15px] font-semibold text-marke-700 ring-1 ring-inset ring-linie"
           >
             <I icon={Pencil} className="size-4" />
             Bearbeiten
           </Link>
-        )}
+        ) : null}
       </div>
 
-      <header className="space-y-3 border-b border-linie pb-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-marke-700">
-          {ART[t.art]}
-          {t.tagesprogramm && ` · ${t.tagesprogramm}`}
-        </p>
-        <h1 className="font-serif lining-nums text-4xl font-semibold leading-tight">{t.titel}</h1>
-        <p className="text-lg text-tinte/80">{datumLang(t.datum)}</p>
-        <p
-          className={`inline-flex items-center gap-1.5 text-sm font-medium ${
-            t.status === "vorbehalt" ? "text-grau" : "text-tinte/80"
-          }`}
-        >
-          <I icon={t.status === "vorbehalt" ? Clock : CircleCheck} className="size-4" />
-          {STATUS[t.status]}
-        </p>
+      <header className="space-y-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-semibold uppercase tracking-[0.1em]">
+          <span className="text-marke-700">{ART[t.art]}</span>
+          {t.tagesprogramm ? <span className="text-grau">· {t.tagesprogramm}</span> : null}
+        </div>
+        <h1 className="font-serif text-[28px] font-semibold leading-[1.15] text-tinte [hyphens:auto] [overflow-wrap:anywhere] sm:text-[34px]" lang="de">
+          {t.titel}
+        </h1>
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-[16px] text-tinte/80">{datumLang(t.datum)}</span>
+          <span
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[13px] font-semibold ${
+              t.status === "vorbehalt" ? "bg-stone-100 text-stone-600" : "bg-marke-50 text-marke-700"
+            }`}
+          >
+            <I icon={t.status === "vorbehalt" ? Clock : Flag} className="size-3.5" />
+            {STATUS[t.status]}
+          </span>
+        </div>
       </header>
 
-      {t.hinweis && (
-        <p className="flex items-start gap-2 rounded-lg border border-marke-200 bg-marke-50 p-3.5 font-medium text-marke-800">
+      {/* Uhrzeiten auf einen Blick */}
+      {zeiten.length ? (
+        <div
+          className="grid divide-x divide-linie overflow-hidden rounded-[14px] border border-linie bg-white"
+          style={{ gridTemplateColumns: `repeat(${zeiten.length}, minmax(0, 1fr))` }}
+        >
+          {zeiten.map((x) => (
+            <div key={x.label} className="px-2 py-3 text-center">
+              <div className="text-[12px] font-semibold uppercase tracking-[0.1em] text-grau">{x.label}</div>
+              <div className={`mt-1 font-serif text-[26px] font-semibold leading-none tabular-nums ${x.label === "Ende" ? "text-tinte/70" : "text-marke-700"}`}>
+                {x.ca ? <span className="mr-0.5 font-sans text-[13px] font-medium text-grau">ca.</span> : null}
+                {x.wert}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-[14px] border border-linie bg-white px-4 py-3 text-[16px] text-grau">Uhrzeit noch offen</p>
+      )}
+
+      {t.hinweis ? (
+        <p className="flex items-start gap-2.5 rounded-[14px] bg-marke-700 px-4 py-3 text-[16px] font-semibold text-white">
           <I icon={TriangleAlert} className="mt-0.5 size-5" />
           {t.hinweis}
         </p>
-      )}
+      ) : null}
 
-      {t.anmeldung && (
-        <section className="rounded-lg border border-linie bg-white p-5">
-          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-marke-700">
-            <I icon={ANMELDUNG_ICON[t.anmeldung]} className="size-4" />
-            {ANMELDUNG[t.anmeldung].label}
-          </h2>
-          <div className="mt-3 flex items-end gap-8">
-            <div>
-              <div className="font-serif lining-nums text-4xl font-semibold tabular-nums leading-none">
-                {bedarf.summe}
-                {bedarf.ohneAngabe.length > 0 && <span className="text-grau">+</span>}
+      {/* Orte */}
+      {t.treffpunkt || t.ort || vorher ? (
+        <Karte>
+          {vorher ? (
+            <Link href={`/termin/${encodeURIComponent(vorher.id)}`} className="flex items-center gap-3 px-4 py-3">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-marke-50 text-marke-700">
+                <I icon={Clock} className="size-[18px]" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[13px] font-medium text-grau">im Anschluss an</span>
+                <span className="block text-[17px] font-semibold leading-snug">{vorher.titel}</span>
+              </span>
+              <I icon={ChevronRight} className="size-5 text-grau" />
+            </Link>
+          ) : null}
+          {t.treffpunkt ? <OrtZeile icon={MapPin} label="Treffpunkt" name={t.treffpunkt} zeit={t.treffzeit} /> : null}
+          {t.ort && t.ort !== t.treffpunkt ? <OrtZeile icon={Flag} label="Veranstaltungsort" name={t.ort} zeit={t.beginn} /> : null}
+        </Karte>
+      ) : null}
+
+      {/* Karten / Anmeldung */}
+      {t.anmeldung ? (
+        <Karte titel={ANMELDUNG[t.anmeldung].label}>
+          <div className="flex items-center gap-3 px-4 py-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-marke-50 text-marke-700">
+              <I icon={ANMELDUNG_ICON[t.anmeldung]} className="size-[18px]" />
+            </span>
+            <div className="grid flex-1 grid-cols-2 text-center">
+              <div>
+                <div className="font-serif text-[26px] font-semibold leading-none tabular-nums">
+                  {bedarf.summe}
+                  {bedarf.ohneAngabe.length ? <span className="text-grau">+</span> : null}
+                </div>
+                <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.1em] text-grau">benötigt</div>
               </div>
-              <div className="mt-1 text-xs uppercase tracking-wider text-grau">Personen</div>
-            </div>
-            <div>
-              <div className="font-serif lining-nums text-4xl font-semibold tabular-nums leading-none text-grau">
-                {t.karten_bestellt ?? "–"}
+              <div>
+                <div className="font-serif text-[26px] font-semibold leading-none tabular-nums text-tinte/70">{t.karten_bestellt ?? "–"}</div>
+                <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.1em] text-grau">bestellt</div>
               </div>
-              <div className="mt-1 text-xs uppercase tracking-wider text-grau">bestellt</div>
             </div>
           </div>
-          <ul className="mt-4 divide-y divide-linie border-t border-linie text-sm">
-            {bedarf.dabei.map((g) => (
-              <li key={g.id} className="flex justify-between py-1.5">
-                <span>{g.name}</span>
-                <span className={g.personen == null ? "text-marke-700" : "tabular-nums text-grau"}>
-                  {g.personen ?? "Anzahl fehlt"}
-                </span>
-              </li>
-            ))}
-          </ul>
-          {bedarf.ohneAngabe.length > 0 && (
-            <p className="mt-2 text-xs text-grau">Personenzahlen pflegen unter Verwaltung → Gruppen.</p>
-          )}
-        </section>
-      )}
+          {bedarf.dabei.map((g) => (
+            <div key={g.id} className="flex items-center justify-between px-4 py-2.5 text-[15px]">
+              <span>{g.name}</span>
+              <span className={g.personen == null ? "text-marke-700" : "tabular-nums text-grau"}>{g.personen ?? "Anzahl fehlt"}</span>
+            </div>
+          ))}
+        </Karte>
+      ) : null}
 
-      <dl className="rounded-lg border border-linie bg-white px-5">
-        {(t.treffzeit || t.treffpunkt) && (
-          <Zeile icon={MapPin} label="Treffen">
-            <span className="font-semibold tabular-nums">{t.treffzeit}</span>
-            {t.treffzeit && t.treffpunkt && " · "}
-            {t.treffpunkt && <Ort name={t.treffpunkt} />}
-          </Zeile>
-        )}
-        {vorher && (
-          <Zeile icon={Clock} label="Zeit">
-            im Anschluss an{" "}
-            <Link href={`/termin/${encodeURIComponent(vorher.id)}`} className="underline underline-offset-2">
-              {vorher.titel}
-            </Link>
-            {z?.start != null && <span className="text-grau"> (ca. {zeitText(z.start)})</span>}
-          </Zeile>
-        )}
-        {(t.beginn || t.ort) && (
-          <Zeile icon={Flag} label="Beginn">
-            <span className="font-semibold tabular-nums">{t.beginn}</span>
-            {t.beginn && t.ort && " · "}
-            {t.ort && <Ort name={t.ort} />}
-          </Zeile>
-        )}
-        {z?.ende != null && (
-          <Zeile icon={Clock} label="Ende">
-            <span className="tabular-nums">
-              {geschaetzt && "ca. "}
-              {zeitText(z.ende)}
-            </span>
-            {geschaetzt && <span className="text-sm text-grau"> (geschätzt)</span>}
-          </Zeile>
-        )}
-        {z?.ganztags && (
-          <Zeile icon={Clock} label="Uhrzeit">
-            <span className="text-grau">noch offen</span>
-          </Zeile>
-        )}
-        {t.veranstalter && (
-          <Zeile icon={Landmark} label="Veranstalter">
-            {t.veranstalter}
-          </Zeile>
-        )}
-        <Zeile icon={Users} label="Wer">
-          <div className="flex flex-wrap gap-1.5">
+      {/* Weitere Angaben */}
+      <Karte titel="Details">
+        <Info label="Wer ist dabei?">
+          <div className="mt-1 flex flex-wrap gap-1.5">
             <GruppenBadges t={t} gruppen={daten.gruppen} />
           </div>
-          {t.umfang !== "auswahl" && <p className="mt-1 text-sm text-grau">{UMFANG[t.umfang].beschreibung}</p>}
-        </Zeile>
-        {t.bemerkung && (
-          <Zeile icon={MessageSquareText} label="Bemerkung">
-            {t.bemerkung}
-          </Zeile>
-        )}
-        <Zeile icon={FileText} label="Quelle">
-          <span className="text-sm text-grau">
-            {t.quelle.map((q) => (q === "kg" ? "KG-Terminplan" : q === "eigen" ? "eigene Liste" : q)).join(" + ") ||
-              "–"}
-          </span>
-        </Zeile>
-      </dl>
+          {t.umfang !== "auswahl" ? <p className="mt-1 text-[14px] text-grau">{UMFANG[t.umfang].beschreibung}</p> : null}
+        </Info>
+        {t.veranstalter ? <Info label="Veranstalter">{t.veranstalter}</Info> : null}
+        {t.bemerkung ? <Info label="Bemerkung">{t.bemerkung}</Info> : null}
+        {t.pruefen ? (
+          <div className="flex items-start gap-2.5 bg-stone-50 px-4 py-3 text-[15px] text-stone-700">
+            <I icon={CircleHelp} className="mt-0.5 size-4" />
+            <span>
+              <strong>Noch prüfen:</strong> {t.pruefen}
+            </span>
+          </div>
+        ) : null}
+      </Karte>
 
-      {t.pruefen && (
-        <p className="flex items-start gap-2 rounded-lg bg-stone-100 p-3.5 text-sm text-stone-700">
-          <I icon={CircleHelp} className="mt-0.5 size-4" />
-          <span>
-            <strong>Noch prüfen:</strong> {t.pruefen}
-          </span>
-        </p>
-      )}
-
-      <div className="flex flex-wrap gap-2">
+      {/* Aktionen */}
+      <div className="grid gap-2.5 sm:grid-cols-2">
         <a
           href={`/termin/${encodeURIComponent(t.id)}/ics`}
-          className={`${KNOPF} bg-marke-700 text-white ring-marke-700 hover:bg-marke-800`}
+          className="flex h-[52px] items-center justify-center gap-2 rounded-[14px] bg-marke-700 text-[16px] font-semibold text-white active:bg-marke-800"
         >
-          <I icon={CalendarPlus} className="size-4" />
+          <I icon={CalendarPlus} className="size-5" />
           In meinen Kalender
         </a>
-        {t.treffpunkt && t.treffpunkt !== "im Anschluss" && (
+        {t.treffpunkt && t.treffpunkt !== "im Anschluss" ? (
           <a
             href={karte(t.treffpunkt)}
             target="_blank"
             rel="noreferrer"
-            className={`${KNOPF} bg-white text-tinte ring-linie hover:text-marke-700 hover:ring-marke-300`}
+            className="flex h-[52px] items-center justify-center gap-2 rounded-[14px] border border-linie bg-white text-[16px] font-semibold text-tinte active:bg-papier"
           >
-            <I icon={Navigation} className="size-4" />
-            Navigation zum Treffpunkt
+            <I icon={Navigation} className="size-5" />
+            Zum Treffpunkt navigieren
           </a>
-        )}
+        ) : null}
       </div>
+
+      <p className="text-center text-[13px] text-grau">
+        Quelle: {t.quelle.map((q) => (q === "kg" ? "KG-Terminplan" : q === "eigen" ? "eigene Liste" : q)).join(" + ") || "Verwaltung"}
+      </p>
     </article>
   );
 }
