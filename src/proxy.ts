@@ -1,6 +1,14 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
+import { APP_DOMAIN } from "@/lib/marke";
 import { COOKIE, tokenGueltig, zugangsToken } from "@/lib/zugang";
+
+/** Im Produktivbetrieb nur eine Adresse (Passkeys/Cookies gelten je Domain) – andere dorthin umleiten. */
+function hauptHost(): string | null {
+  if (process.env.VERCEL_ENV !== "production") return null;
+  if (process.env.BETTER_AUTH_URL) return new URL(process.env.BETTER_AUTH_URL).host;
+  return APP_DOMAIN;
+}
 
 // Grobe Vorprüfung vor jeder Seite (die echte Prüfung machen Seiten und Aktionen selbst):
 // - Verwaltung: ohne Anmelde-Cookie zur Anmeldung
@@ -11,6 +19,12 @@ const OHNE_ZUGANG = ["/anmelden", "/einrichtung", "/einladung", "/api/auth"];
 
 export function proxy(request: NextRequest) {
   const url = request.nextUrl;
+  const haupt = hauptHost();
+  const host = request.headers.get("host");
+  if (haupt && host && host !== haupt && !url.pathname.startsWith("/api/")) {
+    const ziel = new URL(url.pathname + url.search, `https://${haupt}`);
+    return NextResponse.redirect(ziel, 308);
+  }
   if (url.pathname.startsWith("/verwaltung")) {
     if (getSessionCookie(request, { cookiePrefix: "pk" })) return NextResponse.next();
     const ziel = new URL("/anmelden", request.url);

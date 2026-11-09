@@ -27,6 +27,7 @@ import {
   type TerminEingabe,
 } from "@/app/verwaltung/aktionen";
 import { GruppenBadges, KartenBadge } from "@/components/termin";
+import { Blatt } from "@/components/admin/blatt";
 import { TerminFormular, type Vorlage } from "@/components/admin/termin-formular";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
@@ -107,6 +108,7 @@ export function Kalender({
   const [filter, setFilter] = useState("");
   const [dialog, setDialog] = useState<{ termin: Termin | null; vorlage?: Vorlage } | null>(null);
   const [hilfe, setHilfe] = useState(false);
+  const [speichert, setSpeichert] = useState(false);
   const [zwischenablage, setZwischenablage] = useState<Termin | null>(null);
   const verlauf = useRef<Schritt[]>([]);
   const confirm = useConfirm();
@@ -416,28 +418,21 @@ export function Kalender({
         </div>
       </div>
 
-      <Dialog
-        open={!!dialog}
-        onOpenChange={(o) => !o && setDialog(null)}
-        width={760}
-        title={dialog?.termin ? "Termin bearbeiten" : "Neuer Termin"}
-        description={dialog?.termin ? datumLang(dialog.termin.datum) : dialog?.vorlage?.datum ? datumLang(dialog.vorlage.datum) : undefined}
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => setDialog(null)}>
-              Abbrechen
-            </Button>
-            <Button type="submit" form="kalender-termin" variant="primary">
-              {dialog?.termin ? "Speichern" : "Termin anlegen"}
-            </Button>
-          </>
-        }
+      <Blatt
+        offen={!!dialog}
+        schliessen={() => setDialog(null)}
+        formId="kalender-termin"
+        laeuft={speichert}
+        titel={dialog?.termin ? "Termin bearbeiten" : "Neuer Termin"}
+        untertitel={dialog?.termin ? datumLang(dialog.termin.datum) : dialog?.vorlage?.datum ? datumLang(dialog.vorlage.datum) : undefined}
+        sichernText={dialog?.termin ? "Sichern" : "Anlegen"}
       >
         {dialog ? (
           <TerminFormular
             key={dialog.termin?.id ?? `neu-${dialog.vorlage?.datum}-${dialog.vorlage?.treffzeit}`}
             formId="kalender-termin"
             ohneAktionen
+            onLaeuft={setSpeichert}
             termin={dialog.termin}
             vorlage={dialog.vorlage}
             gruppen={gruppen}
@@ -463,7 +458,7 @@ export function Kalender({
             }}
           />
         ) : null}
-      </Dialog>
+      </Blatt>
 
       <Dialog open={hilfe} onOpenChange={setHilfe} title="Tastenkürzel" width={520}>
         <dl className="grid grid-cols-[auto_1fr] items-center gap-x-6 gap-y-2.5 text-[13.5px]">

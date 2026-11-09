@@ -8,7 +8,7 @@ import { nextCookies } from "better-auth/next-js";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
 import { datenbankUrl } from "@/db/verbindung";
-import { APP_NAME } from "./marke";
+import { APP_DOMAIN, APP_NAME } from "./marke";
 
 // Anmeldung (Better Auth): E-Mail + Passwort und Passkeys. Keine Selbst-Registrierung –
 // Administratoren werden eingeladen (src/lib/benutzer.ts). Der Super-Admin entsteht bei der Einrichtung.
@@ -18,8 +18,7 @@ export const COOKIE_PREFIX = "pk";
 /** Öffentliche Adresse der App – für Cookies, Passkeys und Links. */
 export function basisUrl(): string {
   if (process.env.BETTER_AUTH_URL) return process.env.BETTER_AUTH_URL.replace(/\/$/, "");
-  if (process.env.VERCEL_ENV === "production" && process.env.VERCEL_PROJECT_PRODUCTION_URL)
-    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_ENV === "production") return `https://${APP_DOMAIN}`;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return "http://localhost:3000";
 }
