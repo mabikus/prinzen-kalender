@@ -172,6 +172,7 @@ export function TerminZeile({
   return (
     <Link
       href={`/termin/${encodeURIComponent(t.id)}`}
+      scroll={false}
       className={`group flex gap-4 p-3.5 transition ${
         kompakt
           ? "hover:bg-papier"

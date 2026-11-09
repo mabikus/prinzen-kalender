@@ -8,7 +8,7 @@ import { datenquelle } from "@/lib/daten";
 import { APP_KURZ, APP_NAME } from "@/lib/marke";
 import { zugangsToken } from "@/lib/zugang";
 
-export default function OeffentlichLayout({ children }: { children: React.ReactNode }) {
+export default function OeffentlichLayout({ children, modal }: LayoutProps<"/">) {
   const quelle = datenquelle();
   const offen = !zugangsToken();
   return (
@@ -47,6 +47,8 @@ export default function OeffentlichLayout({ children }: { children: React.ReactN
       <Suspense fallback={<NavLinks pfad={null} variante="unten" />}>
         <Navigation variante="unten" />
       </Suspense>
+      {/* Termin als Blatt über Liste/Monat (abgefangene Route @modal/(.)termin) */}
+      {modal}
     </>
   );
 }

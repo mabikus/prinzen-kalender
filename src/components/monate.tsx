@@ -216,7 +216,7 @@ export function Monate({
                   const ort = t.treffzeit ? (t.treffpunkt ?? t.ort) : (t.ort ?? t.treffpunkt);
                   return (
                     <li key={t.id}>
-                      <Link href={`/termin/${t.id}`} className="flex items-stretch gap-3 px-3 py-3 active:bg-papier">
+                      <Link href={`/termin/${t.id}`} scroll={false} className="flex items-stretch gap-3 px-3 py-3 active:bg-papier">
                         <span className={cn("w-1 shrink-0 rounded-full", FARBE[t.umfang], t.status === "vorbehalt" && "opacity-60")} />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-[17px] font-semibold leading-snug text-tinte">{t.titel}</span>
