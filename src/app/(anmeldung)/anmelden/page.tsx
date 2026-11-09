@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { SeitenPlatzhalter } from "@/components/ui/laden";
 import { Callout } from "@/components/ui/callout";
 import { hatDatenbank } from "@/db";
 import { anzahlBenutzer } from "@/lib/benutzer";
@@ -10,7 +11,7 @@ export const metadata = { title: "Anmelden" };
 
 export default function Seite({ searchParams }: PageProps<"/anmelden">) {
   return (
-    <Suspense fallback={<p className="text-sm text-subtle">Lade …</p>}>
+    <Suspense fallback={<SeitenPlatzhalter />}>
       <Anmelden searchParams={searchParams} />
     </Suspense>
   );

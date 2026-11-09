@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { SeitenPlatzhalter } from "@/components/ui/laden";
 import { connection } from "next/server";
 import { Callout } from "@/components/ui/callout";
 import { hatDatenbank } from "@/db";
@@ -10,7 +11,7 @@ export const metadata = { title: "Einrichtung" };
 
 export default function Seite() {
   return (
-    <Suspense fallback={<p className="text-sm text-subtle">Lade …</p>}>
+    <Suspense fallback={<SeitenPlatzhalter />}>
       <Einrichtung />
     </Suspense>
   );

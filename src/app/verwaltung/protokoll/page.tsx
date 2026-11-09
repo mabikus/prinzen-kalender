@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { SeitenPlatzhalter } from "@/components/ui/laden";
 import { History } from "lucide-react";
 import { EmptyState } from "@/components/ui/display";
 import { Page, PageHeader } from "@/components/ui/page";
@@ -11,7 +12,7 @@ export default function Seite() {
   return (
     <Page width="narrow">
       <PageHeader title="Protokoll" description="Wer hat wann was geändert (die letzten 300 Einträge)." />
-      <Suspense fallback={<p className="text-sm text-subtle">Lade …</p>}>
+      <Suspense fallback={<SeitenPlatzhalter />}>
         <Liste />
       </Suspense>
     </Page>

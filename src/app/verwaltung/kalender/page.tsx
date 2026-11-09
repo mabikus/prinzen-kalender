@@ -7,7 +7,7 @@ export const metadata = { title: "Kalender" };
 
 export default function Seite({ searchParams }: PageProps<"/verwaltung/kalender">) {
   return (
-    <Suspense fallback={<div className="grid h-full place-items-center text-sm text-subtle">Lade Kalender …</div>}>
+    <Suspense fallback={<div aria-hidden className="h-full animate-pulse bg-hover/40" />}>
       <Inhalt searchParams={searchParams} />
     </Suspense>
   );

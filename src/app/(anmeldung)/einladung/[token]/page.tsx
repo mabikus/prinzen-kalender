@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { SeitenPlatzhalter } from "@/components/ui/laden";
 import { connection } from "next/server";
 import { Callout } from "@/components/ui/callout";
 import { hatDatenbank } from "@/db";
@@ -9,7 +10,7 @@ export const metadata = { title: "Einladung" };
 
 export default function Seite({ params }: PageProps<"/einladung/[token]">) {
   return (
-    <Suspense fallback={<p className="text-sm text-subtle">Lade …</p>}>
+    <Suspense fallback={<SeitenPlatzhalter />}>
       <Einladung params={params} />
     </Suspense>
   );

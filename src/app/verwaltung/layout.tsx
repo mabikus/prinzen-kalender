@@ -7,7 +7,7 @@ export const metadata = { title: { default: "Verwaltung", template: "%s · Verwa
 
 export default function VerwaltungLayout({ children }: { children: React.ReactNode }) {
   return (
-    <Suspense fallback={<div className="grid h-dvh place-items-center text-sm text-subtle">Lade Verwaltung …</div>}>
+    <Suspense fallback={<div aria-hidden className="h-dvh bg-bg" />}>
       <Rahmen>{children}</Rahmen>
     </Suspense>
   );

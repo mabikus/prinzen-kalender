@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { SeitenPlatzhalter } from "@/components/ui/laden";
 import { desc, eq } from "drizzle-orm";
 import { KontoSeite } from "@/components/admin/konto";
 import { Page } from "@/components/ui/page";
@@ -10,7 +11,7 @@ export const metadata = { title: "Mein Konto" };
 export default function Seite({ searchParams }: PageProps<"/verwaltung/konto">) {
   return (
     <Page width="narrow">
-      <Suspense fallback={<p className="text-sm text-subtle">Lade …</p>}>
+      <Suspense fallback={<SeitenPlatzhalter />}>
         <Inhalt searchParams={searchParams} />
       </Suspense>
     </Page>

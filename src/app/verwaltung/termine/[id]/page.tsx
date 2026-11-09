@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { SeitenPlatzhalter } from "@/components/ui/laden";
 import { TerminSeite } from "@/components/admin/termin-seite";
 import { Page } from "@/components/ui/page";
 import { ladeDaten, ladeProtokoll } from "@/lib/daten";
@@ -9,7 +10,7 @@ export const metadata = { title: "Termin" };
 export default function Seite(props: PageProps<"/verwaltung/termine/[id]">) {
   return (
     <Page width="narrow">
-      <Suspense fallback={<p className="text-sm text-subtle">Lade …</p>}>
+      <Suspense fallback={<SeitenPlatzhalter />}>
         <Inhalt {...props} />
       </Suspense>
     </Page>

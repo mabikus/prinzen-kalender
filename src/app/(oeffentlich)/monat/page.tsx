@@ -1,19 +1,20 @@
 import { Suspense } from "react";
 import { Monate } from "@/components/monate";
-import { ladeDaten } from "@/lib/daten";
-import { jetztInBerlin } from "@/lib/zeit";
+import { MonatSkelett } from "@/components/termin-skelett";
+import { jetztZwischengespeichert, ladeDatenZwischengespeichert } from "@/lib/daten";
 
 export const metadata = { title: "Monat" };
 
 export default function MonatSeite() {
   return (
-    <Suspense fallback={<p className="py-10 text-center text-grau">Lade Monate …</p>}>
+    <Suspense fallback={<MonatSkelett />}>
       <Inhalt />
     </Suspense>
   );
 }
 
+/** Zwischengespeichert, damit der Tab vorgeladen ist und ohne Wartezeit erscheint */
 async function Inhalt() {
-  const { termine, gruppen } = await ladeDaten(); // vor new Date() – wartet auf die Anfrage
-  return <Monate termine={termine} gruppen={gruppen} jetzt={jetztInBerlin()} />;
+  const [{ termine, gruppen }, jetzt] = await Promise.all([ladeDatenZwischengespeichert(), jetztZwischengespeichert()]);
+  return <Monate termine={termine} gruppen={gruppen} jetzt={jetzt} />;
 }

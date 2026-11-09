@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { Suspense } from "react";
+import { SeitenPlatzhalter } from "@/components/ui/laden";
 import QRCode from "qrcode";
 import { CalendarPlus, KeyRound, Link2, ShieldAlert } from "lucide-react";
 import { TeilenKnoepfe } from "@/components/admin/teilen";
@@ -16,7 +17,7 @@ export default function Seite() {
   return (
     <Page width="narrow">
       <PageHeader title="Teilen" description="Zugangslink und Kalender-Abos an die Gruppe weitergeben." />
-      <Suspense fallback={<p className="text-sm text-subtle">Lade …</p>}>
+      <Suspense fallback={<SeitenPlatzhalter />}>
         <Inhalt />
       </Suspense>
     </Page>

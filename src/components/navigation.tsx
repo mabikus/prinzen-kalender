@@ -44,6 +44,7 @@ export function NavLinks({ pfad, variante }: { pfad: string | null; variante: Va
                 {/* Nur Symbole (wie bei Instagram) – die Beschriftung lesen Screenreader trotzdem vor */}
                 <Link
                   href={n.href}
+                  prefetch
                   aria-current={aktiv ? "page" : undefined}
                   aria-label={n.label}
                   title={n.label}

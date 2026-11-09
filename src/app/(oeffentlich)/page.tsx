@@ -2,14 +2,15 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { ArrowRight } from "lucide-react";
 import { I, Orte, ProgrammKarte, TerminBadges, TerminZeile } from "@/components/termin";
-import { ladeDaten } from "@/lib/daten";
+import { ListenSkelett } from "@/components/termin-skelett";
+import { jetztZwischengespeichert, ladeDatenZwischengespeichert } from "@/lib/daten";
 import { filterListe } from "@/lib/labels";
 import type { Termin } from "@/lib/types";
-import { datumKurz, datumLang, jetztInBerlin, MONATE, zeitplan, zeitText } from "@/lib/zeit";
+import { datumKurz, datumLang, MONATE, zeitplan, zeitText } from "@/lib/zeit";
 
 export default function Startseite({ searchParams }: PageProps<"/">) {
   return (
-    <Suspense fallback={<p className="py-10 text-center text-grau">Termine werden geladen …</p>}>
+    <Suspense fallback={<ListenSkelett />}>
       <Agenda searchParams={searchParams} />
     </Suspense>
   );
@@ -19,13 +20,13 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   const sp = await searchParams;
   const mitVergangenen = sp.vergangen === "1";
 
-  const { termine: alle, gruppen } = await ladeDaten();
+  // Zwischengespeichert, damit der Tab vorgeladen ist (Änderungen in der Verwaltung erneuern sofort)
+  const [{ termine: alle, gruppen }, jetzt] = await Promise.all([ladeDatenZwischengespeichert(), jetztZwischengespeichert()]);
   const filterAuswahl = filterListe(gruppen);
   const aktiv = filterAuswahl.find((f) => f.key === sp.f) ?? filterAuswahl[0];
   const filter = aktiv.key;
   const plan = zeitplan(alle);
   const nachId = new Map(alle.map((t) => [t.id, t]));
-  const jetzt = jetztInBerlin();
 
   const istVergangen = (t: Termin) => {
     if (t.datum !== jetzt.datum) return t.datum < jetzt.datum;

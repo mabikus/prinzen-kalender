@@ -13,3 +13,15 @@ export function Punkte({ className }: { className?: string }) {
     </span>
   );
 }
+
+/** Ruhiger Platzhalter für Seiten, die noch laden – statt „Lade …“-Text */
+export function SeitenPlatzhalter() {
+  return (
+    <div aria-hidden className="animate-pulse space-y-4">
+      <div className="h-7 w-48 rounded-md bg-active" />
+      <div className="h-4 w-72 max-w-full rounded-md bg-hover" />
+      <div className="h-40 rounded-[var(--radius-card)] bg-hover" />
+      <div className="h-24 rounded-[var(--radius-card)] bg-hover" />
+    </div>
+  );
+}

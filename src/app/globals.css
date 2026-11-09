@@ -262,6 +262,32 @@ summary::-webkit-details-marker {
   }
 }
 
+/* Tab-Wechsel: alte Seite blendet kurz aus, neue gleitet weich ein (React <ViewTransition default="seite">) */
+::view-transition-old(.seite) {
+  animation: 140ms ease-out both seite-raus;
+}
+::view-transition-new(.seite) {
+  animation: 320ms cubic-bezier(0.32, 0.72, 0, 1) both seite-rein;
+}
+@keyframes seite-raus {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes seite-rein {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* Glas wie bei iOS: Inhalt scheint verschwommen durch */
 .glas {
   background: var(--glas);

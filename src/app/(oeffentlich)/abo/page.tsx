@@ -1,9 +1,9 @@
-import { headers } from "next/headers";
 import { Suspense } from "react";
 import { CalendarPlus, Mail, MonitorSmartphone, Smartphone, TriangleAlert, type LucideIcon } from "lucide-react";
 import { Kopieren } from "@/components/kopieren";
 import { I } from "@/components/termin";
-import { ladeDaten } from "@/lib/daten";
+import { basisUrl } from "@/lib/auth";
+import { ladeDatenZwischengespeichert } from "@/lib/daten";
 import { filterListe, type Filter } from "@/lib/labels";
 import { feedToken } from "@/lib/zugang";
 import { ladeMarke } from "@/lib/marke-laden";
@@ -22,7 +22,7 @@ export default function AboSeite() {
         </p>
       </header>
 
-      <Suspense fallback={<p className="text-grau">Lade Abo-Links …</p>}>
+      <Suspense fallback={<div aria-hidden className="h-[300px] animate-pulse rounded-lg bg-stone-200/40" />}>
         <Feeds />
       </Suspense>
 
@@ -141,11 +141,12 @@ function Liste({
 }
 
 async function Feeds() {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
-  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
+  // Adresse aus der Konfiguration (Hauptdomain) statt aus der Anfrage – so ist der Tab vorbereitet
+  const basis = new URL(basisUrl());
+  const host = basis.host;
+  const proto = basis.protocol.replace(":", "");
   const token = feedToken();
-  const [{ gruppen }, marke] = await Promise.all([ladeDaten(), ladeMarke()]);
+  const [{ gruppen }, marke] = await Promise.all([ladeDatenZwischengespeichert(), ladeMarke()]);
   const [alle, ...weitere] = filterListe(gruppen);
   const gruppenFeeds = weitere.filter((f) => gruppen.some((g) => g.id === f.key));
   const sonstige = weitere.filter((f) => !gruppen.some((g) => g.id === f.key));

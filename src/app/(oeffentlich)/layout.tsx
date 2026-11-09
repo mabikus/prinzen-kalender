@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, ViewTransition } from "react";
 import { TriangleAlert } from "lucide-react";
 import { FarbschemaKnopf } from "@/components/farbschema";
 import { Logo } from "@/components/logo";
@@ -35,7 +35,10 @@ export default async function OeffentlichLayout({ children, modal }: LayoutProps
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-4 pb-6 pt-5 sm:pt-6">{children}</main>
+      <main className="mx-auto max-w-3xl px-4 pb-6 pt-5 sm:pt-6">
+        {/* Weicher Übergang beim Tab-Wechsel (React View Transitions) */}
+        <ViewTransition default="seite">{children}</ViewTransition>
+      </main>
       <footer className="mx-auto max-w-3xl space-y-1 px-4 pb-[var(--tab-platz)] text-xs text-grau sm:pb-10">
         {quelle === "startdaten" && <p>Datenquelle: Startdaten im Repo (Datenbank noch nicht verbunden).</p>}
         {offen && (

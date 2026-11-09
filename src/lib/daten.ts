@@ -5,7 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { startGruppen, startTermine } from "@/data/session-2026-27";
 import { db, hatDatenbank, schema } from "@/db";
 import type { Daten, Gruppe, Termin } from "./types";
-import { sortiere } from "./zeit";
+import { jetztInBerlin, sortiere } from "./zeit";
 
 // Datenzugriff – nur über diese Datei.
 // - mit Datenbank (DATABASE_URL oder Supabase-Integration): Postgres über Drizzle, lesen und schreiben
@@ -94,6 +94,16 @@ export async function ladeDatenZwischengespeichert(): Promise<Daten> {
   cacheTag(DATEN_TAG);
   cacheLife({ stale: 60, revalidate: 60, expire: 300 });
   return lesen();
+}
+
+/**
+ * Aktuelle Zeit in Berlin, auf höchstens eine Minute zwischengespeichert – damit Termine und Monat
+ * vorgeladen werden können („vergangen“, „Als Nächstes“, „heute“ reichen minutengenau).
+ */
+export async function jetztZwischengespeichert(): Promise<{ datum: string; minuten: number }> {
+  "use cache";
+  cacheLife({ stale: 30, revalidate: 60, expire: 120 });
+  return jetztInBerlin();
 }
 
 async function lesen(): Promise<Daten> {

@@ -1,5 +1,6 @@
 import { ladeMarke } from "@/lib/marke-laden";
 import { Suspense } from "react";
+import { SeitenPlatzhalter } from "@/components/ui/laden";
 import { BenutzerVerwaltung } from "@/components/admin/benutzer";
 import { Page } from "@/components/ui/page";
 import { ladeBenutzer, offeneEinladungen } from "@/lib/benutzer";
@@ -10,7 +11,7 @@ export const metadata = { title: "Benutzer" };
 export default function Seite() {
   return (
     <Page width="narrow">
-      <Suspense fallback={<p className="text-sm text-subtle">Lade …</p>}>
+      <Suspense fallback={<SeitenPlatzhalter />}>
         <Inhalt />
       </Suspense>
     </Page>

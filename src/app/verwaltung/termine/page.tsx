@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { SeitenPlatzhalter } from "@/components/ui/laden";
 import { TermineListe } from "@/components/admin/termine-liste";
 import { Page } from "@/components/ui/page";
 import { ladeDaten } from "@/lib/daten";
@@ -8,7 +9,7 @@ export const metadata = { title: "Termine" };
 export default function Seite() {
   return (
     <Page width="default">
-      <Suspense fallback={<p className="text-sm text-subtle">Lade Termine …</p>}>
+      <Suspense fallback={<SeitenPlatzhalter />}>
         <Liste />
       </Suspense>
     </Page>
