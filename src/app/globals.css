@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Dunkles Design: data-theme="dark" an <html> (gesetzt vor dem ersten Bild, siehe components/farbschema.tsx) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* Design-Tokens. Farben nur hier – Komponenten nutzen nur die Namen.
    Die Token-Namen (bg, panel, ink, accent …) sind dieselben wie im Inkfuchs-Design-System,
    damit die Bausteine aus src/components/ui unverändert passen. Werte: klassisches Rot-Weiß. */
@@ -26,6 +29,53 @@
   --info: #1d5fa8;
   --danger: #b4141c;
   --shadow-pop: 0 12px 32px -8px rgb(31 26 23 / 0.22), 0 0 0 1px rgb(31 26 23 / 0.06);
+  /* Kopfzeile der öffentlichen Seiten */
+  --kopf: #9a1219;
+  --kopf-rand: #7c0f15;
+}
+
+/* Dunkel: warmes Schwarz statt Papier, Rot etwas heller, damit es auf Dunkel gut lesbar bleibt.
+   Auch die Rot- und Stein-Abstufungen werden umgestellt, damit Komponenten nichts extra brauchen. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #141110;
+  --panel: #1f1b19;
+  --elevated: #282321;
+  --line: #342d2a;
+  --line-strong: #4a413c;
+  --ink: #f3eee9;
+  --muted: #d3cac2;
+  --subtle: #a3988f;
+  --hover: #2a2421;
+  --active: #352e2a;
+  --accent: #d03c43;
+  --accent-hover: #e0484f;
+  --accent-fg: #ffffff;
+  --accent-soft: color-mix(in srgb, #d03c43 20%, transparent);
+  --accent-ink: #f08c91;
+  --success: #4cc38a;
+  --warning: #e3ac3e;
+  --info: #72aaf0;
+  --danger: #f0585f;
+  --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.06);
+  --kopf: #7d0f15;
+  --kopf-rand: #540a0e;
+
+  --color-marke-50: #2a1517;
+  --color-marke-100: #3a1a1d;
+  --color-marke-200: #5a2429;
+  --color-marke-300: #a2454b;
+  --color-marke-600: #e0484f;
+  --color-marke-700: #d03c43;
+  --color-marke-800: #ee8d92;
+  --color-marke-900: #f7cdcf;
+  --color-stone-50: #1f1b19;
+  --color-stone-100: #2a2421;
+  --color-stone-200: #352e2a;
+  --color-stone-300: #4f4540;
+  --color-stone-400: #7d726b;
+  --color-stone-600: #b9aea6;
+  --color-stone-700: #d6ccc4;
 }
 
 @theme {
@@ -49,6 +99,8 @@
   --color-warning: var(--warning);
   --color-info: var(--info);
   --color-danger: var(--danger);
+  --color-kopf: var(--kopf);
+  --color-kopf-rand: var(--kopf-rand);
 
   --radius-control: 6px;
   --radius-card: 10px;

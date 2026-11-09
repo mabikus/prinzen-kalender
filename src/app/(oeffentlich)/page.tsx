@@ -60,7 +60,7 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   return (
     <div className="space-y-6">
       {naechster && (
-        <section className="overflow-hidden rounded-lg border border-linie bg-white shadow-[0_1px_3px_rgba(31,26,23,0.06)]">
+        <section className="overflow-hidden rounded-lg border border-linie bg-panel shadow-[0_1px_3px_rgba(31,26,23,0.06)]">
           <p className="bg-marke-700 px-5 py-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white">
             Als Nächstes{naechster.datum === jetzt.datum ? " · heute" : ""}
           </p>
@@ -108,7 +108,7 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
                 className={`inline-block rounded-md px-3.5 py-2 text-[15px] font-semibold ring-1 ring-inset transition ${
                   f === filter
                     ? "bg-marke-700 text-white ring-marke-700"
-                    : "bg-white text-tinte/80 ring-linie hover:ring-marke-300 hover:text-marke-700"
+                    : "bg-panel text-tinte/80 ring-linie hover:ring-marke-300 hover:text-marke-700"
                 }`}
               >
                 {label}

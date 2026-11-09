@@ -117,7 +117,7 @@ export function Monate({
               type="button"
               onClick={() => waehle(heute)}
               disabled={tag === heute}
-              className="mr-1 rounded-full border border-linie bg-white px-3.5 py-1.5 text-[15px] font-semibold text-marke-700 active:bg-marke-50 disabled:border-transparent disabled:bg-transparent disabled:text-stone-300"
+              className="mr-1 rounded-full border border-linie bg-panel px-3.5 py-1.5 text-[15px] font-semibold text-marke-700 active:bg-marke-50 disabled:border-transparent disabled:bg-transparent disabled:text-stone-300"
             >
               Heute
             </button>
@@ -177,7 +177,7 @@ export function Monate({
                       className={cn(
                         "grid size-[34px] place-items-center rounded-full text-[19px] tabular-nums transition-colors",
                         istHeute && "bg-marke-700 font-semibold text-white",
-                        !istHeute && gewaehlt && "bg-tinte font-semibold text-white",
+                        !istHeute && gewaehlt && "bg-tinte font-semibold text-papier",
                         !istHeute && !gewaehlt && (i >= 5 ? "text-grau" : "text-tinte"),
                       )}
                     >
@@ -205,7 +205,7 @@ export function Monate({
           {tag === heute ? " · heute" : ""}
         </h2>
         {amTag.length ? (
-          <ul className="divide-y divide-linie overflow-hidden rounded-[14px] border border-linie bg-white">
+          <ul className="divide-y divide-linie overflow-hidden rounded-[14px] border border-linie bg-panel">
             {amTag.map((t) => {
               const z = plan.get(t.id);
               const ort = t.treffzeit ? (t.treffpunkt ?? t.ort) : (t.ort ?? t.treffpunkt);

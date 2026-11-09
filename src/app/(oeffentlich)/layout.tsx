@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { Crown, TriangleAlert } from "lucide-react";
+import { FarbschemaKnopf } from "@/components/farbschema";
 import { NavLinks, Navigation } from "@/components/navigation";
 import { datenquelle } from "@/lib/daten";
 import { APP_KURZ, APP_NAME } from "@/lib/marke";
@@ -12,7 +13,7 @@ export default function OeffentlichLayout({ children }: { children: React.ReactN
   return (
     <>
       {/* Kopfzeile – als App unter der Statusleiste (Safe-Area) */}
-      <header className="sticky top-0 z-20 border-b-[3px] border-marke-800 bg-marke-700 pt-[env(safe-area-inset-top)] text-white">
+      <header className="sticky top-0 z-20 border-b-[3px] border-kopf-rand bg-kopf pt-[env(safe-area-inset-top)] text-white">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-marke-700">
@@ -23,9 +24,12 @@ export default function OeffentlichLayout({ children }: { children: React.ReactN
               <span className="block text-[12px] text-white/75">{APP_KURZ}</span>
             </span>
           </Link>
-          <Suspense fallback={<NavLinks pfad={null} variante="oben" />}>
-            <Navigation variante="oben" />
-          </Suspense>
+          <div className="flex items-center gap-1">
+            <Suspense fallback={<NavLinks pfad={null} variante="oben" />}>
+              <Navigation variante="oben" />
+            </Suspense>
+            <FarbschemaKnopf className="-mr-2 text-white/90 hover:bg-white/10 active:bg-white/15" />
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-6 pt-5 sm:pt-6">{children}</main>

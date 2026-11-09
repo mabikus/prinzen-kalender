@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
+import { FARBSCHEMA_SKRIPT } from "@/lib/farbschema";
 import { DienstHelfer } from "@/components/pwa";
 import { Toaster } from "@/components/ui/toast";
 import { APP_BESCHREIBUNG, APP_NAME, FARBE_ROT } from "@/lib/marke";
@@ -27,7 +28,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="de" className={`${sans.variable} ${serif.variable} h-full antialiased`}>
+    // suppressHydrationWarning: data-theme setzt das Skript vor React (hell/dunkel)
+    <html lang="de" className={`${sans.variable} ${serif.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: FARBSCHEMA_SKRIPT }} />
+      </head>
       <body className="min-h-full font-sans">
         {children}
         <Toaster />

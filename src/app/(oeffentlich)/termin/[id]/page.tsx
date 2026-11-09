@@ -38,7 +38,7 @@ function Karte({ titel, children }: { titel?: string; children: React.ReactNode 
   return (
     <section>
       {titel ? <h2 className="px-1 pb-2 text-[13px] font-semibold uppercase tracking-[0.08em] text-grau">{titel}</h2> : null}
-      <div className="divide-y divide-linie overflow-hidden rounded-[14px] border border-linie bg-white">{children}</div>
+      <div className="divide-y divide-linie overflow-hidden rounded-[14px] border border-linie bg-panel">{children}</div>
     </section>
   );
 }
@@ -108,7 +108,7 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
         {bearbeiten ? (
           <Link
             href={`/verwaltung/termine/${encodeURIComponent(t.id)}`}
-            className="inline-flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[15px] font-semibold text-marke-700 ring-1 ring-inset ring-linie"
+            className="inline-flex items-center gap-1.5 rounded-full bg-panel px-3.5 py-1.5 text-[15px] font-semibold text-marke-700 ring-1 ring-inset ring-linie"
           >
             <I icon={Pencil} className="size-4" />
             Bearbeiten
@@ -140,7 +140,7 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
       {/* Uhrzeiten auf einen Blick */}
       {zeiten.length ? (
         <div
-          className="grid divide-x divide-linie overflow-hidden rounded-[14px] border border-linie bg-white"
+          className="grid divide-x divide-linie overflow-hidden rounded-[14px] border border-linie bg-panel"
           style={{ gridTemplateColumns: `repeat(${zeiten.length}, minmax(0, 1fr))` }}
         >
           {zeiten.map((x) => (
@@ -154,7 +154,7 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
           ))}
         </div>
       ) : (
-        <p className="rounded-[14px] border border-linie bg-white px-4 py-3 text-[16px] text-grau">Uhrzeit noch offen</p>
+        <p className="rounded-[14px] border border-linie bg-panel px-4 py-3 text-[16px] text-grau">Uhrzeit noch offen</p>
       )}
 
       {t.hinweis ? (
@@ -248,7 +248,7 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
             href={karte(t.treffpunkt)}
             target="_blank"
             rel="noreferrer"
-            className="flex h-[52px] items-center justify-center gap-2 rounded-[14px] border border-linie bg-white text-[16px] font-semibold text-tinte active:bg-papier"
+            className="flex h-[52px] items-center justify-center gap-2 rounded-[14px] border border-linie bg-panel text-[16px] font-semibold text-tinte active:bg-papier"
           >
             <I icon={Navigation} className="size-5" />
             Zum Treffpunkt navigieren

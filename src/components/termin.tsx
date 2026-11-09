@@ -25,8 +25,8 @@ type Variante = "voll" | "rahmen" | "neutral" | "hell" | "gestrichelt";
 
 const VARIANTE: Record<Variante, string> = {
   voll: "bg-marke-700 text-white ring-1 ring-inset ring-marke-700",
-  rahmen: "bg-white text-marke-800 ring-1 ring-inset ring-marke-300",
-  neutral: "bg-white text-tinte/80 ring-1 ring-inset ring-linie",
+  rahmen: "bg-panel text-marke-800 ring-1 ring-inset ring-marke-300",
+  neutral: "bg-panel text-tinte/80 ring-1 ring-inset ring-linie",
   hell: "bg-marke-50 text-marke-800 ring-1 ring-inset ring-marke-200",
   gestrichelt: "bg-transparent text-grau border border-dashed border-grau/50",
 };
@@ -175,7 +175,7 @@ export function TerminZeile({
       className={`group flex gap-4 p-3.5 transition ${
         kompakt
           ? "hover:bg-papier"
-          : "rounded-lg border border-linie bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] hover:border-marke-300"
+          : "rounded-lg border border-linie bg-panel shadow-[0_1px_2px_rgba(31,26,23,0.04)] hover:border-marke-300"
       } ${vergangen ? "opacity-50" : ""}`}
     >
       <div className="w-[4.5rem] shrink-0 border-r border-linie pr-3 text-right">
@@ -231,7 +231,7 @@ export function ProgrammKarte({
   return (
     <details
       open={offen}
-      className={`group/p overflow-hidden rounded-lg border border-linie bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ${
+      className={`group/p overflow-hidden rounded-lg border border-linie bg-panel shadow-[0_1px_2px_rgba(31,26,23,0.04)] ${
         alleVergangen ? "opacity-50" : ""
       }`}
     >

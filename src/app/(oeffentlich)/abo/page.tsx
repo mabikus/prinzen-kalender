@@ -26,7 +26,7 @@ export default function AboSeite() {
         <Feeds />
       </Suspense>
 
-      <section className="space-y-5 rounded-lg border border-linie bg-white p-5">
+      <section className="space-y-5 rounded-lg border border-linie bg-panel p-5">
         <h2 className="font-serif lining-nums text-2xl font-semibold">So geht’s</h2>
         <Anleitung icon={Smartphone} titel="iPhone, iPad, Mac">
           Auf <strong>Apple</strong> tippen und „Abonnieren“ bestätigen. Tipp: Unter Einstellungen → Kalender → Accounts
@@ -76,7 +76,7 @@ function Knoepfe({ f, host, proto, token, haupt }: { f: Filter; host: string; pr
   const https = `${proto}://${pfad}`;
   const webcal = `webcal://${pfad}`;
   const name = f.key === "alle" ? APP_NAME : `${APP_NAME} – ${f.label}`;
-  const zweit = `${KNOPF} bg-white text-tinte ring-linie hover:text-marke-700 hover:ring-marke-300`;
+  const zweit = `${KNOPF} bg-panel text-tinte ring-linie hover:text-marke-700 hover:ring-marke-300`;
   return (
     <div className="flex flex-wrap gap-2">
       <a
@@ -123,7 +123,7 @@ function Liste({
   return (
     <section className="space-y-2">
       <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-grau">{titel}</h2>
-      <ul className="divide-y divide-linie overflow-hidden rounded-lg border border-linie bg-white">
+      <ul className="divide-y divide-linie overflow-hidden rounded-lg border border-linie bg-panel">
         {feeds.map((f) => (
           <li key={f.key} className="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -150,7 +150,7 @@ async function Feeds() {
 
   return (
     <div className="space-y-8">
-      <section className="space-y-3 rounded-lg border-l-[3px] border-marke-700 bg-white p-5 shadow-[0_1px_3px_rgba(31,26,23,0.06)]">
+      <section className="space-y-3 rounded-lg border-l-[3px] border-marke-700 bg-panel p-5 shadow-[0_1px_3px_rgba(31,26,23,0.06)]">
         <div>
           <h2 className="font-serif lining-nums text-2xl font-semibold">Alle Termine</h2>
           <p className="text-sm text-grau">Der komplette Plan der Session – für Prinz und Adjutanten.</p>

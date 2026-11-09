@@ -32,7 +32,7 @@ export function NavLinks({ pfad, variante }: { pfad: string | null; variante: Va
     return (
       <nav
         aria-label="Hauptnavigation"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-linie bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-linie bg-panel/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
       >
         <ul className="grid grid-cols-4">
           {NAV.map((n) => {
