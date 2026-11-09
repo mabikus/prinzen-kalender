@@ -228,11 +228,15 @@ select:focus-visible {
   }
 }
 
+/* „Bewegung reduzieren“ (iPhone-Einstellung): Animationen und Übergänge sofort fertig – und nur einmal.
+   Ohne iteration-count 1 würden endlose Animationen mit 0,01 ms Dauer rasend schnell laufen
+   (Safari zeigt dann jedes Bild in zufälliger Drehung). */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
@@ -366,5 +370,18 @@ summary::-webkit-details-marker {
 @keyframes ui-kreisel {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Ladesymbole drehen auch bei „Bewegung reduzieren“ ruhig weiter (wie der iOS-Kreisel) */
+@media (prefers-reduced-motion: reduce) {
+  .ui-drehen {
+    animation: ui-drehen 1.2s linear infinite !important;
+  }
+  .ui-kreisel {
+    animation: ui-kreisel 0.9s steps(8) infinite !important;
+  }
+  .ui-punkt {
+    animation: ui-pulsieren 1.4s ease-in-out infinite !important;
   }
 }
