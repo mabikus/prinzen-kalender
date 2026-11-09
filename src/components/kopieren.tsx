@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { Check, Copy } from "lucide-react";
 
 export function Kopieren({ text }: { text: string }) {
   const [ok, setOk] = useState(false);
+  const Icon = ok ? Check : Copy;
   return (
     <button
       type="button"
@@ -16,9 +18,10 @@ export function Kopieren({ text }: { text: string }) {
           window.prompt("Link kopieren:", text);
         }
       }}
-      className="rounded-lg bg-white px-3 py-1.5 text-sm font-medium ring-1 ring-zinc-300 hover:bg-zinc-100 dark:bg-zinc-900 dark:ring-zinc-700 dark:hover:bg-zinc-800"
+      className="inline-flex items-center gap-1.5 rounded-md bg-white px-3 py-1.5 text-sm font-medium text-tinte ring-1 ring-inset ring-linie transition hover:text-marke-700 hover:ring-marke-300"
     >
-      {ok ? "✓ Kopiert" : "📋 Link kopieren"}
+      <Icon className="size-4" strokeWidth={1.75} aria-hidden />
+      {ok ? "Kopiert" : "Link"}
     </button>
   );
 }

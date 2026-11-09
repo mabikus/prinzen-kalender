@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { Check } from "lucide-react";
 import type { Umfang } from "@/lib/types";
 
 interface G {
   id: string;
   name: string;
   kuerzel: string;
-  badge: string;
   in_alle: boolean;
   personen: number | null;
 }
@@ -46,19 +46,17 @@ export function GruppenAuswahl({
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-3 gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
+      <div className="grid grid-cols-3 gap-1 rounded-md bg-papier p-1 ring-1 ring-inset ring-linie">
         {MODI.map((m) => (
           <label
             key={m.wert}
             title={m.hilfe}
-            className={`cursor-pointer rounded-lg px-2 py-2 text-center text-sm font-semibold ${
+            className={`cursor-pointer rounded px-2 py-2 text-center text-sm font-semibold transition ${
               umfang === m.wert
-                ? m.wert === "alle"
-                  ? "bg-red-600 text-white shadow"
-                  : m.wert === "jeder_verfuegbare"
-                    ? "bg-zinc-700 text-white shadow"
-                    : "bg-white shadow dark:bg-zinc-950"
-                : "text-zinc-600 dark:text-zinc-300"
+                ? m.wert === "auswahl"
+                  ? "bg-white text-marke-800 shadow-sm ring-1 ring-marke-200"
+                  : "bg-marke-700 text-white shadow-sm"
+                : "text-grau hover:text-marke-700"
             }`}
           >
             <input
@@ -81,9 +79,9 @@ export function GruppenAuswahl({
           return (
             <label
               key={g.id}
-              className={`flex cursor-pointer select-none items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ring-1 ring-inset ${
-                an ? g.badge : "bg-white text-zinc-500 ring-zinc-300 dark:bg-zinc-900 dark:ring-zinc-700"
-              } ${auto ? "cursor-default opacity-80" : ""}`}
+              className={`flex cursor-pointer select-none items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset transition ${
+                an ? "bg-marke-50 text-marke-900 ring-marke-300" : "bg-white text-grau ring-linie hover:ring-marke-200"
+              } ${auto ? "cursor-default opacity-75" : ""}`}
             >
               <input
                 type="checkbox"
@@ -92,8 +90,15 @@ export function GruppenAuswahl({
                 checked={an}
                 disabled={auto}
                 onChange={() => umschalten(g.id)}
-                className="size-4 accent-red-700"
+                className="peer sr-only"
               />
+              <span
+                className={`flex size-4 items-center justify-center rounded-sm ring-1 ring-inset peer-focus-visible:ring-2 ${
+                  an ? "bg-marke-700 text-white ring-marke-700" : "bg-white ring-linie"
+                }`}
+              >
+                {an && <Check className="size-3" strokeWidth={2.5} aria-hidden />}
+              </span>
               {g.name}
             </label>
           );
@@ -106,16 +111,18 @@ export function GruppenAuswahl({
             <button
               type="button"
               onClick={() => setAuswahl(new Set(gruppen.filter((g) => g.in_alle).map((g) => g.id)))}
-              className="text-red-700 underline dark:text-red-400"
+              className="text-marke-700 underline underline-offset-2"
             >
               alle ankreuzen
             </button>
-            <button type="button" onClick={() => setAuswahl(new Set())} className="text-zinc-500 underline">
+            <button type="button" onClick={() => setAuswahl(new Set())} className="text-grau underline underline-offset-2">
               keine
             </button>
           </>
         )}
-        <span className="ml-auto text-zinc-500">≈ {personen} Personen</span>
+        <span className="ml-auto text-grau">
+          ca. <strong className="tabular-nums text-tinte">{personen}</strong> Personen
+        </span>
       </div>
     </div>
   );

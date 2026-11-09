@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Termine, Treffpunkte und Besetzung der Session 2026/27",
     start_url: "/",
     display: "standalone",
-    background_color: "#fafafa",
-    theme_color: "#b91c1c",
+    background_color: "#f8f6f3",
+    theme_color: "#9a1219",
     icons: [{ src: "/icon.svg", sizes: "any", type: "image/svg+xml" }],
   };
 }

@@ -1,37 +1,70 @@
 import Link from "next/link";
-import { ANMELDUNG, ART, FARBEN, personenBedarf, UMFANG } from "@/lib/labels";
+import {
+  ChevronDown,
+  CircleHelp,
+  Clock,
+  ClipboardPen,
+  MapPin,
+  Ticket,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
+import { ANMELDUNG, personenBedarf, UMFANG } from "@/lib/labels";
 import type { Gruppe, Termin } from "@/lib/types";
 import type { Zeitfenster } from "@/lib/zeit";
 import { zeitText } from "@/lib/zeit";
 
-export function Badge({ className = "", children, title }: { className?: string; children: React.ReactNode; title?: string }) {
+/** Einheitliche Linien-Icons */
+export function I({ icon: Icon, className = "size-4" }: { icon: LucideIcon; className?: string }) {
+  return <Icon className={`shrink-0 ${className}`} strokeWidth={1.75} aria-hidden />;
+}
+
+export const ANMELDUNG_ICON = { eintrittskarte: Ticket, voranmeldung: ClipboardPen } as const;
+
+type Variante = "voll" | "rahmen" | "neutral" | "hell" | "gestrichelt";
+
+const VARIANTE: Record<Variante, string> = {
+  voll: "bg-marke-700 text-white ring-1 ring-inset ring-marke-700",
+  rahmen: "bg-white text-marke-800 ring-1 ring-inset ring-marke-300",
+  neutral: "bg-white text-tinte/80 ring-1 ring-inset ring-linie",
+  hell: "bg-marke-50 text-marke-800 ring-1 ring-inset ring-marke-200",
+  gestrichelt: "bg-transparent text-grau border border-dashed border-grau/50",
+};
+
+export function Badge({
+  variante = "neutral",
+  children,
+  title,
+}: {
+  variante?: Variante;
+  children: React.ReactNode;
+  title?: string;
+}) {
   return (
     <span
       title={title}
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${className}`}
+      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${VARIANTE[variante]}`}
     >
       {children}
     </span>
   );
 }
 
-const NEUTRAL = "bg-white text-zinc-700 ring-zinc-300 dark:bg-zinc-900 dark:text-zinc-200 dark:ring-zinc-700";
-const ALLE = "bg-red-600 text-white ring-red-600 dark:bg-red-700 dark:ring-red-700";
-const JEDER = "bg-zinc-700 text-white ring-zinc-700 dark:bg-zinc-600 dark:ring-zinc-600";
-
 /** Wer ist dabei? */
 export function GruppenBadges({ t, gruppen }: { t: Termin; gruppen: Gruppe[] }) {
   const einzeln =
-    t.umfang === "auswahl" ? gruppen.filter((g) => t.gruppen.includes(g.id)) : gruppen.filter((g) => !g.in_alle && t.gruppen.includes(g.id));
+    t.umfang === "auswahl"
+      ? gruppen.filter((g) => t.gruppen.includes(g.id))
+      : gruppen.filter((g) => !g.in_alle && t.gruppen.includes(g.id));
   return (
     <>
       {t.umfang !== "auswahl" && (
-        <Badge className={t.umfang === "alle" ? ALLE : JEDER} title={UMFANG[t.umfang].beschreibung}>
-          {t.umfang === "alle" ? "Alle" : "Jeder Verfügbare"}
+        <Badge variante={t.umfang === "alle" ? "voll" : "rahmen"} title={UMFANG[t.umfang].beschreibung}>
+          {UMFANG[t.umfang].label}
         </Badge>
       )}
       {einzeln.map((g) => (
-        <Badge key={g.id} className={FARBEN[g.farbe].badge} title={g.beschreibung ?? undefined}>
+        <Badge key={g.id} title={g.beschreibung ?? undefined}>
           {g.name}
         </Badge>
       ))}
@@ -44,15 +77,9 @@ export function KartenBadge({ t, gruppen }: { t: Termin; gruppen: Gruppe[] }) {
   const b = personenBedarf(t, gruppen);
   const offen = t.karten_bestellt == null || t.karten_bestellt < b.summe;
   return (
-    <Badge
-      className={
-        offen
-          ? "bg-amber-100 text-amber-900 ring-amber-400 dark:bg-amber-950 dark:text-amber-100 dark:ring-amber-700"
-          : "bg-emerald-100 text-emerald-900 ring-emerald-400 dark:bg-emerald-950 dark:text-emerald-100 dark:ring-emerald-700"
-      }
-      title={ANMELDUNG[t.anmeldung].label}
-    >
-      {ANMELDUNG[t.anmeldung].icon} {b.summe}
+    <Badge variante={offen ? "hell" : "neutral"} title={ANMELDUNG[t.anmeldung].label}>
+      <I icon={ANMELDUNG_ICON[t.anmeldung]} className="size-3.5" />
+      {b.summe}
       {b.ohneAngabe.length > 0 && "+"} Pers.
       {t.karten_bestellt != null && ` · ${t.karten_bestellt} bestellt`}
     </Badge>
@@ -61,42 +88,66 @@ export function KartenBadge({ t, gruppen }: { t: Termin; gruppen: Gruppe[] }) {
 
 export function TerminBadges({ t, gruppen }: { t: Termin; gruppen: Gruppe[] }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap items-center gap-1.5">
       <GruppenBadges t={t} gruppen={gruppen} />
       <KartenBadge t={t} gruppen={gruppen} />
       {t.status === "vorbehalt" && (
-        <Badge className="bg-yellow-50 text-yellow-900 ring-yellow-300 dark:bg-yellow-950 dark:text-yellow-100 dark:ring-yellow-800">
-          unter Vorbehalt
+        <Badge variante="gestrichelt">
+          <I icon={Clock} className="size-3.5" />
+          Vorbehalt
         </Badge>
       )}
-      {t.art === "intern" && <Badge className={NEUTRAL}>{ART.intern}</Badge>}
+      {t.art === "intern" && <span className="text-xs uppercase tracking-wider text-grau">Intern</span>}
     </div>
   );
 }
 
-export function Orte({ t }: { t: Termin }) {
+export function Orte({ t, className = "text-grau" }: { t: Termin; className?: string }) {
   const treff = t.treffpunkt;
   const ort = t.ort && t.ort !== treff ? t.ort : null;
   if (!treff && !ort) return null;
   return (
-    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-      📍 {treff}
-      {treff && ort && " → "}
-      {ort}
+    <p className={`flex items-start gap-1.5 text-sm ${className}`}>
+      <I icon={MapPin} className="mt-0.5 size-3.5" />
+      <span>
+        {treff}
+        {treff && ort && " → "}
+        {ort}
+      </span>
+    </p>
+  );
+}
+
+export function Hinweis({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="flex items-start gap-1.5 text-sm font-medium text-marke-700">
+      <I icon={TriangleAlert} className="mt-0.5 size-3.5" />
+      <span>{children}</span>
+    </p>
+  );
+}
+
+export function Pruefen({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="flex items-start gap-1.5 rounded-md bg-stone-100 px-2 py-1 text-xs text-stone-700">
+      <I icon={CircleHelp} className="mt-px size-3.5" />
+      <span>
+        <span className="font-semibold">Prüfen:</span> {children}
+      </span>
     </p>
   );
 }
 
 function Zeit({ t, z }: { t: Termin; z: Zeitfenster | undefined }) {
-  if (z?.start == null) return <div className="text-xs leading-6 text-zinc-500">Uhrzeit offen</div>;
+  if (z?.start == null) return <div className="pt-1 text-xs leading-5 text-grau">Uhrzeit offen</div>;
   const geschaetzt = !t.treffzeit && !t.beginn;
   return (
     <>
-      <div className="text-lg font-semibold tabular-nums leading-6">
-        {geschaetzt && "≈"}
+      <div className="font-serif lining-nums text-xl font-semibold tabular-nums leading-6">
+        {geschaetzt && <span className="text-grau">ca.</span>}
         {zeitText(z.start)}
       </div>
-      <div className="text-[11px] uppercase tracking-wide text-zinc-500">
+      <div className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-grau">
         {geschaetzt ? "danach" : t.treffzeit ? "Treffen" : "Beginn"}
       </div>
     </>
@@ -117,36 +168,35 @@ export function TerminZeile({
   gruppen: Gruppe[];
   vorher?: Termin;
   vergangen?: boolean;
-  /** innerhalb eines Tagesprogramms: weniger Rahmen */
+  /** innerhalb eines Tagesprogramms: ohne eigenen Rahmen */
   kompakt?: boolean;
 }) {
   return (
     <Link
       href={`/termin/${encodeURIComponent(t.id)}`}
-      className={`group flex gap-3 p-3 transition ${
+      className={`group flex gap-4 p-3.5 transition ${
         kompakt
-          ? "rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-          : "rounded-xl border border-zinc-200 bg-white hover:border-red-300 hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-red-800"
-      } ${vergangen ? "opacity-55" : ""} ${t.status === "vorbehalt" && !kompakt ? "border-dashed" : ""}`}
+          ? "hover:bg-papier"
+          : "rounded-lg border border-linie bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] hover:border-marke-300"
+      } ${vergangen ? "opacity-50" : ""}`}
     >
-      <div className="w-14 shrink-0 text-right">
+      <div className="w-14 shrink-0 border-r border-linie pr-3 text-right">
         <Zeit t={t} z={z} />
       </div>
-      <div className="min-w-0 flex-1 space-y-1">
-        <h3 className="font-semibold leading-6 group-hover:text-red-700 dark:group-hover:text-red-400">{t.titel}</h3>
-        {t.anschluss_an && vorher && (
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">im Anschluss an „{vorher.titel}“</p>
-        )}
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <h3 className="font-semibold leading-snug group-hover:text-marke-700">{t.titel}</h3>
+        {t.anschluss_an && vorher && <p className="text-sm text-grau">im Anschluss an „{vorher.titel}“</p>}
         <Orte t={t} />
-        {t.treffzeit && t.beginn && <p className="text-sm text-zinc-600 dark:text-zinc-400">Beginn {t.beginn}</p>}
-        <TerminBadges t={t} gruppen={gruppen} />
-        {t.hinweis && <p className="text-sm font-medium text-red-700 dark:text-red-400">⚠️ {t.hinweis}</p>}
-        {t.bemerkung && <p className="text-sm text-zinc-700 dark:text-zinc-300">{t.bemerkung}</p>}
-        {t.pruefen && (
-          <p className="rounded-md bg-orange-50 px-2 py-1 text-xs text-orange-900 dark:bg-orange-950 dark:text-orange-200">
-            🔎 Prüfen: {t.pruefen}
+        {t.treffzeit && t.beginn && (
+          <p className="flex items-center gap-1.5 text-sm text-grau">
+            <I icon={Clock} className="size-3.5" />
+            Beginn {t.beginn}
           </p>
         )}
+        <TerminBadges t={t} gruppen={gruppen} />
+        {t.hinweis && <Hinweis>{t.hinweis}</Hinweis>}
+        {t.bemerkung && <p className="text-sm text-tinte/80">{t.bemerkung}</p>}
+        {t.pruefen && <Pruefen>{t.pruefen}</Pruefen>}
       </div>
     </Link>
   );
@@ -183,42 +233,53 @@ export function ProgrammKarte({
   return (
     <details
       open={offen}
-      className={`group/p rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 ${
-        alleVergangen ? "opacity-55" : ""
+      className={`group/p overflow-hidden rounded-lg border border-linie bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] ${
+        alleVergangen ? "opacity-50" : ""
       }`}
     >
-      <summary className="flex cursor-pointer list-none gap-3 p-3 [&::-webkit-details-marker]:hidden">
-        <div className="w-14 shrink-0 text-right">
+      <summary className="flex cursor-pointer list-none gap-4 border-l-[3px] border-marke-700 p-3.5 hover:bg-papier">
+        <div className="w-14 shrink-0 border-r border-linie pr-3 text-right">
           {von != null ? (
             <>
-              <div className="text-lg font-semibold tabular-nums leading-6">{zeitText(von)}</div>
-              {bis != null && <div className="text-[11px] tabular-nums text-zinc-500">bis {zeitText(bis)}</div>}
+              <div className="font-serif lining-nums text-xl font-semibold tabular-nums leading-6">{zeitText(von)}</div>
+              {bis != null && <div className="mt-0.5 text-[10px] tabular-nums text-grau">bis {zeitText(bis)}</div>}
             </>
           ) : (
-            <div className="text-xs leading-6 text-zinc-500">Uhrzeit offen</div>
+            <div className="pt-1 text-xs leading-5 text-grau">Uhrzeit offen</div>
           )}
         </div>
-        <div className="min-w-0 flex-1 space-y-1">
-          <h3 className="flex items-center gap-2 font-semibold leading-6">
-            <span className="rounded bg-green-700 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white">
-              {name}
-            </span>
-            <span className="text-sm font-normal text-zinc-500">{termine.length} Programmpunkte</span>
-          </h3>
-          <p className="line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">
-            {termine.map((t) => t.titel).join(" · ")}
-          </p>
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-zinc-500">
-            {vorbehalt > 0 && <span>{vorbehalt}× unter Vorbehalt</span>}
-            {karten > 0 && <span>· {karten}× Karten/Anmeldung</span>}
-            <span className="ml-auto font-medium text-red-700 group-open/p:hidden dark:text-red-400">
-              Aufklappen ▾
-            </span>
-            <span className="ml-auto hidden font-medium text-zinc-500 group-open/p:inline">Zuklappen ▴</span>
+        <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h3 className="font-serif lining-nums text-lg font-semibold leading-snug text-marke-800">{name}</h3>
+              <p className="text-xs uppercase tracking-wider text-grau">{termine.length} Programmpunkte</p>
+            </div>
+            <ChevronDown
+              className="mt-1 size-5 shrink-0 text-grau transition group-open/p:rotate-180"
+              strokeWidth={1.5}
+              aria-hidden
+            />
           </div>
+          <p className="line-clamp-2 text-sm text-grau">{termine.map((t) => t.titel).join(" · ")}</p>
+          {(vorbehalt > 0 || karten > 0) && (
+            <div className="flex flex-wrap gap-1.5">
+              {vorbehalt > 0 && (
+                <Badge variante="gestrichelt">
+                  <I icon={Clock} className="size-3.5" />
+                  {vorbehalt}× Vorbehalt
+                </Badge>
+              )}
+              {karten > 0 && (
+                <Badge variante="hell">
+                  <I icon={Ticket} className="size-3.5" />
+                  {karten}× Karten/Anmeldung
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
       </summary>
-      <div className="divide-y divide-zinc-100 border-t border-zinc-100 px-1 pb-1 dark:divide-zinc-800 dark:border-zinc-800">
+      <div className="divide-y divide-linie border-t border-linie">
         {termine.map((t) => (
           <TerminZeile
             key={t.id}

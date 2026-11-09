@@ -76,12 +76,12 @@ export function beschreibung(t: Termin, daten: Daten, link?: string): string {
   if (t.anmeldung) {
     const b = personenBedarf(t, daten.gruppen);
     z.push(
-      `${ANMELDUNG[t.anmeldung].icon} ${ANMELDUNG[t.anmeldung].label}: ${b.summe}${b.ohneAngabe.length ? "+" : ""} Personen` +
+      `${ANMELDUNG[t.anmeldung].label}: ${b.summe}${b.ohneAngabe.length ? "+" : ""} Personen` +
         (t.karten_bestellt != null ? ` (bestellt: ${t.karten_bestellt})` : ""),
     );
   }
   if (t.status === "vorbehalt") z.push(`Status: ${STATUS.vorbehalt}`);
-  if (t.hinweis) z.push(`⚠️ ${t.hinweis}`);
+  if (t.hinweis) z.push(`Wichtig: ${t.hinweis}`);
   if (t.bemerkung) z.push(t.bemerkung);
   if (link) z.push("", link);
   return z.join("\n");
@@ -112,8 +112,8 @@ export function kalender(
     const link = opts.basisUrl ? `${opts.basisUrl}/termin/${encodeURIComponent(t.id)}` : undefined;
     const titel = [
       t.status === "vorbehalt" ? "(vorb.)" : null,
-      t.anmeldung ? ANMELDUNG[t.anmeldung].icon : null,
       t.tagesprogramm ? `${t.tagesprogramm}: ${t.titel}` : t.titel,
+      t.anmeldung ? `(${ANMELDUNG[t.anmeldung].kurz})` : null,
     ]
       .filter(Boolean)
       .join(" ");

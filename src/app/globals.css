@@ -1,9 +1,41 @@
 @import "tailwindcss";
 
+/* Klassisches Rot-Weiß. Farben nur hier ändern. */
+@theme {
+  --color-marke-50: #fdf4f4;
+  --color-marke-100: #fbe6e6;
+  --color-marke-200: #f3c7c8;
+  --color-marke-300: #e59a9c;
+  --color-marke-600: #b3171f;
+  --color-marke-700: #9a1219;
+  --color-marke-800: #7c0f15;
+  --color-marke-900: #5a0b10;
+
+  --color-papier: #f8f6f3;
+  --color-linie: #e7e1da;
+  --color-tinte: #1f1a17;
+  --color-grau: #6f6760;
+}
+
 @theme inline {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), Georgia, "Times New Roman", serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-papier);
+  color: var(--color-tinte);
 }
 
 html {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Aufklapp-Pfeil von <summary> ausblenden */
+summary::-webkit-details-marker {
+  display: none;
 }

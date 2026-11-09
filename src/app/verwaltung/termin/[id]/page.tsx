@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
+import { ArrowLeft, Trash2, TriangleAlert } from "lucide-react";
 import { GruppenAuswahl } from "@/components/gruppen-auswahl";
 import { LoeschenKnopf } from "@/components/loeschen";
+import { I } from "@/components/termin";
 import { darfBearbeiten } from "@/lib/bearbeiten";
 import { ladeDaten, speichernMoeglich } from "@/lib/daten";
-import { FARBEN } from "@/lib/labels";
 import type { Termin } from "@/lib/types";
 import { datumKurz } from "@/lib/zeit";
 import { terminLoeschen, terminSpeichern } from "../../aktionen";
@@ -14,7 +15,7 @@ export const metadata = { title: "Termin bearbeiten" };
 
 export default function Seite(props: PageProps<"/verwaltung/termin/[id]">) {
   return (
-    <Suspense fallback={<p className="py-10 text-center text-zinc-500">Lade …</p>}>
+    <Suspense fallback={<p className="py-10 text-center text-grau">Lade …</p>}>
       <Formular {...props} />
     </Suspense>
   );
@@ -43,25 +44,25 @@ const LEER: Omit<Termin, "id" | "datum"> = {
 };
 
 const FELD =
-  "w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-base dark:border-zinc-700 dark:bg-zinc-950";
+  "w-full rounded-md border border-linie bg-white px-3 py-2 text-base outline-none focus:border-marke-300 focus:ring-2 focus:ring-marke-100";
 
 function Feld({ label, hilfe, children }: { label: string; hilfe?: string; children: React.ReactNode }) {
   return (
     <label className="block space-y-1">
       <span className="text-sm font-medium">{label}</span>
       {children}
-      {hilfe && <span className="block text-xs text-zinc-500">{hilfe}</span>}
+      {hilfe && <span className="block text-xs text-grau">{hilfe}</span>}
     </label>
   );
 }
 
 function Wahl({ name, wert, optionen }: { name: string; wert: string; optionen: [string, string][] }) {
   return (
-    <div className="flex flex-wrap gap-1 rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
+    <div className="flex flex-wrap gap-1 rounded-md bg-papier p-1 ring-1 ring-inset ring-linie">
       {optionen.map(([v, label]) => (
         <label
           key={v}
-          className="flex-1 cursor-pointer rounded-lg px-2 py-1.5 text-center text-sm font-medium text-zinc-600 has-checked:bg-white has-checked:text-zinc-900 has-checked:shadow dark:text-zinc-300 dark:has-checked:bg-zinc-950 dark:has-checked:text-white"
+          className="flex-1 cursor-pointer rounded px-2 py-1.5 text-center text-sm font-medium text-grau has-checked:bg-white has-checked:text-marke-800 has-checked:shadow-sm has-checked:ring-1 has-checked:ring-marke-200"
         >
           <input type="radio" name={name} value={v} defaultChecked={wert === v} className="sr-only" />
           {label}
@@ -73,8 +74,8 @@ function Wahl({ name, wert, optionen }: { name: string; wert: string; optionen: 
 
 function Abschnitt({ titel, children }: { titel: string; children: React.ReactNode }) {
   return (
-    <fieldset className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-      <legend className="px-1 text-sm font-semibold uppercase tracking-wide text-zinc-500">{titel}</legend>
+    <fieldset className="space-y-4 rounded-lg border border-linie bg-white p-4">
+      <legend className="px-1 text-xs font-semibold uppercase tracking-[0.12em] text-marke-700">{titel}</legend>
       {children}
     </fieldset>
   );
@@ -104,16 +105,18 @@ async function Formular({ params, searchParams }: PageProps<"/verwaltung/termin/
       <div className="flex items-center justify-between">
         <Link
           href={neu ? "/verwaltung" : `/termin/${encodeURIComponent(t.id)}`}
-          className="text-sm text-zinc-500 hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm text-grau hover:text-marke-700"
         >
-          ← Abbrechen
+          <I icon={ArrowLeft} className="size-4" />
+          Abbrechen
         </Link>
-        {!neu && <span className="text-sm text-zinc-500">{datumKurz(t.datum)}</span>}
+        {!neu && <span className="text-sm text-grau">{datumKurz(t.datum)}</span>}
       </div>
-      <h1 className="text-2xl font-bold">{neu ? "Neuer Termin" : "Termin bearbeiten"}</h1>
+      <h1 className="font-serif lining-nums text-3xl font-semibold">{neu ? "Neuer Termin" : "Termin bearbeiten"}</h1>
 
       {moeglich !== true && (
-        <p className="rounded-xl bg-orange-50 p-3 text-sm text-orange-900 dark:bg-orange-950 dark:text-orange-200">
+        <p className="flex items-start gap-2 rounded-lg border border-marke-200 bg-marke-50 p-3.5 text-sm text-marke-800">
+          <I icon={TriangleAlert} className="mt-0.5 size-4" />
           {moeglich}
         </p>
       )}
@@ -206,12 +209,11 @@ async function Formular({ params, searchParams }: PageProps<"/verwaltung/termin/
               id: g.id,
               name: g.name,
               kuerzel: g.kuerzel,
-              badge: FARBEN[g.farbe].badge,
               in_alle: g.in_alle,
               personen: g.personen,
             }))}
           />
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-grau">
             Gruppen anlegen und Personenzahl pflegen unter{" "}
             <Link href="/verwaltung/gruppen" className="underline">
               Verwaltung → Gruppen
@@ -226,8 +228,8 @@ async function Formular({ params, searchParams }: PageProps<"/verwaltung/termin/
             wert={t.anmeldung ?? ""}
             optionen={[
               ["", "Nicht nötig"],
-              ["eintrittskarte", "🎟️ Eintrittskarte"],
-              ["voranmeldung", "📝 Voranmeldung"],
+              ["eintrittskarte", "Eintrittskarte"],
+              ["voranmeldung", "Voranmeldung"],
             ]}
           />
           <Feld label="Bereits bestellt / angemeldet (Anzahl)">
@@ -254,11 +256,11 @@ async function Formular({ params, searchParams }: PageProps<"/verwaltung/termin/
           </Feld>
         </Abschnitt>
 
-        <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-zinc-200 bg-zinc-50/95 px-4 py-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/95">
+        <div className="sticky bottom-0 -mx-4 flex gap-2 border-t border-linie bg-papier/95 px-4 py-3 backdrop-blur">
           <button
             type="submit"
             disabled={moeglich !== true}
-            className="flex-1 rounded-xl bg-red-700 px-4 py-3 font-semibold text-white hover:bg-red-600 disabled:opacity-50"
+            className="flex-1 rounded-md bg-marke-700 px-4 py-3 font-semibold text-white hover:bg-marke-800 disabled:opacity-50"
           >
             Speichern
           </button>
@@ -268,7 +270,10 @@ async function Formular({ params, searchParams }: PageProps<"/verwaltung/termin/
       {!neu && moeglich === true && (
         <form action={terminLoeschen} className="flex justify-end">
           <input type="hidden" name="id" value={t.id} />
-          <LoeschenKnopf frage={`„${t.titel}“ am ${datumKurz(t.datum)} wirklich löschen?`}>Termin löschen</LoeschenKnopf>
+          <LoeschenKnopf frage={`„${t.titel}“ am ${datumKurz(t.datum)} wirklich löschen?`}>
+            <I icon={Trash2} className="size-4" />
+            Termin löschen
+          </LoeschenKnopf>
         </form>
       )}
     </div>

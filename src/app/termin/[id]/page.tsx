@@ -1,7 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { GruppenBadges } from "@/components/termin";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  CalendarPlus,
+  CircleCheck,
+  CircleHelp,
+  Clock,
+  FileText,
+  Flag,
+  Landmark,
+  MapPin,
+  MessageSquareText,
+  Navigation,
+  Pencil,
+  TriangleAlert,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import { ANMELDUNG_ICON, GruppenBadges, I } from "@/components/termin";
 import { darfBearbeiten } from "@/lib/bearbeiten";
 import { ladeDaten } from "@/lib/daten";
 import { ANMELDUNG, ART, personenBedarf, STATUS, UMFANG } from "@/lib/labels";
@@ -9,7 +27,7 @@ import { datumLang, zeitplan, zeitText } from "@/lib/zeit";
 
 export default function TerminSeite({ params }: PageProps<"/termin/[id]">) {
   return (
-    <Suspense fallback={<p className="py-10 text-center text-zinc-500">Lade Termin …</p>}>
+    <Suspense fallback={<p className="py-10 text-center text-grau">Lade Termin …</p>}>
       <Detail params={params} />
     </Suspense>
   );
@@ -20,10 +38,13 @@ function karte(ort: string) {
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${ort}, Kreis Ahrweiler`)}`;
 }
 
-function Zeile({ label, children }: { label: string; children: React.ReactNode }) {
+function Zeile({ icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[7rem_1fr] gap-3 border-b border-zinc-100 py-2.5 last:border-0 dark:border-zinc-800">
-      <dt className="text-sm text-zinc-500">{label}</dt>
+    <div className="grid grid-cols-[7.5rem_1fr] gap-3 border-b border-linie py-3 last:border-0">
+      <dt className="flex items-center gap-2 self-start pt-0.5 text-sm text-grau">
+        <I icon={icon} className="size-4" />
+        {label}
+      </dt>
       <dd className="min-w-0">{children}</dd>
     </div>
   );
@@ -32,11 +53,20 @@ function Zeile({ label, children }: { label: string; children: React.ReactNode }
 function Ort({ name }: { name: string }) {
   if (name === "im Anschluss") return <>{name}</>;
   return (
-    <a href={karte(name)} target="_blank" rel="noreferrer" className="text-red-700 underline dark:text-red-400">
-      {name} ↗
+    <a
+      href={karte(name)}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-0.5 text-marke-700 underline decoration-marke-200 underline-offset-2 hover:decoration-marke-700"
+    >
+      {name}
+      <I icon={ArrowUpRight} className="size-3.5" />
     </a>
   );
 }
+
+const KNOPF =
+  "inline-flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold ring-1 ring-inset transition";
 
 async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
   const { id } = await params;
@@ -53,148 +83,170 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
   return (
     <article className="space-y-6">
       <div className="flex items-center justify-between">
-        <Link href={`/#${t.datum}`} className="text-sm text-zinc-500 hover:underline">
-          ← Zurück zur Übersicht
+        <Link href={`/#${t.datum}`} className="inline-flex items-center gap-1.5 text-sm text-grau hover:text-marke-700">
+          <I icon={ArrowLeft} className="size-4" />
+          Übersicht
         </Link>
         {bearbeiten && (
           <Link
             href={`/verwaltung/termin/${encodeURIComponent(t.id)}`}
-            className="rounded-lg px-3 py-1.5 text-sm font-medium ring-1 ring-zinc-300 hover:bg-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-800"
+            className={`${KNOPF} bg-white py-1.5 text-tinte/80 ring-linie hover:text-marke-700 hover:ring-marke-300`}
           >
-            ✏️ Bearbeiten
+            <I icon={Pencil} className="size-4" />
+            Bearbeiten
           </Link>
         )}
       </div>
 
-      <header className="space-y-2">
-        <p className="text-sm font-medium text-zinc-500">
+      <header className="space-y-3 border-b border-linie pb-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-marke-700">
           {ART[t.art]}
           {t.tagesprogramm && ` · ${t.tagesprogramm}`}
         </p>
-        <h1 className="text-3xl font-bold leading-tight">{t.titel}</h1>
-        <p className="text-lg text-zinc-700 dark:text-zinc-300">{datumLang(t.datum)}</p>
+        <h1 className="font-serif lining-nums text-4xl font-semibold leading-tight">{t.titel}</h1>
+        <p className="text-lg text-tinte/80">{datumLang(t.datum)}</p>
         <p
-          className={`inline-block rounded-md px-2 py-1 text-sm font-medium ${
-            t.status === "vorbehalt"
-              ? "bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-100"
-              : "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100"
+          className={`inline-flex items-center gap-1.5 text-sm font-medium ${
+            t.status === "vorbehalt" ? "text-grau" : "text-tinte/80"
           }`}
         >
-          {t.status === "vorbehalt" ? "⏳" : "✓"} {STATUS[t.status]}
+          <I icon={t.status === "vorbehalt" ? Clock : CircleCheck} className="size-4" />
+          {STATUS[t.status]}
         </p>
       </header>
 
       {t.hinweis && (
-        <p className="rounded-xl border border-red-200 bg-red-50 p-3 font-medium text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
-          ⚠️ {t.hinweis}
+        <p className="flex items-start gap-2 rounded-lg border border-marke-200 bg-marke-50 p-3.5 font-medium text-marke-800">
+          <I icon={TriangleAlert} className="mt-0.5 size-5" />
+          {t.hinweis}
         </p>
       )}
 
       {t.anmeldung && (
-        <section className="rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
-          <h2 className="font-semibold text-amber-900 dark:text-amber-100">
-            {ANMELDUNG[t.anmeldung].icon} {ANMELDUNG[t.anmeldung].label}
+        <section className="rounded-lg border border-linie bg-white p-5">
+          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-marke-700">
+            <I icon={ANMELDUNG_ICON[t.anmeldung]} className="size-4" />
+            {ANMELDUNG[t.anmeldung].label}
           </h2>
-          <p className="mt-1 text-amber-900 dark:text-amber-100">
-            Bedarf: <strong className="text-xl tabular-nums">{bedarf.summe}</strong> Personen
-            {t.karten_bestellt != null && (
-              <>
-                {" · "}bestellt: <strong className="tabular-nums">{t.karten_bestellt}</strong>
-              </>
-            )}
-          </p>
-          <ul className="mt-2 text-sm text-amber-900/80 dark:text-amber-100/80">
+          <div className="mt-3 flex items-end gap-8">
+            <div>
+              <div className="font-serif lining-nums text-4xl font-semibold tabular-nums leading-none">
+                {bedarf.summe}
+                {bedarf.ohneAngabe.length > 0 && <span className="text-grau">+</span>}
+              </div>
+              <div className="mt-1 text-xs uppercase tracking-wider text-grau">Personen</div>
+            </div>
+            <div>
+              <div className="font-serif lining-nums text-4xl font-semibold tabular-nums leading-none text-grau">
+                {t.karten_bestellt ?? "–"}
+              </div>
+              <div className="mt-1 text-xs uppercase tracking-wider text-grau">bestellt</div>
+            </div>
+          </div>
+          <ul className="mt-4 divide-y divide-linie border-t border-linie text-sm">
             {bedarf.dabei.map((g) => (
-              <li key={g.id}>
-                {g.name}: {g.personen ?? "Anzahl fehlt"}
+              <li key={g.id} className="flex justify-between py-1.5">
+                <span>{g.name}</span>
+                <span className={g.personen == null ? "text-marke-700" : "tabular-nums text-grau"}>
+                  {g.personen ?? "Anzahl fehlt"}
+                </span>
               </li>
             ))}
           </ul>
           {bedarf.ohneAngabe.length > 0 && (
-            <p className="mt-2 text-xs text-amber-900/80 dark:text-amber-100/80">
-              Für {bedarf.ohneAngabe.map((g) => g.name).join(", ")} ist noch keine Personenzahl hinterlegt
-              (Verwaltung → Gruppen).
-            </p>
+            <p className="mt-2 text-xs text-grau">Personenzahlen pflegen unter Verwaltung → Gruppen.</p>
           )}
         </section>
       )}
 
-      <dl className="rounded-2xl border border-zinc-200 bg-white px-4 dark:border-zinc-800 dark:bg-zinc-900">
+      <dl className="rounded-lg border border-linie bg-white px-5">
         {(t.treffzeit || t.treffpunkt) && (
-          <Zeile label="Treffen">
+          <Zeile icon={MapPin} label="Treffen">
             <span className="font-semibold tabular-nums">{t.treffzeit}</span>
             {t.treffzeit && t.treffpunkt && " · "}
             {t.treffpunkt && <Ort name={t.treffpunkt} />}
           </Zeile>
         )}
         {vorher && (
-          <Zeile label="Zeit">
+          <Zeile icon={Clock} label="Zeit">
             im Anschluss an{" "}
-            <Link href={`/termin/${encodeURIComponent(vorher.id)}`} className="underline">
+            <Link href={`/termin/${encodeURIComponent(vorher.id)}`} className="underline underline-offset-2">
               {vorher.titel}
             </Link>
-            {z?.start != null && <span className="text-zinc-500"> (ca. {zeitText(z.start)})</span>}
+            {z?.start != null && <span className="text-grau"> (ca. {zeitText(z.start)})</span>}
           </Zeile>
         )}
         {(t.beginn || t.ort) && (
-          <Zeile label="Beginn">
+          <Zeile icon={Flag} label="Beginn">
             <span className="font-semibold tabular-nums">{t.beginn}</span>
             {t.beginn && t.ort && " · "}
             {t.ort && <Ort name={t.ort} />}
           </Zeile>
         )}
         {z?.ende != null && (
-          <Zeile label="Ende">
+          <Zeile icon={Clock} label="Ende">
             <span className="tabular-nums">
               {geschaetzt && "ca. "}
               {zeitText(z.ende)}
             </span>
-            {geschaetzt && <span className="text-sm text-zinc-500"> (geschätzt)</span>}
+            {geschaetzt && <span className="text-sm text-grau"> (geschätzt)</span>}
           </Zeile>
         )}
         {z?.ganztags && (
-          <Zeile label="Uhrzeit">
-            <span className="text-zinc-500">noch offen</span>
+          <Zeile icon={Clock} label="Uhrzeit">
+            <span className="text-grau">noch offen</span>
           </Zeile>
         )}
-        {t.veranstalter && <Zeile label="Veranstalter">{t.veranstalter}</Zeile>}
-        <Zeile label="Wer">
+        {t.veranstalter && (
+          <Zeile icon={Landmark} label="Veranstalter">
+            {t.veranstalter}
+          </Zeile>
+        )}
+        <Zeile icon={Users} label="Wer">
           <div className="flex flex-wrap gap-1.5">
             <GruppenBadges t={t} gruppen={daten.gruppen} />
           </div>
-          {t.umfang !== "auswahl" && (
-            <p className="mt-1 text-sm text-zinc-500">{UMFANG[t.umfang].beschreibung}</p>
-          )}
+          {t.umfang !== "auswahl" && <p className="mt-1 text-sm text-grau">{UMFANG[t.umfang].beschreibung}</p>}
         </Zeile>
-        {t.bemerkung && <Zeile label="Bemerkung">{t.bemerkung}</Zeile>}
-        <Zeile label="Quelle">
-          <span className="text-sm text-zinc-500">
-            {t.quelle.map((q) => (q === "kg" ? "KG-Terminplan" : q === "eigen" ? "eigene Liste" : q)).join(" + ") || "–"}
+        {t.bemerkung && (
+          <Zeile icon={MessageSquareText} label="Bemerkung">
+            {t.bemerkung}
+          </Zeile>
+        )}
+        <Zeile icon={FileText} label="Quelle">
+          <span className="text-sm text-grau">
+            {t.quelle.map((q) => (q === "kg" ? "KG-Terminplan" : q === "eigen" ? "eigene Liste" : q)).join(" + ") ||
+              "–"}
           </span>
         </Zeile>
       </dl>
 
       {t.pruefen && (
-        <p className="rounded-xl bg-orange-50 p-3 text-sm text-orange-900 dark:bg-orange-950 dark:text-orange-200">
-          🔎 <strong>Noch prüfen:</strong> {t.pruefen}
+        <p className="flex items-start gap-2 rounded-lg bg-stone-100 p-3.5 text-sm text-stone-700">
+          <I icon={CircleHelp} className="mt-0.5 size-4" />
+          <span>
+            <strong>Noch prüfen:</strong> {t.pruefen}
+          </span>
         </p>
       )}
 
       <div className="flex flex-wrap gap-2">
         <a
           href={`/termin/${encodeURIComponent(t.id)}/ics`}
-          className="rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900"
+          className={`${KNOPF} bg-marke-700 text-white ring-marke-700 hover:bg-marke-800`}
         >
-          📅 In meinen Kalender
+          <I icon={CalendarPlus} className="size-4" />
+          In meinen Kalender
         </a>
         {t.treffpunkt && t.treffpunkt !== "im Anschluss" && (
           <a
             href={karte(t.treffpunkt)}
             target="_blank"
             rel="noreferrer"
-            className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold ring-1 ring-zinc-300 hover:bg-zinc-100 dark:bg-zinc-900 dark:ring-zinc-700"
+            className={`${KNOPF} bg-white text-tinte ring-linie hover:text-marke-700 hover:ring-marke-300`}
           >
-            🧭 Navigation zum Treffpunkt
+            <I icon={Navigation} className="size-4" />
+            Navigation zum Treffpunkt
           </a>
         )}
       </div>

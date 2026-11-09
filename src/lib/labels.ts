@@ -19,64 +19,16 @@ export const UMFANG: Record<Umfang, { label: string; beschreibung: string }> = {
   },
 };
 
-export const ANMELDUNG: Record<Anmeldung, { label: string; icon: string }> = {
-  eintrittskarte: { label: "Eintrittskarte nötig", icon: "🎟️" },
-  voranmeldung: { label: "Voranmeldung nötig", icon: "📝" },
+export const ANMELDUNG: Record<Anmeldung, { label: string; kurz: string }> = {
+  eintrittskarte: { label: "Eintrittskarte nötig", kurz: "Eintrittskarte" },
+  voranmeldung: { label: "Voranmeldung nötig", kurz: "Voranmeldung" },
 };
 
-/** Tailwind-Klassen je Farbe (als feste Strings, damit Tailwind sie findet). */
-export const FARBEN: Record<Farbe, { name: string; badge: string; punkt: string }> = {
-  rot: {
-    name: "Rot",
-    badge: "bg-red-100 text-red-900 ring-red-300 dark:bg-red-950 dark:text-red-100 dark:ring-red-800",
-    punkt: "bg-red-500",
-  },
-  orange: {
-    name: "Orange",
-    badge: "bg-orange-100 text-orange-900 ring-orange-300 dark:bg-orange-950 dark:text-orange-100 dark:ring-orange-800",
-    punkt: "bg-orange-500",
-  },
-  gelb: {
-    name: "Gelb",
-    badge: "bg-yellow-100 text-yellow-900 ring-yellow-300 dark:bg-yellow-950 dark:text-yellow-100 dark:ring-yellow-800",
-    punkt: "bg-yellow-400",
-  },
-  gruen: {
-    name: "Grün",
-    badge: "bg-emerald-100 text-emerald-900 ring-emerald-300 dark:bg-emerald-950 dark:text-emerald-100 dark:ring-emerald-800",
-    punkt: "bg-emerald-500",
-  },
-  tuerkis: {
-    name: "Türkis",
-    badge: "bg-cyan-100 text-cyan-900 ring-cyan-300 dark:bg-cyan-950 dark:text-cyan-100 dark:ring-cyan-800",
-    punkt: "bg-cyan-500",
-  },
-  blau: {
-    name: "Blau",
-    badge: "bg-blue-100 text-blue-900 ring-blue-300 dark:bg-blue-950 dark:text-blue-100 dark:ring-blue-800",
-    punkt: "bg-blue-500",
-  },
-  lila: {
-    name: "Lila",
-    badge: "bg-violet-100 text-violet-900 ring-violet-300 dark:bg-violet-950 dark:text-violet-100 dark:ring-violet-800",
-    punkt: "bg-violet-500",
-  },
-  pink: {
-    name: "Pink",
-    badge: "bg-pink-100 text-pink-900 ring-pink-300 dark:bg-pink-950 dark:text-pink-100 dark:ring-pink-800",
-    punkt: "bg-pink-500",
-  },
-  grau: {
-    name: "Grau",
-    badge: "bg-zinc-200 text-zinc-800 ring-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700",
-    punkt: "bg-zinc-500",
-  },
-};
-
-export const FARBLISTE = Object.keys(FARBEN) as Farbe[];
+/** Gespeicherte Gruppenfarbe – wird in der Oberfläche derzeit nicht genutzt (Rot-Weiß-Design). */
+export const FARBLISTE: Farbe[] = ["rot", "orange", "gelb", "gruen", "tuerkis", "blau", "lila", "pink", "grau"];
 
 export function istFarbe(x: unknown): x is Farbe {
-  return typeof x === "string" && Object.hasOwn(FARBEN, x);
+  return typeof x === "string" && (FARBLISTE as string[]).includes(x);
 }
 
 /** Ist die Gruppe bei diesem Termin dabei? */
@@ -129,7 +81,7 @@ export function filterListe(gruppen: Gruppe[]): Filter[] {
     })),
     {
       key: "karten",
-      label: "🎟️ Karten / Anmeldung",
+      label: "Karten / Anmeldung",
       beschreibung: "Termine mit Eintrittskarte oder Voranmeldung",
       passt: (t: Termin) => t.anmeldung !== null,
     },
