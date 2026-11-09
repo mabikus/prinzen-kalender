@@ -41,15 +41,17 @@ export function NavLinks({ pfad, variante }: { pfad: string | null; variante: Va
             const Icon = n.icon;
             return (
               <li key={n.href}>
+                {/* Nur Symbole (wie bei Instagram) – die Beschriftung lesen Screenreader trotzdem vor */}
                 <Link
                   href={n.href}
                   aria-current={aktiv ? "page" : undefined}
-                  className={`flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-semibold transition-colors active:scale-95 ${
+                  aria-label={n.label}
+                  title={n.label}
+                  className={`flex h-12 items-center justify-center rounded-full transition-colors active:scale-95 ${
                     aktiv ? "bg-[var(--glas-aktiv)] text-marke-700" : "text-tinte/75"
                   }`}
                 >
-                  <Icon className="size-[22px]" strokeWidth={aktiv ? 2 : 1.6} aria-hidden />
-                  {n.label}
+                  <Icon className="size-[25px]" strokeWidth={aktiv ? 2.1 : 1.6} aria-hidden />
                 </Link>
               </li>
             );

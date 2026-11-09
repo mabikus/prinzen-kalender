@@ -40,7 +40,7 @@
   --glas-aktiv: rgb(31 26 23 / 0.07);
   /* Höhe der schwebenden Tab-Leiste samt Abstand – so viel Platz brauchen Seiten unten */
   --tab-unten: max(calc(env(safe-area-inset-bottom) - 12px), 12px);
-  --tab-platz: calc(64px + var(--tab-unten) + 12px);
+  --tab-platz: calc(56px + var(--tab-unten) + 12px);
 }
 
 /* Dunkel: warmes Schwarz statt Papier, Rot etwas heller, damit es auf Dunkel gut lesbar bleibt.
