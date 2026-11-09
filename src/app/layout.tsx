@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import Link from "next/link";
-import { datenquelle } from "@/lib/termine";
+import { datenquelle } from "@/lib/daten";
 import { zugangsToken } from "@/lib/zugang";
 import "./globals.css";
 
@@ -22,20 +22,21 @@ const NAV = [
   { href: "/", label: "Termine" },
   { href: "/monat", label: "Monat" },
   { href: "/abo", label: "Abo" },
+  { href: "/verwaltung", label: "⚙︎" },
 ] as const;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
-  const demo = datenquelle() === "startdaten";
+  const quelle = datenquelle();
   const offen = !zugangsToken();
   return (
     <html lang="de" className={`${geist.variable} h-full antialiased`}>
       <body className="min-h-full bg-zinc-50 font-sans text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
         <header className="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/90">
-          <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-4 px-4">
+          <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-2 px-4">
             <Link href="/" className="flex items-center gap-2 whitespace-nowrap font-bold">
               <span aria-hidden className="text-xl">👑</span>
               <span>
-                Prinzen-Kalender{" "}
+                <span className="hidden min-[400px]:inline">Prinzen-</span>Kalender{" "}
                 <span className="hidden font-normal text-zinc-500 sm:inline">26/27</span>
               </span>
             </Link>
@@ -54,7 +55,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </header>
         <main className="mx-auto max-w-3xl px-4 py-6">{children}</main>
         <footer className="mx-auto max-w-3xl space-y-1 px-4 pb-10 text-xs text-zinc-500">
-          {demo && <p>Datenquelle: Startdaten im Repo (Supabase noch nicht verbunden).</p>}
+          {quelle === "startdaten" && <p>Datenquelle: Startdaten im Repo (Supabase noch nicht verbunden).</p>}
+          {quelle === "datei" && <p>Datenquelle: lokale Datei .daten/daten.json (Entwicklung).</p>}
           {offen && <p>⚠️ Zugriffsschutz nicht aktiv – ZUGANG_TOKEN ist nicht gesetzt.</p>}
         </footer>
       </body>

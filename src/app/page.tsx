@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { TerminBadges, TerminZeile, Orte } from "@/components/termin";
-import { FILTER, istFilter, KATEGORIE, type FilterName } from "@/lib/labels";
-import { ladeTermine } from "@/lib/termine";
+import { Orte, ProgrammKarte, TerminBadges, TerminZeile } from "@/components/termin";
+import { ladeDaten } from "@/lib/daten";
+import { filterListe } from "@/lib/labels";
 import type { Termin } from "@/lib/types";
 import { datumKurz, datumLang, jetztInBerlin, MONATE, zeitplan, zeitText } from "@/lib/zeit";
 
@@ -16,10 +16,12 @@ export default function Startseite({ searchParams }: PageProps<"/">) {
 
 async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   const sp = await searchParams;
-  const filter: FilterName = istFilter(sp.f) ? sp.f : "alle";
   const mitVergangenen = sp.vergangen === "1";
 
-  const alle = await ladeTermine();
+  const { termine: alle, gruppen } = await ladeDaten();
+  const filterAuswahl = filterListe(gruppen);
+  const aktiv = filterAuswahl.find((f) => f.key === sp.f) ?? filterAuswahl[0];
+  const filter = aktiv.key;
   const plan = zeitplan(alle);
   const nachId = new Map(alle.map((t) => [t.id, t]));
   const jetzt = jetztInBerlin();
@@ -30,7 +32,7 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
     return ende != null && ende < jetzt.minuten;
   };
 
-  const gefiltert = alle.filter(FILTER[filter].passt);
+  const gefiltert = alle.filter(aktiv.passt);
   const vergangenAnzahl = gefiltert.filter(istVergangen).length;
   const sichtbar = mitVergangenen ? gefiltert : gefiltert.filter((t) => !istVergangen(t));
   const naechster = gefiltert.find((t) => !istVergangen(t));
@@ -46,7 +48,7 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
     tage.get(t.datum)!.push(t);
   }
 
-  const link = (f: FilterName, vergangen = mitVergangenen) => {
+  const link = (f: string, vergangen = mitVergangenen) => {
     const p = new URLSearchParams();
     if (f !== "alle") p.set("f", f);
     if (vergangen) p.set("vergangen", "1");
@@ -63,7 +65,8 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
           </p>
           <Link href={`/termin/${encodeURIComponent(naechster.id)}`} className="mt-1 block">
             <h2 className="text-2xl font-bold leading-tight">
-              {KATEGORIE[naechster.kategorie].icon} {naechster.titel}
+              {naechster.tagesprogramm ? `${naechster.tagesprogramm}: ` : ""}
+              {naechster.titel}
             </h2>
             <p className="mt-1 text-red-100">
               {datumLang(naechster.datum)}
@@ -81,7 +84,7 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
               <Orte t={naechster} />
             </div>
             <div className="mt-3">
-              <TerminBadges t={naechster} />
+              <TerminBadges t={naechster} gruppen={gruppen} />
             </div>
           </Link>
         </section>
@@ -89,18 +92,18 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
 
       <nav aria-label="Filter" className="-mx-4 overflow-x-auto px-4">
         <ul className="flex gap-2 whitespace-nowrap">
-          {(Object.keys(FILTER) as FilterName[]).map((f) => (
+          {filterAuswahl.map(({ key: f, label, beschreibung }) => (
             <li key={f}>
               <Link
                 href={link(f)}
-                title={FILTER[f].beschreibung}
+                title={beschreibung}
                 className={`inline-block rounded-full px-3 py-1.5 text-sm font-medium ring-1 ring-inset ${
                   f === filter
                     ? "bg-zinc-900 text-white ring-zinc-900 dark:bg-white dark:text-zinc-900 dark:ring-white"
                     : "bg-white text-zinc-700 ring-zinc-300 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-200 dark:ring-zinc-700"
                 }`}
               >
-                {FILTER[f].label}
+                {label}
               </Link>
             </li>
           ))}
@@ -126,41 +129,81 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
             <h2 className="sticky top-14 z-10 -mx-4 bg-zinc-50/90 px-4 py-2 text-xl font-bold backdrop-blur dark:bg-zinc-950/90">
               {MONATE[m - 1]} {jahr}
             </h2>
-            {[...tage].map(([datum, termine]) => {
-              const programme = [...new Set(termine.map((t) => t.tagesprogramm).filter(Boolean))];
-              return (
-                <div key={datum} id={datum} className="scroll-mt-28 space-y-2">
-                  <h3 className="flex flex-wrap items-baseline gap-2 text-sm font-semibold text-zinc-500">
-                    <span className={datum === jetzt.datum ? "text-red-700 dark:text-red-400" : ""}>
-                      {datumKurz(datum)}
-                      {datum === jetzt.datum && " · heute"}
-                    </span>
-                    {programme.map((p) => (
+            {[...tage].map(([datum, termine]) => (
+              <div key={datum} id={datum} className="scroll-mt-28 space-y-2">
+                <h3 className="text-sm font-semibold text-zinc-500">
+                  <span className={datum === jetzt.datum ? "text-red-700 dark:text-red-400" : ""}>
+                    {datumKurz(datum)}
+                    {datum === jetzt.datum && " · heute"}
+                  </span>
+                  {[...new Set(termine.map((t) => t.tagesprogramm))]
+                    .filter((p): p is string => !!p && termine.filter((t) => t.tagesprogramm === p).length < ZUSAMMENKLAPPEN_AB)
+                    .map((p) => (
                       <span
                         key={p}
-                        className="rounded bg-green-700 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white"
+                        className="ml-2 rounded bg-green-700 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-white"
                       >
                         {p}
                       </span>
                     ))}
-                  </h3>
-                  <div className="space-y-2">
-                    {termine.map((t) => (
-                      <TerminZeile
-                        key={t.id}
-                        t={t}
-                        z={plan.get(t.id)}
-                        vorher={t.anschluss_an ? nachId.get(t.anschluss_an) : undefined}
-                        vergangen={istVergangen(t)}
+                </h3>
+                <div className="space-y-2">
+                  {bloecke(termine).map((b) =>
+                    b.programm ? (
+                      <ProgrammKarte
+                        key={`${datum}-${b.programm}`}
+                        name={b.programm}
+                        termine={b.termine}
+                        plan={plan}
+                        gruppen={gruppen}
+                        nachId={nachId}
+                        vergangen={istVergangen}
+                        offen={datum === jetzt.datum}
                       />
-                    ))}
-                  </div>
+                    ) : (
+                      b.termine.map((t) => (
+                        <TerminZeile
+                          key={t.id}
+                          t={t}
+                          z={plan.get(t.id)}
+                          gruppen={gruppen}
+                          vorher={t.anschluss_an ? nachId.get(t.anschluss_an) : undefined}
+                          vergangen={istVergangen(t)}
+                        />
+                      ))
+                    ),
+                  )}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </section>
         );
       })}
     </div>
   );
+}
+
+/** Ab so vielen Programmpunkten wird ein Tagesprogramm zusammengeklappt. */
+const ZUSAMMENKLAPPEN_AB = 3;
+
+/** Teilt die Termine eines Tages in Einzeltermine und Tagesprogramme. */
+function bloecke(termine: Termin[]): { programm: string | null; termine: Termin[] }[] {
+  const anzahl = new Map<string, number>();
+  for (const t of termine) if (t.tagesprogramm) anzahl.set(t.tagesprogramm, (anzahl.get(t.tagesprogramm) ?? 0) + 1);
+
+  const ergebnis: { programm: string | null; termine: Termin[] }[] = [];
+  const programme = new Map<string, Termin[]>();
+  for (const t of termine) {
+    const p = t.tagesprogramm;
+    if (p && (anzahl.get(p) ?? 0) >= ZUSAMMENKLAPPEN_AB) {
+      if (!programme.has(p)) {
+        programme.set(p, []);
+        ergebnis.push({ programm: p, termine: programme.get(p)! });
+      }
+      programme.get(p)!.push(t);
+    } else {
+      ergebnis.push({ programm: null, termine: [t] });
+    }
+  }
+  return ergebnis;
 }

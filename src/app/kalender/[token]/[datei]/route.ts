@@ -1,32 +1,29 @@
+import { ladeDaten } from "@/lib/daten";
 import { kalender } from "@/lib/ics";
-import { FILTER, istFilter } from "@/lib/labels";
-import { ladeTermine } from "@/lib/termine";
+import { filterListe } from "@/lib/labels";
 import { tokenGueltig } from "@/lib/zugang";
 
 // Kalender-Abo: /kalender/<token>/<filter>.ics
-// z. B. webcal://…/kalender/abc123/alle.ics
+// <filter> = "alle", eine Gruppen-ID (z. B. "senat"), "karten", "intern" oder "extern"
 export async function GET(request: Request, ctx: RouteContext<"/kalender/[token]/[datei]">) {
   const { token, datei } = await ctx.params;
-  const filter = datei.replace(/\.ics$/, "");
+  if (!tokenGueltig(token)) return new Response("Nicht gefunden", { status: 404 });
 
-  if (!tokenGueltig(token) || !istFilter(filter)) {
-    return new Response("Nicht gefunden", { status: 404 });
-  }
+  const daten = await ladeDaten();
+  const key = datei.replace(/\.ics$/, "");
+  const filter = filterListe(daten.gruppen).find((f) => f.key === key);
+  if (!filter) return new Response("Nicht gefunden", { status: 404 });
 
-  const alle = await ladeTermine();
-  const auswahl = alle.filter(FILTER[filter].passt);
-  const basisUrl = new URL(request.url).origin;
-
-  const ics = kalender(auswahl, {
-    name: filter === "alle" ? "Prinzen-Kalender" : `Prinzen-Kalender – ${FILTER[filter].label}`,
-    basisUrl,
-    alleTermine: alle,
+  const ics = kalender(daten.termine.filter(filter.passt), {
+    name: key === "alle" ? "Prinzen-Kalender" : `Prinzen-Kalender – ${filter.label}`,
+    basisUrl: new URL(request.url).origin,
+    daten,
   });
 
   return new Response(ics, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
-      "Content-Disposition": `inline; filename="prinzen-kalender-${filter}.ics"`,
+      "Content-Disposition": `inline; filename="prinzen-kalender-${key}.ics"`,
       "Cache-Control": "no-store",
       "X-Robots-Tag": "noindex",
     },

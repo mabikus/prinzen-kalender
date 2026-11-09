@@ -1,39 +1,48 @@
-// Datenmodell für einen Termin. Spiegelt die Tabelle `termine` in Supabase
+// Datenmodell. Spiegelt die Tabellen in Supabase
 // (siehe supabase/migrations/0001_init.sql).
 
 /** bestätigt = fest zugesagt, vorbehalt = im KG-Plan als "vorb." markiert */
 export type Status = "bestaetigt" | "vorbehalt";
 
+/** Eigene Veranstaltung der KG (intern) oder Besuch bei anderen (extern) */
+export type Art = "intern" | "extern";
+
 /**
- * Wer ist dabei? Die Stufen bauen aufeinander auf:
- * wir ⊂ vorstand ⊂ hofstaat ⊂ alle.
- * "abfrage" = im KG-Plan mit Ankreuz-Kästchen (Teilnahme wird je Gruppe abgefragt),
- * "helfer"  = "Jeder Verfügbare (Viele Hände …)" – Arbeitseinsätze.
+ * Wer ist dabei?
+ * - auswahl: nur die angekreuzten Gruppen
+ * - alle: alle Gruppen (die zu "Alle" zählen) + angekreuzte Extras
+ * - jeder_verfuegbare: wie "alle", aber freiwillig ("Viele Hände …")
  */
-export type Besetzung =
-  | "wir"
-  | "vorstand"
-  | "hofstaat"
-  | "alle"
-  | "abfrage"
-  | "helfer";
+export type Umfang = "auswahl" | "alle" | "jeder_verfuegbare";
 
-/** Wie kommen wir hin? */
-export type Fahrt = "auto" | "abholung" | "bus" | "zu_fuss" | "offen";
+/** Muss vorher etwas bestellt / angemeldet werden? */
+export type Anmeldung = "eintrittskarte" | "voranmeldung";
 
-export type Kategorie =
-  | "proklamation"
-  | "sitzung"
-  | "umzug"
-  | "empfang"
-  | "besuch"
-  | "arbeitseinsatz"
-  | "feier"
-  | "intern"
-  | "sonstiges";
+export type Farbe =
+  | "rot"
+  | "orange"
+  | "gelb"
+  | "gruen"
+  | "tuerkis"
+  | "blau"
+  | "lila"
+  | "pink"
+  | "grau";
 
-/** Woher stammt der Termin? kg = Terminplan der KG, eigen = eigene Liste */
-export type Quelle = "kg" | "eigen";
+export interface Gruppe {
+  /** Kurzer, fester Schlüssel – steht auch in der Abo-Adresse, z. B. "senat" */
+  id: string;
+  /** Kürzel wie im KG-Plan, z. B. "S" */
+  kuerzel: string;
+  name: string;
+  beschreibung: string | null;
+  /** Anzahl Personen – für die Berechnung der Eintrittskarten */
+  personen: number | null;
+  farbe: Farbe;
+  /** Gehört zu "Alle" / "Jeder Verfügbare"? (z. B. Familie: nein) */
+  in_alle: boolean;
+  sortierung: number;
+}
 
 export interface Termin {
   /** Stabile ID – wird auch als UID im Kalender-Abo verwendet. */
@@ -42,10 +51,11 @@ export interface Termin {
   datum: string;
   /** HH:MM – wann wir uns am Treffpunkt treffen / losfahren */
   treffzeit: string | null;
+  treffpunkt: string | null;
   /** HH:MM – offizieller Beginn der Veranstaltung */
   beginn: string | null;
-  /** HH:MM */
-  einlass: string | null;
+  /** Veranstaltungsort, falls abweichend vom Treffpunkt */
+  ort: string | null;
   /** HH:MM – optional, sonst wird eine Dauer geschätzt */
   ende: string | null;
   /** ID eines Termins am selben Tag, an den dieser "im Anschluss" folgt
@@ -55,22 +65,24 @@ export interface Termin {
   /** Überschrift für zusammengehörige Programmpunkte, z. B. "Weiberdonnerstag" */
   tagesprogramm: string | null;
   veranstalter: string | null;
-  treffpunkt: string | null;
-  /** Veranstaltungsort, falls abweichend vom Treffpunkt */
-  ort: string | null;
-  kategorie: Kategorie;
+  art: Art;
   status: Status;
-  besetzung: Besetzung;
-  /** Frau & Kinder dabei */
-  familie: boolean;
-  fahrt: Fahrt;
-  /** z. B. "Abholung durch Funken 10:30 beim Sepp" */
-  fahrt_details: string | null;
-  fahrer: string | null;
-  /** Wichtiger Hinweis, z. B. "nur mit vorbestellter Eintrittskarte" */
+  umfang: Umfang;
+  /** IDs der angekreuzten Gruppen */
+  gruppen: string[];
+  anmeldung: Anmeldung | null;
+  /** Wie viele Karten / Anmeldungen bereits bestellt sind */
+  karten_bestellt: number | null;
+  /** Sonstiger wichtiger Hinweis, z. B. "Abfahrt 12:00 Uhr!" */
   hinweis: string | null;
   bemerkung: string | null;
-  quelle: Quelle[];
+  /** Herkunft: kg = KG-Terminplan, eigen = eigene Liste */
+  quelle: string[];
   /** Unstimmigkeit, die noch geklärt werden muss */
   pruefen: string | null;
+}
+
+export interface Daten {
+  termine: Termin[];
+  gruppen: Gruppe[];
 }

@@ -1,8 +1,8 @@
 // Erzeugt iCalendar-Dateien (RFC 5545) für Kalender-Abos.
 // Funktioniert mit Apple Kalender, Google Kalender, Outlook, Thunderbird usw.
 
-import { BESETZUNG, FAHRT, KATEGORIE, STATUS } from "./labels";
-import type { Termin } from "./types";
+import { ANMELDUNG, ART, personenBedarf, STATUS, werText } from "./labels";
+import type { Daten, Termin } from "./types";
 import { naechsterTag, verschiebe, zeitplan, ZEITZONE } from "./zeit";
 
 const UID_DOMAIN = "prinzen-kalender";
@@ -62,23 +62,24 @@ const VTIMEZONE = [
   "END:VTIMEZONE",
 ];
 
-export function beschreibung(t: Termin, alle: Map<string, Termin>, link?: string): string {
+export function beschreibung(t: Termin, daten: Daten, link?: string): string {
   const z: string[] = [];
   if (t.treffzeit || t.treffpunkt)
     z.push(`Treffen: ${[t.treffzeit, t.treffpunkt].filter(Boolean).join(" – ")}`);
   if (t.anschluss_an) {
-    const v = alle.get(t.anschluss_an);
+    const v = daten.termine.find((x) => x.id === t.anschluss_an);
     z.push(`Im Anschluss${v ? ` an: ${v.titel}` : ""}`);
   }
-  if (t.einlass) z.push(`Einlass: ${t.einlass}`);
   if (t.beginn || t.ort) z.push(`Beginn: ${[t.beginn, t.ort].filter(Boolean).join(" – ")}`);
   if (t.veranstalter) z.push(`Veranstalter: ${t.veranstalter}`);
-  z.push(`Besetzung: ${BESETZUNG[t.besetzung].label}${t.familie ? " + Familie" : ""}`);
-  z.push(
-    `Fahrt: ${FAHRT[t.fahrt].label}${t.fahrt_details ? ` (${t.fahrt_details})` : ""}${
-      t.fahrer ? ` – Fahrer: ${t.fahrer}` : ""
-    }`,
-  );
+  z.push(`Wer: ${werText(t, daten.gruppen)}`);
+  if (t.anmeldung) {
+    const b = personenBedarf(t, daten.gruppen);
+    z.push(
+      `${ANMELDUNG[t.anmeldung].icon} ${ANMELDUNG[t.anmeldung].label}: ${b.summe}${b.ohneAngabe.length ? "+" : ""} Personen` +
+        (t.karten_bestellt != null ? ` (bestellt: ${t.karten_bestellt})` : ""),
+    );
+  }
   if (t.status === "vorbehalt") z.push(`Status: ${STATUS.vorbehalt}`);
   if (t.hinweis) z.push(`⚠️ ${t.hinweis}`);
   if (t.bemerkung) z.push(t.bemerkung);
@@ -88,10 +89,9 @@ export function beschreibung(t: Termin, alle: Map<string, Termin>, link?: string
 
 export function kalender(
   termine: Termin[],
-  opts: { name: string; basisUrl?: string; alleTermine?: Termin[] },
+  opts: { name: string; basisUrl?: string; daten: Daten },
 ): string {
-  const plan = zeitplan(opts.alleTermine ?? termine);
-  const nachId = new Map((opts.alleTermine ?? termine).map((t) => [t.id, t]));
+  const plan = zeitplan(opts.daten.termine);
   const stempel = utcStempel();
 
   const zeilen = [
@@ -110,7 +110,13 @@ export function kalender(
   for (const t of termine) {
     const z = plan.get(t.id);
     const link = opts.basisUrl ? `${opts.basisUrl}/termin/${encodeURIComponent(t.id)}` : undefined;
-    const titel = `${KATEGORIE[t.kategorie].icon} ${t.status === "vorbehalt" ? "(vorb.) " : ""}${t.titel}`;
+    const titel = [
+      t.status === "vorbehalt" ? "(vorb.)" : null,
+      t.anmeldung ? ANMELDUNG[t.anmeldung].icon : null,
+      t.tagesprogramm ? `${t.tagesprogramm}: ${t.titel}` : t.titel,
+    ]
+      .filter(Boolean)
+      .join(" ");
     const ort = [t.treffpunkt && t.treffpunkt !== "im Anschluss" ? t.treffpunkt : null, t.ort]
       .filter(Boolean)
       .join(" → ");
@@ -131,9 +137,9 @@ export function kalender(
     }
     zeilen.push(
       `SUMMARY:${text(titel)}`,
-      `DESCRIPTION:${text(beschreibung(t, nachId, link))}`,
+      `DESCRIPTION:${text(beschreibung(t, opts.daten, link))}`,
       `STATUS:${t.status === "vorbehalt" ? "TENTATIVE" : "CONFIRMED"}`,
-      `CATEGORIES:${text(KATEGORIE[t.kategorie].label)}`,
+      `CATEGORIES:${text(ART[t.art])}`,
       "TRANSP:OPAQUE",
     );
     if (ort) zeilen.push(`LOCATION:${text(ort)}`);

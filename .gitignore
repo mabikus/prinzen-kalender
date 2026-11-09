@@ -42,3 +42,4 @@ next-env.d.ts
 
 # Vorlage darf ins Repo
 !.env.example
+/.daten/

@@ -1,7 +1,8 @@
 import { headers } from "next/headers";
 import { Suspense } from "react";
 import { Kopieren } from "@/components/kopieren";
-import { FILTER, type FilterName } from "@/lib/labels";
+import { ladeDaten } from "@/lib/daten";
+import { filterListe } from "@/lib/labels";
 import { feedToken } from "@/lib/zugang";
 
 export const metadata = { title: "Kalender-Abo" };
@@ -63,22 +64,23 @@ async function Feeds() {
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const token = feedToken();
+  const { gruppen } = await ladeDaten();
 
   return (
     <ul className="space-y-3">
-      {(Object.keys(FILTER) as FilterName[]).map((f) => {
+      {filterListe(gruppen).map(({ key: f, label, beschreibung }) => {
         const pfad = `${host}/kalender/${encodeURIComponent(token)}/${f}.ics`;
         const https = `${proto}://${pfad}`;
         const webcal = `webcal://${pfad}`;
-        const name = f === "alle" ? "Prinzen-Kalender" : `Prinzen-Kalender – ${FILTER[f].label}`;
+        const name = f === "alle" ? "Prinzen-Kalender" : `Prinzen-Kalender – ${label}`;
         return (
           <li
             key={f}
             className="space-y-3 rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900"
           >
             <div>
-              <h2 className="font-semibold">{FILTER[f].label}</h2>
-              <p className="text-sm text-zinc-500">{FILTER[f].beschreibung}</p>
+              <h2 className="font-semibold">{label}</h2>
+              <p className="text-sm text-zinc-500">{beschreibung}</p>
             </div>
             <div className="flex flex-wrap gap-2">
               <a

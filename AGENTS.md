@@ -10,11 +10,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Projekt
 
-Prinzen-Kalender: Termine, Treffpunkte, Besetzung und Fahrten der Karnevalssession, mit Kalender-Abos (ICS).
+Prinzen-Kalender: Termine, Treffpunkte, Gruppen (wer ist dabei?) und Eintrittskarten der Karnevalssession, mit Kalender-Abos (ICS) und Verwaltung.
 
 - Datenmodell: `src/lib/types.ts` – muss zu `supabase/migrations/*.sql` passen.
 - Startdaten: `src/data/session-2026-27.ts` → `npm run seed:sql` erzeugt `supabase/seed.sql`.
-- Datenzugriff nur über `src/lib/termine.ts` (Supabase, sonst Startdaten).
+- Datenzugriff nur über `src/lib/daten.ts` (Supabase / lokale Datei / Startdaten).
+- Gruppenlogik, Filter, Kartenbedarf: `src/lib/labels.ts`.
 - Zeitlogik (Start/Ende, „im Anschluss“, Sortierung): `src/lib/zeit.ts`; Kalender-Feed: `src/lib/ics.ts`.
-- Zugriffsschutz: `src/proxy.ts` + `src/lib/zugang.ts`.
+- Bearbeiten: Server Actions in `src/app/verwaltung/aktionen.ts` – jede Aktion prüft `darfBearbeiten()`.
+- Zugriffsschutz: `src/proxy.ts` + `src/lib/zugang.ts`; Bearbeiten-Recht: `src/lib/bearbeiten.ts`.
 - Oberfläche und Texte auf Deutsch.

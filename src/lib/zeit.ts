@@ -1,19 +1,10 @@
-import type { Kategorie, Termin } from "./types";
+import type { Termin } from "./types";
 
 export const ZEITZONE = "Europe/Berlin";
 
-/** Geschätzte Dauer ab Beginn (bzw. Treffzeit), wenn kein Ende eingetragen ist. */
-const DAUER_MIN: Record<Kategorie, number> = {
-  proklamation: 240,
-  sitzung: 240,
-  umzug: 180,
-  empfang: 90,
-  besuch: 45,
-  arbeitseinsatz: 180,
-  feier: 120,
-  intern: 120,
-  sonstiges: 120,
-};
+/** Geschätzte Dauer ab Beginn (bzw. Treffzeit), wenn kein Ende eingetragen ist.
+ *  Innerhalb eines Tagesprogramms wird bis zum nächsten Programmpunkt gekürzt. */
+const DAUER_MIN = 150;
 
 export function minuten(hhmm: string): number {
   const [h, m] = hhmm.split(":").map(Number);
@@ -45,14 +36,14 @@ export interface Zeitfenster {
   ende: number | null;
 }
 
-/** Erste bekannte Uhrzeit eines Termins (Treffen vor Beginn vor Einlass). */
+/** Erste bekannte Uhrzeit eines Termins (Treffen vor Beginn). */
 export function startzeit(t: Termin): string | null {
-  return t.treffzeit ?? t.beginn ?? t.einlass;
+  return t.treffzeit ?? t.beginn;
 }
 
 /**
  * Berechnet für jeden Termin Start und Ende:
- * - Start = Treffzeit, sonst Beginn, sonst Einlass
+ * - Start = Treffzeit, sonst Beginn
  * - "im Anschluss an X" startet mit dem Ende von X
  * - Ende = eingetragenes Ende, sonst Beginn + geschätzte Dauer,
  *   gekürzt bis zum nächsten Programmpunkt desselben Tagesprogramms.
@@ -85,7 +76,7 @@ export function zeitplan(termine: Termin[]): Map<string, Zeitfenster> {
       if (ende <= start) ende += 1440; // über Mitternacht
     } else {
       const basis = t.beginn && !t.anschluss_an ? Math.max(minuten(t.beginn), start) : start;
-      ende = basis + DAUER_MIN[t.kategorie];
+      ende = basis + DAUER_MIN;
       if (t.tagesprogramm) {
         const naechste = termine
           .filter(

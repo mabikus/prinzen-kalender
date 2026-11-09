@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { BesetzungBadge } from "@/components/termin";
-import { BESETZUNG, FAHRT, KATEGORIE, STATUS } from "@/lib/labels";
-import { ladeTermine } from "@/lib/termine";
+import { GruppenBadges } from "@/components/termin";
+import { darfBearbeiten } from "@/lib/bearbeiten";
+import { ladeDaten } from "@/lib/daten";
+import { ANMELDUNG, ART, personenBedarf, STATUS, UMFANG } from "@/lib/labels";
 import { datumLang, zeitplan, zeitText } from "@/lib/zeit";
 
 export default function TerminSeite({ params }: PageProps<"/termin/[id]">) {
@@ -39,40 +40,83 @@ function Ort({ name }: { name: string }) {
 
 async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
   const { id } = await params;
-  const alle = await ladeTermine();
-  const t = alle.find((x) => x.id === decodeURIComponent(id));
+  const daten = await ladeDaten();
+  const t = daten.termine.find((x) => x.id === decodeURIComponent(id));
   if (!t) notFound();
 
-  const z = zeitplan(alle).get(t.id);
-  const vorher = t.anschluss_an ? alle.find((x) => x.id === t.anschluss_an) : undefined;
+  const z = zeitplan(daten.termine).get(t.id);
+  const vorher = t.anschluss_an ? daten.termine.find((x) => x.id === t.anschluss_an) : undefined;
   const geschaetzt = !t.ende && z?.ende != null;
+  const bedarf = personenBedarf(t, daten.gruppen);
+  const bearbeiten = await darfBearbeiten();
 
   return (
     <article className="space-y-6">
-      <p>
+      <div className="flex items-center justify-between">
         <Link href={`/#${t.datum}`} className="text-sm text-zinc-500 hover:underline">
           ← Zurück zur Übersicht
         </Link>
-      </p>
+        {bearbeiten && (
+          <Link
+            href={`/verwaltung/termin/${encodeURIComponent(t.id)}`}
+            className="rounded-lg px-3 py-1.5 text-sm font-medium ring-1 ring-zinc-300 hover:bg-zinc-100 dark:ring-zinc-700 dark:hover:bg-zinc-800"
+          >
+            ✏️ Bearbeiten
+          </Link>
+        )}
+      </div>
 
       <header className="space-y-2">
         <p className="text-sm font-medium text-zinc-500">
-          {KATEGORIE[t.kategorie].icon} {KATEGORIE[t.kategorie].label}
+          {ART[t.art]}
           {t.tagesprogramm && ` · ${t.tagesprogramm}`}
         </p>
         <h1 className="text-3xl font-bold leading-tight">{t.titel}</h1>
         <p className="text-lg text-zinc-700 dark:text-zinc-300">{datumLang(t.datum)}</p>
-        {t.status === "vorbehalt" && (
-          <p className="inline-block rounded-md bg-yellow-100 px-2 py-1 text-sm font-medium text-yellow-900 dark:bg-yellow-950 dark:text-yellow-100">
-            Status: {STATUS.vorbehalt}
-          </p>
-        )}
+        <p
+          className={`inline-block rounded-md px-2 py-1 text-sm font-medium ${
+            t.status === "vorbehalt"
+              ? "bg-yellow-100 text-yellow-900 dark:bg-yellow-950 dark:text-yellow-100"
+              : "bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-100"
+          }`}
+        >
+          {t.status === "vorbehalt" ? "⏳" : "✓"} {STATUS[t.status]}
+        </p>
       </header>
 
       {t.hinweis && (
         <p className="rounded-xl border border-red-200 bg-red-50 p-3 font-medium text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200">
           ⚠️ {t.hinweis}
         </p>
+      )}
+
+      {t.anmeldung && (
+        <section className="rounded-xl border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+          <h2 className="font-semibold text-amber-900 dark:text-amber-100">
+            {ANMELDUNG[t.anmeldung].icon} {ANMELDUNG[t.anmeldung].label}
+          </h2>
+          <p className="mt-1 text-amber-900 dark:text-amber-100">
+            Bedarf: <strong className="text-xl tabular-nums">{bedarf.summe}</strong> Personen
+            {t.karten_bestellt != null && (
+              <>
+                {" · "}bestellt: <strong className="tabular-nums">{t.karten_bestellt}</strong>
+              </>
+            )}
+          </p>
+          <ul className="mt-2 text-sm text-amber-900/80 dark:text-amber-100/80">
+            {bedarf.dabei.map((g) => (
+              <li key={g.id}>
+                {g.name}: {g.personen ?? "Anzahl fehlt"}
+              </li>
+            ))}
+          </ul>
+          {bedarf.ohneAngabe.length > 0 && (
+            <p className="mt-2 text-xs text-amber-900/80 dark:text-amber-100/80">
+              Für {bedarf.ohneAngabe.map((g) => g.name).join(", ")} ist noch keine Personenzahl hinterlegt
+              (Verwaltung → Gruppen).
+            </p>
+          )}
+        </section>
       )}
 
       <dl className="rounded-2xl border border-zinc-200 bg-white px-4 dark:border-zinc-800 dark:bg-zinc-900">
@@ -90,11 +134,6 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
               {vorher.titel}
             </Link>
             {z?.start != null && <span className="text-zinc-500"> (ca. {zeitText(z.start)})</span>}
-          </Zeile>
-        )}
-        {t.einlass && (
-          <Zeile label="Einlass">
-            <span className="tabular-nums">{t.einlass}</span>
           </Zeile>
         )}
         {(t.beginn || t.ort) && (
@@ -119,20 +158,18 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
           </Zeile>
         )}
         {t.veranstalter && <Zeile label="Veranstalter">{t.veranstalter}</Zeile>}
-        <Zeile label="Besetzung">
-          <BesetzungBadge t={t} />
-          <p className="mt-1 text-sm text-zinc-500">{BESETZUNG[t.besetzung].beschreibung}</p>
-        </Zeile>
-        <Zeile label="Familie">{t.familie ? "👨‍👩‍👧 Frau & Kinder dabei" : "–"}</Zeile>
-        <Zeile label="Fahrt">
-          {FAHRT[t.fahrt].icon} {FAHRT[t.fahrt].label}
-          {t.fahrt_details && <p className="text-sm">{t.fahrt_details}</p>}
-          {t.fahrer && <p className="text-sm text-zinc-500">Fahrer: {t.fahrer}</p>}
+        <Zeile label="Wer">
+          <div className="flex flex-wrap gap-1.5">
+            <GruppenBadges t={t} gruppen={daten.gruppen} />
+          </div>
+          {t.umfang !== "auswahl" && (
+            <p className="mt-1 text-sm text-zinc-500">{UMFANG[t.umfang].beschreibung}</p>
+          )}
         </Zeile>
         {t.bemerkung && <Zeile label="Bemerkung">{t.bemerkung}</Zeile>}
         <Zeile label="Quelle">
           <span className="text-sm text-zinc-500">
-            {t.quelle.map((q) => (q === "kg" ? "KG-Terminplan" : "eigene Liste")).join(" + ")}
+            {t.quelle.map((q) => (q === "kg" ? "KG-Terminplan" : q === "eigen" ? "eigene Liste" : q)).join(" + ") || "–"}
           </span>
         </Zeile>
       </dl>

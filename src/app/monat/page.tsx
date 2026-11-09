@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { BESETZUNG, KATEGORIE } from "@/lib/labels";
-import { ladeTermine } from "@/lib/termine";
-import type { Termin } from "@/lib/types";
+import { ladeDaten } from "@/lib/daten";
+import { FARBEN } from "@/lib/labels";
+import type { Gruppe, Termin } from "@/lib/types";
 import { jetztInBerlin, MONATE, zeitplan, zeitText } from "@/lib/zeit";
 
 export const metadata = { title: "Monat" };
@@ -23,13 +23,24 @@ function monatPlus(ym: string, n: number): string {
 
 const WT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
 
+const ALLE = "bg-red-100 text-red-900 ring-red-300 dark:bg-red-950 dark:text-red-100 dark:ring-red-800";
+const JEDER = "bg-zinc-200 text-zinc-800 ring-zinc-300 dark:bg-zinc-800 dark:text-zinc-100 dark:ring-zinc-700";
+
+/** Farbe eines Eintrags: Alle = rot, Jeder Verfügbare = grau, sonst Farbe der ersten Gruppe. */
+function farbe(t: Termin, gruppen: Gruppe[]): string {
+  if (t.umfang === "alle") return ALLE;
+  if (t.umfang === "jeder_verfuegbare") return JEDER;
+  const g = gruppen.find((x) => t.gruppen.includes(x.id));
+  return g ? FARBEN[g.farbe].badge : JEDER;
+}
+
 async function Monat({ searchParams }: Pick<PageProps<"/monat">, "searchParams">) {
   const sp = await searchParams;
+  const { termine: alle, gruppen } = await ladeDaten(); // vor new Date() – wartet auf die Anfrage
   const jetzt = jetztInBerlin();
   const ym = typeof sp.m === "string" && /^\d{4}-\d{2}$/.test(sp.m) ? sp.m : jetzt.datum.slice(0, 7);
   const [jahr, monat] = ym.split("-").map(Number);
 
-  const alle = await ladeTermine();
   const plan = zeitplan(alle);
   const proTag = new Map<string, Termin[]>();
   for (const t of alle) {
@@ -87,13 +98,16 @@ async function Monat({ searchParams }: Pick<PageProps<"/monat">, "searchParams">
                     key={t.id}
                     href={`/termin/${encodeURIComponent(t.id)}`}
                     title={t.titel}
-                    className={`block truncate rounded px-1 py-0.5 leading-tight ring-1 ring-inset ${
-                      BESETZUNG[t.besetzung].farbe
-                    } ${t.status === "vorbehalt" ? "opacity-70" : ""}`}
+                    className={`block truncate rounded px-1 py-0.5 leading-tight ring-1 ring-inset ${farbe(t, gruppen)} ${
+                      t.status === "vorbehalt" ? "border-dashed opacity-70" : ""
+                    }`}
                   >
-                    <span className="hidden sm:inline">{start != null && `${zeitText(start)} `}</span>
-                    {KATEGORIE[t.kategorie].icon}
-                    <span className="hidden sm:inline"> {t.titel}</span>
+                    <span className="sm:hidden">{t.anmeldung ? "🎟" : "•"}</span>
+                    <span className="hidden sm:inline">
+                      {start != null && `${zeitText(start)} `}
+                      {t.anmeldung && "🎟️ "}
+                      {t.titel}
+                    </span>
                   </Link>
                 );
               })}
@@ -103,11 +117,14 @@ async function Monat({ searchParams }: Pick<PageProps<"/monat">, "searchParams">
       </div>
 
       <ul className="flex flex-wrap gap-2 text-xs">
-        {Object.values(BESETZUNG).map((b) => (
-          <li key={b.label} className={`rounded-full px-2 py-0.5 ring-1 ring-inset ${b.farbe}`}>
-            {b.label}
+        <li className={`rounded-full px-2 py-0.5 ring-1 ring-inset ${ALLE}`}>Alle</li>
+        <li className={`rounded-full px-2 py-0.5 ring-1 ring-inset ${JEDER}`}>Jeder Verfügbare</li>
+        {gruppen.map((g) => (
+          <li key={g.id} className={`rounded-full px-2 py-0.5 ring-1 ring-inset ${FARBEN[g.farbe].badge}`}>
+            {g.name}
           </li>
         ))}
+        <li className="px-1 py-0.5">🎟️ = Karten/Anmeldung</li>
       </ul>
 
       <ul className="space-y-1 text-sm sm:hidden">
@@ -121,7 +138,8 @@ async function Monat({ searchParams }: Pick<PageProps<"/monat">, "searchParams">
                     {Number(datum.slice(8))}. {start != null ? zeitText(start) : ""}
                   </span>
                   <span className="truncate">
-                    {KATEGORIE[t.kategorie].icon} {t.titel}
+                    {t.anmeldung && "🎟️ "}
+                    {t.titel}
                   </span>
                 </Link>
               </li>
