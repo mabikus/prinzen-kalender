@@ -143,10 +143,8 @@ function Zeit({ t, z }: { t: Termin; z: Zeitfenster | undefined }) {
   const geschaetzt = !t.treffzeit && !t.beginn;
   return (
     <>
-      <div className="font-serif lining-nums text-xl font-semibold tabular-nums leading-6">
-        {geschaetzt && <span className="text-grau">ca.</span>}
-        {zeitText(z.start)}
-      </div>
+      {geschaetzt && <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-grau">ca.</div>}
+      <div className="font-serif text-xl font-semibold tabular-nums leading-6">{zeitText(z.start)}</div>
       <div className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.12em] text-grau">
         {geschaetzt ? "danach" : t.treffzeit ? "Treffen" : "Beginn"}
       </div>
@@ -180,7 +178,7 @@ export function TerminZeile({
           : "rounded-lg border border-linie bg-white shadow-[0_1px_2px_rgba(31,26,23,0.04)] hover:border-marke-300"
       } ${vergangen ? "opacity-50" : ""}`}
     >
-      <div className="w-14 shrink-0 border-r border-linie pr-3 text-right">
+      <div className="w-[4.5rem] shrink-0 border-r border-linie pr-3 text-right">
         <Zeit t={t} z={z} />
       </div>
       <div className="min-w-0 flex-1 space-y-1.5">
@@ -238,7 +236,7 @@ export function ProgrammKarte({
       }`}
     >
       <summary className="flex cursor-pointer list-none gap-4 border-l-[3px] border-marke-700 p-3.5 hover:bg-papier">
-        <div className="w-14 shrink-0 border-r border-linie pr-3 text-right">
+        <div className="w-[4.5rem] shrink-0 border-r border-linie pr-3 text-right">
           {von != null ? (
             <>
               <div className="font-serif lining-nums text-xl font-semibold tabular-nums leading-6">{zeitText(von)}</div>
