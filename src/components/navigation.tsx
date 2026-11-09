@@ -30,9 +30,10 @@ function istAktiv(pfad: string | null, href: string) {
 export function NavLinks({ pfad, variante }: { pfad: string | null; variante: Variante }) {
   if (variante === "unten")
     return (
+      // Schwebende Glas-Leiste wie bei iOS – der Inhalt läuft darunter durch
       <nav
         aria-label="Hauptnavigation"
-        className="fixed inset-x-0 bottom-0 z-30 border-t border-linie bg-panel/95 pb-[env(safe-area-inset-bottom)] backdrop-blur sm:hidden"
+        className="glas fixed inset-x-4 bottom-[var(--tab-unten)] z-30 mx-auto max-w-md rounded-full p-1 sm:hidden"
       >
         <ul className="grid grid-cols-4">
           {NAV.map((n) => {
@@ -43,8 +44,8 @@ export function NavLinks({ pfad, variante }: { pfad: string | null; variante: Va
                 <Link
                   href={n.href}
                   aria-current={aktiv ? "page" : undefined}
-                  className={`flex h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold ${
-                    aktiv ? "text-marke-700" : "text-grau"
+                  className={`flex h-14 flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-semibold transition-colors active:scale-95 ${
+                    aktiv ? "bg-[var(--glas-aktiv)] text-marke-700" : "text-tinte/75"
                   }`}
                 >
                   <Icon className="size-[22px]" strokeWidth={aktiv ? 2 : 1.6} aria-hidden />

@@ -92,7 +92,7 @@ export function Monate({
 
   return (
     // Wie eine App: Monat steht fest zwischen Kopf- und Tab-Leiste, nur die Termine darunter scrollen
-    <div className="fixed inset-x-0 top-[calc(59px+env(safe-area-inset-top))] bottom-[calc(56px+env(safe-area-inset-bottom))] z-10 bg-papier sm:bottom-0">
+    <div className="fixed inset-x-0 top-[calc(59px+env(safe-area-inset-top))] bottom-0 z-10 bg-papier">
       <div className="mx-auto flex h-full max-w-3xl flex-col pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
           <div
             className="shrink-0 touch-pan-y select-none border-b border-linie pb-1 pt-2"
@@ -203,7 +203,7 @@ export function Monate({
           {/* Termine des gewählten Tages */}
           <section
             aria-live="polite"
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-4 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[var(--tab-platz)] pt-3 [scrollbar-width:none] sm:pb-6 [&::-webkit-scrollbar]:hidden"
           >
             <h2 className="px-1 pb-2 text-[13px] font-semibold uppercase tracking-wide text-grau">
               {datumLang(tag).replace(/ \d{4}$/, "")}

@@ -35,7 +35,7 @@ export default function OeffentlichLayout({ children }: { children: React.ReactN
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 pb-6 pt-5 sm:pt-6">{children}</main>
-      <footer className="mx-auto max-w-3xl space-y-1 px-4 pb-[calc(5.5rem+env(safe-area-inset-bottom))] text-xs text-grau sm:pb-10">
+      <footer className="mx-auto max-w-3xl space-y-1 px-4 pb-[var(--tab-platz)] text-xs text-grau sm:pb-10">
         {quelle === "startdaten" && <p>Datenquelle: Startdaten im Repo (Datenbank noch nicht verbunden).</p>}
         {offen && (
           <p className="flex items-center gap-1.5">
