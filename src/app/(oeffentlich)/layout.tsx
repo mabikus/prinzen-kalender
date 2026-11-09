@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { Crown, TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "lucide-react";
 import { FarbschemaKnopf } from "@/components/farbschema";
+import { Logo } from "@/components/logo";
 import { NavLinks, Navigation } from "@/components/navigation";
 import { AktualisierenKnopf } from "@/components/pwa";
+import { ZiehenZumAktualisieren } from "@/components/ziehen-aktualisieren";
 import { datenquelle } from "@/lib/daten";
 import { APP_KURZ, APP_NAME } from "@/lib/marke";
 import { zugangsToken } from "@/lib/zugang";
@@ -17,9 +19,7 @@ export default function OeffentlichLayout({ children, modal }: LayoutProps<"/">)
       <header className="sticky top-0 z-20 border-b-[3px] border-kopf-rand bg-kopf pt-[env(safe-area-inset-top)] text-white">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-marke-700">
-              <Crown className="size-5" strokeWidth={1.75} aria-hidden />
-            </span>
+            <Logo groesse={44} />
             <span className="min-w-0 leading-tight">
               <span className="block truncate font-serif text-[19px] font-semibold">{APP_NAME}</span>
               <span className="block text-[12px] text-white/75">{APP_KURZ}</span>
@@ -47,6 +47,7 @@ export default function OeffentlichLayout({ children, modal }: LayoutProps<"/">)
       <Suspense fallback={<NavLinks pfad={null} variante="unten" />}>
         <Navigation variante="unten" />
       </Suspense>
+      <ZiehenZumAktualisieren />
       {/* Termin als Blatt über Liste/Monat (abgefangene Route @modal/(.)termin) */}
       {modal}
     </>

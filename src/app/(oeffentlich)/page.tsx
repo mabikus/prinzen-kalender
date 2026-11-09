@@ -135,14 +135,15 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
         const [jahr, m] = monat.split("-").map(Number);
         return (
           <section key={monat} className="space-y-4">
-            <h2 className="sticky top-[calc(59px+env(safe-area-inset-top))] z-10 -mx-4 flex items-baseline gap-3 bg-papier/95 px-4 py-2.5 backdrop-blur">
+            <h2 className="flex items-baseline gap-3 pt-2.5">
               <span className="font-serif lining-nums text-2xl font-semibold text-marke-800">{MONATE[m - 1]}</span>
               <span className="text-sm text-grau">{jahr}</span>
               <span className="h-px flex-1 self-center bg-linie" aria-hidden />
             </h2>
             {[...tage].map(([datum, termine]) => (
-              <div key={datum} id={datum} className="scroll-mt-28 space-y-2">
-                <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-grau">
+              <div key={datum} id={datum} className="scroll-mt-20 space-y-2">
+                {/* Tageskopf bleibt beim Scrollen oben stehen, bis der nächste Tag ihn wegschiebt (wie iOS) */}
+                <h3 className="sticky top-[calc(59px+env(safe-area-inset-top))] z-10 -mx-4 bg-papier/95 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-grau backdrop-blur">
                   <span className={datum === jetzt.datum ? "text-marke-700" : ""}>
                     {datumKurz(datum)}
                     {datum === jetzt.datum && " · heute"}

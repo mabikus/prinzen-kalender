@@ -8,7 +8,6 @@ import {
   CalendarDays,
   ChevronsUpDown,
   CircleUser,
-  Crown,
   Eye,
   History,
   List,
@@ -31,6 +30,7 @@ import { TooltipProvider, Tooltip } from "@/components/ui/controls";
 import { Initials, Kbd } from "@/components/ui/display";
 import { FarbschemaKnopf, FarbschemaText, farbschemaUmschalten } from "@/components/farbschema";
 import { AktualisierenKnopf } from "@/components/pwa";
+import { Logo as Vereinslogo } from "@/components/logo";
 import { ConfirmProvider, Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/components/ui/overlay";
 import { Befehlspalette } from "./befehle";
 import { APP_NAME } from "@/lib/marke";
@@ -184,9 +184,7 @@ export function AdminShell({ admin, children }: { admin: AdminInfo; children: Re
 function Logo({ nurZeichen }: { nurZeichen?: boolean }) {
   return (
     <Link href="/verwaltung/kalender" className="flex items-center gap-2.5">
-      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-accent-fg">
-        <Crown className="size-[17px]" strokeWidth={1.75} />
-      </span>
+      <Vereinslogo groesse={34} />
       {nurZeichen ? null : (
         <span className="leading-tight">
           <span className="block font-display text-[15px] font-semibold text-ink">{APP_NAME}</span>

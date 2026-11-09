@@ -4,6 +4,7 @@ import { FARBSCHEMA_SKRIPT } from "@/lib/farbschema";
 import { DienstHelfer, UpdateHinweis } from "@/components/pwa";
 import { Toaster } from "@/components/ui/toast";
 import { APP_BESCHREIBUNG, APP_NAME, FARBE_ROT } from "@/lib/marke";
+import { STARTBILDER } from "@/lib/startbilder";
 import "./globals.css";
 
 // Schriften: Source Sans 3 (Text) und Source Serif 4 (Überschriften, Uhrzeiten) – klassisch und gut lesbar
@@ -15,7 +16,13 @@ export const metadata: Metadata = {
   description: APP_BESCHREIBUNG,
   applicationName: APP_NAME,
   robots: { index: false, follow: false },
-  appleWebApp: { capable: true, title: APP_NAME, statusBarStyle: "black-translucent" },
+  appleWebApp: {
+    capable: true,
+    title: APP_NAME,
+    statusBarStyle: "black-translucent",
+    // Startbildschirm mit Logo statt leerer Fläche beim Öffnen der App
+    startupImage: STARTBILDER.map((s) => ({ url: `/startbild/${s.breite}x${s.hoehe}`, media: s.media })),
+  },
   formatDetection: { telephone: false },
 };
 
