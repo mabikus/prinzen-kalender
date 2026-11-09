@@ -46,52 +46,54 @@
 /* Dunkel: warmes Schwarz statt Papier, Rot etwas heller, damit es auf Dunkel gut lesbar bleibt.
    Auch die Rot- und Stein-Abstufungen werden umgestellt, damit Komponenten nichts extra brauchen. */
 :root[data-theme="dark"] {
+  /* Farben wie iOS im Dunkelmodus: neutrales Schwarz und Grautöne, Rot = iOS-Systemrot (dunkel) */
   color-scheme: dark;
-  --bg: #141110;
-  --panel: #1f1b19;
-  --elevated: #282321;
-  --line: #342d2a;
-  --line-strong: #4a413c;
-  --ink: #f3eee9;
-  --muted: #d3cac2;
-  --subtle: #a3988f;
-  --hover: #2a2421;
-  --active: #352e2a;
-  --accent: #e5484d;
-  --accent-hover: #ec5d61;
+  --bg: #000000;
+  --panel: #1c1c1e;
+  --elevated: #2c2c2e;
+  --line: #38383a;
+  --line-strong: #48484a;
+  --ink: #ffffff;
+  --muted: #d1d1d6;
+  --subtle: #8e8e93;
+  --hover: #2c2c2e;
+  --active: #3a3a3c;
+  --accent: #ff453a;
+  --accent-hover: #ff6961;
   --accent-fg: #ffffff;
-  --accent-soft: color-mix(in srgb, #e5484d 18%, transparent);
-  --accent-ink: #f0585d;
-  --success: #4cc38a;
-  --warning: #e3ac3e;
-  --info: #72aaf0;
-  --danger: #f0585f;
-  --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.06);
-  /* Kopfzeile im selben satten Rot wie im hellen Design – nicht bräunlich */
+  --accent-soft: color-mix(in srgb, #ff453a 18%, transparent);
+  --accent-ink: #ff453a;
+  --success: #30d158;
+  --warning: #ffd60a;
+  --info: #0a84ff;
+  --danger: #ff453a;
+  --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.08);
+  /* Kopfzeile im selben satten Rot wie im hellen Design */
   --kopf: #9a1219;
   --kopf-rand: #6e0c12;
-  --glas: rgb(40 35 33 / 0.72);
+  --glas: rgb(37 37 40 / 0.72);
   --glas-rand: rgb(255 255 255 / 0.12);
   --glas-linie: rgb(255 255 255 / 0.06);
-  --glas-schatten: 0 10px 30px -6px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.3);
-  --glas-aktiv: rgb(255 255 255 / 0.1);
+  --glas-schatten: 0 10px 30px -6px rgb(0 0 0 / 0.7), 0 2px 6px rgb(0 0 0 / 0.4);
+  --glas-aktiv: rgb(255 255 255 / 0.12);
 
-  /* Rot nur als klarer Akzent; Überschriften (800/900) warmweiß statt rosa */
-  --color-marke-50: #2b1517;
-  --color-marke-100: #3b191c;
-  --color-marke-200: #5c2226;
-  --color-marke-300: #b0464b;
-  --color-marke-600: #ec5d61;
-  --color-marke-700: #e5484d;
-  --color-marke-800: #f3eee9;
-  --color-marke-900: #f3eee9;
-  --color-stone-50: #1f1b19;
-  --color-stone-100: #2a2421;
-  --color-stone-200: #352e2a;
-  --color-stone-300: #4f4540;
-  --color-stone-400: #7d726b;
-  --color-stone-600: #b9aea6;
-  --color-stone-700: #d6ccc4;
+  /* Rot-Abstufungen auf Basis des iOS-Systemrots; Überschriften (800/900) weiß */
+  --color-marke-50: color-mix(in srgb, #ff453a 12%, #1c1c1e);
+  --color-marke-100: color-mix(in srgb, #ff453a 20%, #1c1c1e);
+  --color-marke-200: color-mix(in srgb, #ff453a 32%, #1c1c1e);
+  --color-marke-300: color-mix(in srgb, #ff453a 55%, #1c1c1e);
+  --color-marke-600: #ff6961;
+  --color-marke-700: #ff453a;
+  --color-marke-800: #ffffff;
+  --color-marke-900: #ffffff;
+  /* Grautöne wie iOS (systemGray …) */
+  --color-stone-50: #1c1c1e;
+  --color-stone-100: #2c2c2e;
+  --color-stone-200: #3a3a3c;
+  --color-stone-300: #48484a;
+  --color-stone-400: #8e8e93;
+  --color-stone-600: #aeaeb2;
+  --color-stone-700: #d1d1d6;
 }
 
 @theme {
