@@ -352,3 +352,13 @@ summary::-webkit-details-marker {
     transform: rotate(360deg);
   }
 }
+
+/* iOS-Kreisel (Ziehen zum Aktualisieren): dreht in Schritten wie bei Apple */
+.ui-kreisel {
+  animation: ui-kreisel 0.9s steps(8) infinite;
+}
+@keyframes ui-kreisel {
+  to {
+    transform: rotate(360deg);
+  }
+}

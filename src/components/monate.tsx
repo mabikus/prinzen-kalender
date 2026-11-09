@@ -92,7 +92,7 @@ export function Monate({
 
   return (
     // Wie eine App: Monat steht fest zwischen Kopf- und Tab-Leiste, nur die Termine darunter scrollen
-    <div className="fixed inset-x-0 top-[calc(59px+env(safe-area-inset-top))] bottom-0 z-10 bg-papier">
+    <div data-zieh-inhalt className="fixed inset-x-0 top-[calc(59px+env(safe-area-inset-top))] bottom-0 z-10 bg-papier">
       <div className="mx-auto flex h-full max-w-3xl flex-col pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
           <div
             className="shrink-0 touch-pan-y select-none border-b border-linie pb-1 pt-2"
