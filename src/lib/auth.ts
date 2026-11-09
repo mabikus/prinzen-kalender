@@ -34,7 +34,8 @@ function erstelleAuth() {
     appName: APP_NAME,
     baseURL: basisUrl(),
     trustedOrigins: vertrauteHerkuenfte(),
-    secret: process.env.BETTER_AUTH_SECRET,
+    // Eigenes Geheimnis bevorzugt; sonst das der Supabase-Integration (zufällig, geheim, nur auf dem Server)
+    secret: process.env.BETTER_AUTH_SECRET || process.env.SUPABASE_JWT_SECRET,
     database: drizzleAdapter(db(), { provider: "pg", schema }),
     emailAndPassword: {
       enabled: true,

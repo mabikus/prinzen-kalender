@@ -7,7 +7,7 @@ import type { Daten, Gruppe, Termin } from "./types";
 import { sortiere } from "./zeit";
 
 // Datenzugriff – nur über diese Datei.
-// - mit DATABASE_URL: Postgres (Supabase) über Drizzle, lesen und schreiben
+// - mit Datenbank (DATABASE_URL oder Supabase-Integration): Postgres über Drizzle, lesen und schreiben
 // - ohne: Startdaten aus dem Repo, nur lesen
 
 export type Datenquelle = "datenbank" | "startdaten";
@@ -18,7 +18,7 @@ export function datenquelle(): Datenquelle {
 
 /** Kann gespeichert werden? Sonst Grund als Text. */
 export function speichernMoeglich(): true | string {
-  return hatDatenbank() ? true : "Bearbeiten ist erst möglich, wenn die Datenbank verbunden ist (DATABASE_URL, siehe README).";
+  return hatDatenbank() ? true : "Bearbeiten ist erst möglich, wenn die Datenbank verbunden ist (siehe README).";
 }
 
 /** Wer ändert? Für das Protokoll. */

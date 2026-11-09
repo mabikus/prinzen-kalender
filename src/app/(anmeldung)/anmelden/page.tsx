@@ -20,7 +20,7 @@ async function Anmelden({ searchParams }: Pick<PageProps<"/anmelden">, "searchPa
   const sp = await searchParams;
   const weiter = typeof sp.weiter === "string" ? sp.weiter : "/verwaltung";
   if (!hatDatenbank())
-    return <Callout tone="warning">Die Anmeldung ist erst möglich, wenn die Datenbank verbunden ist (DATABASE_URL).</Callout>;
+    return <Callout tone="warning">Die Anmeldung ist erst möglich, wenn die Datenbank verbunden ist.</Callout>;
   if ((await anzahlBenutzer()) === 0) redirect("/einrichtung");
   if (await aktuellerAdmin()) redirect(weiter.startsWith("/") && !weiter.startsWith("//") ? weiter : "/verwaltung");
   return <AnmeldeFormular weiter={weiter} />;

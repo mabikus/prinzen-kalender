@@ -37,27 +37,23 @@ Planungskalender für die Karnevalssession 2026/27. Er zeigt Termine, Treffzeite
 
 ## Einrichtung
 
-### 1. Supabase
+### 1. Supabase mit Vercel verbinden
 
-1. Auf [supabase.com](https://supabase.com) ein Projekt anlegen, Region **Frankfurt (eu-central-1)**. Das Datenbank-Passwort notieren.
-2. Oben auf **Connect** klicken, dann **„Transaction pooler“** wählen und die URI kopieren. Sie sieht so aus:
-   `postgresql://postgres.xxxx:[YOUR-PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres`
-   `[YOUR-PASSWORD]` durch das Datenbank-Passwort ersetzen.
+Am einfachsten über die **Supabase-Integration in Vercel** (Projekt → Storage/Integrations → Supabase). Sie setzt
+`POSTGRES_URL`, `SUPABASE_JWT_SECRET` usw. automatisch – die App nutzt diese Variablen direkt.
+Alternativ eine eigene `DATABASE_URL` (Supabase → Connect → „Transaction pooler“) eintragen.
 
 SQL von Hand ist **nicht nötig**: Tabellen und Startdaten legt die App beim Deploy selbst an.
 
-### 2. Vercel → Settings → Environment Variables
+### 2. Vercel → Settings → Environment Variables (zusätzlich)
 
 | Variable | Wert |
 |---|---|
-| `DATABASE_URL` | die URI aus Schritt 1 |
-| `BETTER_AUTH_SECRET` | zufällig, mind. 32 Zeichen (`openssl rand -base64 32` oder ein Passwort-Generator) |
+| `SUPERADMIN_EMAIL` | deine E-Mail – nur damit geht die Ersteinrichtung (**wichtig**, sonst kann sich der Erste als Super-Admin anlegen) |
 | `ZUGANG_TOKEN` | geheimes Wort für den Ansichts-Link (Buchstaben, Ziffern, `-`) |
-| `SUPERADMIN_EMAIL` | deine E-Mail – nur damit geht die Ersteinrichtung |
+| `BETTER_AUTH_SECRET` | optional – ohne wird `SUPABASE_JWT_SECRET` der Integration verwendet |
 
-Danach unter **Deployments → ⋯ → Redeploy** neu bauen. Beim Build:
-- legt `db:einrichten` die Tabellen an und
-- spielt beim ersten Mal die Termine und Gruppen der Session ein.
+Danach **Deployments → ⋯ → Redeploy**. Im Build-Log: `db:einrichten – Startdaten eingespielt (11 Gruppen, 82 Termine)`.
 
 ### 3. Super-Admin anlegen
 

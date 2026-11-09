@@ -1,13 +1,14 @@
 // Bringt die Datenbank auf den neuesten Stand (Migrationen aus drizzle/) und spielt beim
 // allerersten Mal die Startdaten der Session ein (nur wenn noch keine Gruppen und Termine da sind).
 //
-// Aufruf: npm run db:einrichten   (braucht DATABASE_URL)
+// Aufruf: npm run db:einrichten   (braucht DATABASE_URL oder die Variablen der Supabase-Integration)
 // Läuft auf Vercel automatisch vor jedem Produktions-Build (siehe package.json "build").
 
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import pg from "pg";
 import { startGruppen, startTermine } from "../src/data/session-2026-27.ts";
+import { datenbankUrl, pgOptionen } from "../src/db/verbindung.ts";
 
 try {
   process.loadEnvFile(".env.local");
@@ -15,9 +16,9 @@ try {
   // ohne .env.local: Umgebungsvariablen
 }
 
-const url = process.env.DATABASE_URL;
+const url = datenbankUrl();
 if (!url) {
-  console.log("db:einrichten – keine DATABASE_URL, übersprungen.");
+  console.log("db:einrichten – keine Datenbank konfiguriert, übersprungen.");
   process.exit(0);
 }
 if (process.env.VERCEL && process.env.VERCEL_ENV !== "production") {
@@ -25,11 +26,7 @@ if (process.env.VERCEL && process.env.VERCEL_ENV !== "production") {
   process.exit(0);
 }
 
-const pool = new pg.Pool({
-  connectionString: url,
-  max: 1,
-  ssl: /localhost|127\.0\.0\.1|sslmode=disable/.test(url) ? false : { rejectUnauthorized: false },
-});
+const pool = new pg.Pool({ ...pgOptionen(url), max: 1, connectionTimeoutMillis: 20_000 });
 const db = drizzle({ client: pool });
 
 await migrate(db, { migrationsFolder: "./drizzle" });

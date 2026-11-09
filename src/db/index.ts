@@ -2,12 +2,13 @@ import "server-only";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "./schema";
+import { datenbankUrl, pgOptionen } from "./verbindung";
 
 export { schema };
 
-/** Ist eine Datenbank konfiguriert? Ohne DATABASE_URL zeigt die App nur die Startdaten an. */
+/** Ist eine Datenbank konfiguriert? Ohne zeigt die App nur die Startdaten an. */
 export function hatDatenbank(): boolean {
-  return !!process.env.DATABASE_URL;
+  return !!datenbankUrl();
 }
 
 type Db = NodePgDatabase & { $client: pg.Pool };
@@ -18,15 +19,13 @@ const global = globalThis as unknown as { __pkDb?: Db };
 
 export function db(): Db {
   if (global.__pkDb) return global.__pkDb;
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error("DATABASE_URL ist nicht gesetzt.");
+  const url = datenbankUrl();
+  if (!url) throw new Error("Keine Datenbank konfiguriert (DATABASE_URL oder POSTGRES_URL).");
   const pool = new pg.Pool({
-    connectionString: url,
+    ...pgOptionen(url),
     max: Number(process.env.DB_POOL_MAX ?? 5),
     connectionTimeoutMillis: 15_000,
     idleTimeoutMillis: 20_000,
-    // Supabase verlangt TLS; lokal (localhost) nicht
-    ssl: /localhost|127\.0\.0\.1|sslmode=disable/.test(url) ? false : { rejectUnauthorized: false },
   });
   // Abgebrochene Verbindungen dürfen den Server nicht beenden
   pool.on("error", (e) => console.error("db", e.message));

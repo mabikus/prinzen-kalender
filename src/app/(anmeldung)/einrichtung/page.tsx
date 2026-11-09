@@ -19,7 +19,7 @@ export default function Seite() {
 /** Nur solange es noch kein Konto gibt: Super-Admin anlegen. */
 async function Einrichtung() {
   await connection();
-  if (!hatDatenbank()) return <Callout tone="warning">Keine Datenbank verbunden (DATABASE_URL fehlt).</Callout>;
+  if (!hatDatenbank()) return <Callout tone="warning">Keine Datenbank verbunden.</Callout>;
   if ((await anzahlBenutzer()) > 0) redirect("/anmelden");
   return <EinrichtungsFormular email={process.env.SUPERADMIN_EMAIL?.trim().toLowerCase() || null} />;
 }
