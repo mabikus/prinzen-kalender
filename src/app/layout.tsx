@@ -15,7 +15,12 @@ export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description: APP_BESCHREIBUNG,
   applicationName: APP_NAME,
-  robots: { index: false, follow: false },
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: { index: false, follow: false, noimageindex: true, "max-snippet": 0, "max-image-preview": "none" },
+  },
   appleWebApp: {
     capable: true,
     title: APP_NAME,
