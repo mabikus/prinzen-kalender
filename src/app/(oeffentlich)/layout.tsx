@@ -6,6 +6,7 @@ import { Logo } from "@/components/logo";
 import { NavLinks, Navigation } from "@/components/navigation";
 import { AktualisierenKnopf } from "@/components/pwa";
 import { ZiehenZumAktualisieren } from "@/components/ziehen-aktualisieren";
+import { LinkAufraeumen } from "@/components/link-aufraeumen";
 import { datenquelle } from "@/lib/daten";
 import { ladeMarke } from "@/lib/marke-laden";
 import { zugangsToken } from "@/lib/zugang";
@@ -55,6 +56,7 @@ export default async function OeffentlichLayout({ children, modal }: LayoutProps
         <Navigation variante="unten" />
       </Suspense>
       <ZiehenZumAktualisieren />
+      <LinkAufraeumen />
       {/* Termin als Blatt über Liste/Monat (abgefangene Route @modal/(.)termin) */}
       {modal}
     </>

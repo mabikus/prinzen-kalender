@@ -37,12 +37,13 @@ export function proxy(request: NextRequest) {
   // setzt die App den Zugangs-Cookie für Administratoren mit (src/lib/zugang-cookie.ts).
   if (!zugangsToken()) return NextResponse.next();
 
-  // Einladungslink ?k=… -> Cookie setzen und Token aus der Adresse entfernen
+  // Einladungslink ?k=… -> Cookie setzen und die Seite direkt ausliefern (keine Umleitung: Link-Vorschauen
+  // wie WhatsApp folgen ihr ohne Cookie und zeigten sonst „Kein Zugang“). Das Token entfernt die App danach
+  // still aus der Adresszeile (components/link-aufraeumen.tsx).
   const k = url.searchParams.get("k");
   if (k !== null) {
-    url.searchParams.delete("k");
     if (!tokenGueltig(k)) return NextResponse.rewrite(new URL("/kein-zugang", request.url));
-    const res = NextResponse.redirect(url);
+    const res = NextResponse.next();
     res.cookies.set(COOKIE, k, {
       httpOnly: true,
       secure: url.protocol === "https:",

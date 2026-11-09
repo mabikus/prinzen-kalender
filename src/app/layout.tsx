@@ -4,6 +4,7 @@ import { FARBSCHEMA_SKRIPT } from "@/lib/farbschema";
 import { DienstHelfer, UpdateHinweis } from "@/components/pwa";
 import { Toaster } from "@/components/ui/toast";
 import { FARBE_ROT } from "@/lib/marke";
+import { basisUrl } from "@/lib/auth";
 import { beschreibung, ladeMarke } from "@/lib/marke-laden";
 import { STARTBILDER } from "@/lib/startbilder";
 import "./globals.css";
@@ -17,8 +18,18 @@ export async function generateMetadata(): Promise<Metadata> {
   const m = await ladeMarke();
   const v = `?v=${m.logoStand}`;
   return {
+    metadataBase: new URL(basisUrl()),
     title: { default: m.name, template: `%s · ${m.name}` },
     description: beschreibung(m),
+    // Link-Vorschau in WhatsApp, iMessage, Signal …: Name, Unterzeile, Logo
+    openGraph: {
+      type: "website",
+      locale: "de_DE",
+      siteName: m.name,
+      title: m.name,
+      description: beschreibung(m),
+      images: [{ url: `/app-icon/512${v}`, width: 512, height: 512, alt: m.name }],
+    },
     applicationName: m.name,
     robots: {
       index: false,
