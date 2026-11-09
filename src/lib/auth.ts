@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { passkey } from "@better-auth/passkey";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -6,6 +7,7 @@ import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { eq } from "drizzle-orm";
 import { db, schema } from "@/db";
+import { datenbankUrl } from "@/db/verbindung";
 import { APP_NAME } from "./marke";
 
 // Anmeldung (Better Auth): E-Mail + Passwort und Passkeys. Keine Selbst-Registrierung –
@@ -29,13 +31,24 @@ function vertrauteHerkuenfte(): string[] {
   return [...new Set(liste)];
 }
 
+/**
+ * Geheimnis für Anmelde-Cookies. Reihenfolge: eigenes BETTER_AUTH_SECRET, sonst das der Supabase-Integration,
+ * sonst abgeleitet (SHA-256) aus der Datenbank-Adresse – die enthält das geheime Datenbank-Passwort und liegt nur
+ * auf dem Server. Wird das Datenbank-Passwort geändert, müssen sich alle neu anmelden.
+ */
+function anmeldeGeheimnis(): string | undefined {
+  if (process.env.BETTER_AUTH_SECRET) return process.env.BETTER_AUTH_SECRET;
+  if (process.env.SUPABASE_JWT_SECRET) return process.env.SUPABASE_JWT_SECRET;
+  const url = datenbankUrl();
+  return url ? createHash("sha256").update(`sessionskalender-anmeldung:${url}`).digest("hex") : undefined;
+}
+
 function erstelleAuth() {
   return betterAuth({
     appName: APP_NAME,
     baseURL: basisUrl(),
     trustedOrigins: vertrauteHerkuenfte(),
-    // Eigenes Geheimnis bevorzugt; sonst das der Supabase-Integration (zufällig, geheim, nur auf dem Server)
-    secret: process.env.BETTER_AUTH_SECRET || process.env.SUPABASE_JWT_SECRET,
+    secret: anmeldeGeheimnis(),
     database: drizzleAdapter(db(), { provider: "pg", schema }),
     emailAndPassword: {
       enabled: true,

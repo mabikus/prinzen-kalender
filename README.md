@@ -51,7 +51,7 @@ SQL von Hand ist **nicht nötig**: Tabellen und Startdaten legt die App beim Dep
 |---|---|
 | `SUPERADMIN_EMAIL` | deine E-Mail – nur damit geht die Ersteinrichtung (**wichtig**, sonst kann sich der Erste als Super-Admin anlegen) |
 | `ZUGANG_TOKEN` | geheimes Wort für den Ansichts-Link (Buchstaben, Ziffern, `-`) |
-| `BETTER_AUTH_SECRET` | optional – ohne wird `SUPABASE_JWT_SECRET` der Integration verwendet |
+| `BETTER_AUTH_SECRET` | optional – ohne wird `SUPABASE_JWT_SECRET` verwendet bzw. ein Schlüssel aus der Datenbank-Verbindung abgeleitet |
 
 Danach **Deployments → ⋯ → Redeploy**. Im Build-Log: `db:einrichten – Startdaten eingespielt (11 Gruppen, 82 Termine)`.
 
