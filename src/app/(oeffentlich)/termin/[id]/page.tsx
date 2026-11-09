@@ -251,7 +251,7 @@ async function Detail({ params }: Pick<PageProps<"/termin/[id]">, "params">) {
       <div className="grid gap-2.5 sm:grid-cols-2">
         <a
           href={`/termin/${encodeURIComponent(t.id)}/ics`}
-          className="flex h-[52px] items-center justify-center gap-2 rounded-[14px] bg-marke-700 text-[16px] font-semibold text-white active:bg-marke-800"
+          className="flex h-[52px] items-center justify-center gap-2 rounded-[14px] bg-marke-700 text-[16px] font-semibold text-white active:brightness-90"
         >
           <I icon={CalendarPlus} className="size-5" />
           In meinen Kalender

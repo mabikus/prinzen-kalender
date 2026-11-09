@@ -57,32 +57,34 @@
   --subtle: #a3988f;
   --hover: #2a2421;
   --active: #352e2a;
-  --accent: #d03c43;
-  --accent-hover: #e0484f;
+  --accent: #e5484d;
+  --accent-hover: #ec5d61;
   --accent-fg: #ffffff;
-  --accent-soft: color-mix(in srgb, #d03c43 20%, transparent);
-  --accent-ink: #f08c91;
+  --accent-soft: color-mix(in srgb, #e5484d 18%, transparent);
+  --accent-ink: #f0585d;
   --success: #4cc38a;
   --warning: #e3ac3e;
   --info: #72aaf0;
   --danger: #f0585f;
   --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.6), 0 0 0 1px rgb(255 255 255 / 0.06);
-  --kopf: #7d0f15;
-  --kopf-rand: #540a0e;
+  /* Kopfzeile im selben satten Rot wie im hellen Design – nicht bräunlich */
+  --kopf: #9a1219;
+  --kopf-rand: #6e0c12;
   --glas: rgb(40 35 33 / 0.72);
   --glas-rand: rgb(255 255 255 / 0.12);
   --glas-linie: rgb(255 255 255 / 0.06);
   --glas-schatten: 0 10px 30px -6px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.3);
   --glas-aktiv: rgb(255 255 255 / 0.1);
 
-  --color-marke-50: #2a1517;
-  --color-marke-100: #3a1a1d;
-  --color-marke-200: #5a2429;
-  --color-marke-300: #a2454b;
-  --color-marke-600: #e0484f;
-  --color-marke-700: #d03c43;
-  --color-marke-800: #ee8d92;
-  --color-marke-900: #f7cdcf;
+  /* Rot nur als klarer Akzent; Überschriften (800/900) warmweiß statt rosa */
+  --color-marke-50: #2b1517;
+  --color-marke-100: #3b191c;
+  --color-marke-200: #5c2226;
+  --color-marke-300: #b0464b;
+  --color-marke-600: #ec5d61;
+  --color-marke-700: #e5484d;
+  --color-marke-800: #f3eee9;
+  --color-marke-900: #f3eee9;
   --color-stone-50: #1f1b19;
   --color-stone-100: #2a2421;
   --color-stone-200: #352e2a;

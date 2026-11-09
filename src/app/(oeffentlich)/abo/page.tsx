@@ -81,7 +81,7 @@ function Knoepfe({ f, host, proto, token, haupt }: { f: Filter; host: string; pr
     <div className="flex flex-wrap gap-2">
       <a
         href={webcal}
-        className={haupt ? `${KNOPF} bg-marke-700 text-white ring-marke-700 hover:bg-marke-800` : zweit}
+        className={haupt ? `${KNOPF} bg-marke-700 text-white ring-marke-700 hover:brightness-95` : zweit}
       >
         <I icon={CalendarPlus} className="size-4" />
         Apple
