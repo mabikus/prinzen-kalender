@@ -14,6 +14,6 @@ export default function MonatSeite() {
 }
 
 async function Inhalt() {
-  const { termine, gruppen } = await ladeDaten(); // vor new Date() – wartet auf die Anfrage
-  return <Monate termine={termine} gruppen={gruppen} heute={jetztInBerlin().datum} />;
+  const { termine } = await ladeDaten(); // vor new Date() – wartet auf die Anfrage
+  return <Monate termine={termine} jetzt={jetztInBerlin()} />;
 }

@@ -51,6 +51,14 @@ export function plusTage(datum: string, n: number): string {
   return verschiebe(datum, n * 1440).datum;
 }
 
+/** ISO-Kalenderwoche (Woche mit dem ersten Donnerstag = KW 1) */
+export function kalenderwoche(datum: string): number {
+  const d = new Date(`${datum}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7) + 3); // Donnerstag dieser Woche
+  const jahresanfang = Date.UTC(d.getUTCFullYear(), 0, 1);
+  return 1 + Math.floor((d.getTime() - jahresanfang) / (7 * 86_400_000));
+}
+
 /** Montag der Woche */
 export function wochenStart(datum: string): string {
   const wt = (new Date(`${datum}T12:00:00Z`).getUTCDay() + 6) % 7;

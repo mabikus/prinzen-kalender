@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Termin } from "@/lib/types";
-import { blaettern, hhmm, tageDerAnsicht, verschobeneZeiten, verteile, wochenStart, type Eintrag } from "./geometrie";
+import { blaettern, hhmm, kalenderwoche, tageDerAnsicht, verschobeneZeiten, verteile, wochenStart, type Eintrag } from "./geometrie";
 
 const t = (felder: Partial<Termin>): Termin => ({
   id: "x",
@@ -78,5 +78,15 @@ describe("Verschieben", () => {
   it("hhmm begrenzt auf den Tag", () => {
     expect(hhmm(-5)).toBe("00:00");
     expect(hhmm(1500)).toBe("23:59");
+  });
+});
+
+describe("kalenderwoche", () => {
+  it("rechnet nach ISO 8601", () => {
+    expect(kalenderwoche("2026-11-09")).toBe(46);
+    expect(kalenderwoche("2026-11-01")).toBe(44);
+    expect(kalenderwoche("2027-01-01")).toBe(53); // Freitag gehört noch zur KW 53/2026
+    expect(kalenderwoche("2027-01-04")).toBe(1);
+    expect(kalenderwoche("2027-02-08")).toBe(6);
   });
 });

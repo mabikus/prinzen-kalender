@@ -1,11 +1,11 @@
 "use client";
 
-import { Dialog as D } from "radix-ui";
-import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
-import { TerminZeile } from "@/components/termin";
-import type { Gruppe, Termin } from "@/lib/types";
-import { datumLang, MONATE, zeitplan } from "@/lib/zeit";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { eintraege as zuEintraegen, kalenderwoche } from "@/components/kalender/geometrie";
+import { Tagesansicht } from "@/components/tagesansicht";
+import type { Termin } from "@/lib/types";
+import { datumLang, jetztInBerlin, MONATE } from "@/lib/zeit";
 
 const WT = ["M", "D", "M", "D", "F", "S", "S"];
 
@@ -15,15 +15,6 @@ const FARBE = { alle: "bg-marke-700", auswahl: "bg-marke-300", jeder_verfuegbare
 function plusMonate(ym: string, n: number) {
   const [y, m] = ym.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 7);
-}
-
-/** ISO-Kalenderwoche */
-function kw(datum: string) {
-  const d = new Date(`${datum}T12:00:00Z`);
-  const tag = (d.getUTCDay() + 6) % 7;
-  d.setUTCDate(d.getUTCDate() - tag + 3);
-  const ersterDo = new Date(Date.UTC(d.getUTCFullYear(), 0, 4));
-  return 1 + Math.round(((d.getTime() - ersterDo.getTime()) / 86_400_000 - 3 + ((ersterDo.getUTCDay() + 6) % 7)) / 7);
 }
 
 /** Wochen eines Monats: je 7 Felder (null = Tag eines anderen Monats) */
@@ -39,15 +30,77 @@ function wochen(ym: string): (string | null)[][] {
   return Array.from({ length: felder.length / 7 }, (_, i) => felder.slice(i * 7, i * 7 + 7));
 }
 
-/**
- * Monatsansicht nach dem Vorbild der Handy-Kalender: alle Monate der Session untereinander,
- * große Tageszahlen, farbige Striche für Termine, Tag antippen → Blatt mit den Terminen.
- */
-export function Monate({ termine, gruppen, heute }: { termine: Termin[]; gruppen: Gruppe[]; heute: string }) {
-  const [tag, setTag] = useState<string | null>(null);
-  const plan = useMemo(() => zeitplan(termine), [termine]);
-  const nachId = useMemo(() => new Map(termine.map((t) => [t.id, t])), [termine]);
+const istTag = (x: string | null): x is string => !!x && /^\d{4}-\d{2}-\d{2}$/.test(x);
 
+/**
+ * Monat und Tag nach dem Vorbild der Handy-Kalender: Monate untereinander scrollen,
+ * Tag antippen öffnet die Tagesansicht („‹ November“ führt zurück). Der Tag steht in der Adresse
+ * (?tag=…), damit Zurück-Wischen und Neuladen funktionieren.
+ */
+export function Monate({ termine, jetzt: jetztStart }: { termine: Termin[]; jetzt: { datum: string; minuten: number } }) {
+  const param = useSearchParams().get("tag");
+  const tag = istTag(param) ? param : null;
+  const [jetzt, setJetzt] = useState(jetztStart);
+  const eintraege = useMemo(() => zuEintraegen(termine), [termine]);
+  const gepusht = useRef(false);
+  // zuletzt geöffneter Tag: dessen Monat zeigt die Liste beim Zurückkehren
+  const [zuletzt, setZuletzt] = useState<string | null>(null);
+  if (tag && tag !== zuletzt) setZuletzt(tag);
+
+  // Uhrzeit (rote Linie) und „heute“ mitlaufen lassen
+  useEffect(() => {
+    const id = window.setInterval(() => setJetzt(jetztInBerlin()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const oeffne = (d: string) => {
+    gepusht.current = true;
+    window.history.pushState(null, "", `?tag=${d}`);
+  };
+  const wechsle = (d: string) => window.history.replaceState(null, "", `?tag=${d}`);
+  const zurueck = () => {
+    if (gepusht.current) {
+      gepusht.current = false;
+      window.history.back();
+    } else window.history.replaceState(null, "", window.location.pathname);
+  };
+
+  return (
+    <>
+      {tag ? (
+        <Tagesansicht tag={tag} eintraege={eintraege} jetzt={jetzt} onTag={wechsle} onZurueck={zurueck} />
+      ) : (
+        <Monatsliste termine={termine} heute={jetzt.datum} ziel={zuletzt} onTag={oeffne} />
+      )}
+
+      {/* „Heute“ schwebt unten links – über der Tab-Leiste */}
+      <button
+        type="button"
+        onClick={() =>
+          tag
+            ? wechsle(jetzt.datum)
+            : document.getElementById(`monat-${jetzt.datum.slice(0, 7)}`)?.scrollIntoView({ behavior: "smooth", block: "start" })
+        }
+        className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-4 z-20 rounded-full bg-white px-5 py-2.5 text-[16px] font-semibold text-marke-700 shadow-[0_4px_16px_rgb(31_26_23/0.15)] ring-1 ring-linie active:bg-papier sm:bottom-6"
+      >
+        Heute
+      </button>
+    </>
+  );
+}
+
+/** Alle Monate der Session untereinander; `ziel` = Tag, dessen Monat beim Öffnen gezeigt wird */
+function Monatsliste({
+  termine,
+  heute,
+  ziel,
+  onTag,
+}: {
+  termine: Termin[];
+  heute: string;
+  ziel: string | null;
+  onTag: (tag: string) => void;
+}) {
   const proTag = useMemo(() => {
     const m = new Map<string, Termin[]>();
     for (const t of termine) m.set(t.datum, [...(m.get(t.datum) ?? []), t]);
@@ -64,21 +117,17 @@ export function Monate({ termine, gruppen, heute }: { termine: Termin[]; gruppen
     return l;
   }, [termine, heute]);
 
-  const zielMonat = monate.includes(heute.slice(0, 7)) ? heute.slice(0, 7) : monate[0];
-  const springen = (ym: string, sanft = true) =>
-    document.getElementById(`monat-${ym}`)?.scrollIntoView({ behavior: sanft ? "smooth" : "auto", block: "start" });
-
-  // Beim Öffnen zum aktuellen Monat
+  // Beim Öffnen zum aktuellen Monat (bzw. zum Monat des zuletzt geöffneten Tages)
   useEffect(() => {
-    if (zielMonat !== monate[0]) springen(zielMonat, false);
+    const ym = (ziel ?? heute).slice(0, 7);
+    if (ym === monate[0]) window.scrollTo({ top: 0 });
+    else document.getElementById(`monat-${ym}`)?.scrollIntoView({ block: "start" });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const amTag = tag ? (proTag.get(tag) ?? []) : [];
 
   return (
     <>
       {/* Wochentage – bleiben beim Scrollen oben stehen */}
-      <div className="sticky top-[calc(59px+env(safe-area-inset-top))] z-10 -mx-4 -mt-5 sm:-mt-6 grid grid-cols-[1.75rem_repeat(7,minmax(0,1fr))] border-b border-linie bg-papier/95 px-4 py-2 backdrop-blur">
+      <div className="sticky top-[calc(59px+env(safe-area-inset-top))] z-10 -mx-4 -mt-5 sm:-mt-6 grid grid-cols-[1.75rem_repeat(7,minmax(0,1fr))] border-b border-linie bg-papier px-4 py-2">
         <span />
         {WT.map((w, i) => (
           <span key={i} className={`text-center text-[13px] font-semibold ${i >= 5 ? "text-grau" : "text-tinte"}`}>
@@ -100,7 +149,7 @@ export function Monate({ termine, gruppen, heute }: { termine: Termin[]; gruppen
                 const ersterTag = woche.find(Boolean)!;
                 return (
                   <div key={wi} className="grid grid-cols-[1.75rem_repeat(7,minmax(0,1fr))] border-t border-linie">
-                    <span className="pt-1 text-[11px] tabular-nums text-grau/80">{kw(ersterTag)}</span>
+                    <span className="pt-1 text-[11px] tabular-nums text-grau/80">{kalenderwoche(ersterTag)}</span>
                     {woche.map((d, i) => {
                       if (!d) return <span key={i} />;
                       const ts = proTag.get(d) ?? [];
@@ -110,7 +159,7 @@ export function Monate({ termine, gruppen, heute }: { termine: Termin[]; gruppen
                         <button
                           key={d}
                           type="button"
-                          onClick={() => setTag(d)}
+                          onClick={() => onTag(d)}
                           aria-label={`${datumLang(d)}, ${ts.length ? `${ts.length} Termine` : "keine Termine"}`}
                           className="flex h-[66px] flex-col items-center gap-1.5 pt-1.5 active:bg-marke-50"
                         >
@@ -121,7 +170,7 @@ export function Monate({ termine, gruppen, heute }: { termine: Termin[]; gruppen
                                 : i >= 5 || vergangen
                                   ? "text-grau"
                                   : "text-tinte"
-                            } ${tag === d && !istHeute ? "ring-2 ring-marke-300" : ""}`}
+                            }`}
                           >
                             {Number(d.slice(8))}
                           </span>
@@ -158,53 +207,6 @@ export function Monate({ termine, gruppen, heute }: { termine: Termin[]; gruppen
         </li>
       </ul>
 
-      {/* „Heute“ schwebt unten links – über der Tab-Leiste */}
-      <button
-        type="button"
-        onClick={() => springen(heute.slice(0, 7))}
-        className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-4 z-20 rounded-full bg-white px-5 py-2.5 text-[16px] font-semibold text-marke-700 shadow-[0_4px_16px_rgb(31_26_23/0.15)] ring-1 ring-linie active:bg-papier sm:bottom-6"
-      >
-        Heute
-      </button>
-
-      {/* Termine des Tages als Blatt von unten */}
-      <D.Root open={!!tag} onOpenChange={(o) => !o && setTag(null)}>
-        <D.Portal>
-          <D.Overlay className="fixed inset-0 z-40 bg-black/35 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-          <D.Content className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[80dvh] max-w-xl flex-col rounded-t-[18px] bg-papier shadow-[0_-8px_32px_rgb(31_26_23/0.2)] outline-none data-[state=open]:animate-in data-[state=open]:slide-in-from-bottom-10 data-[state=open]:duration-300">
-            <div className="mx-auto mt-2 h-1.5 w-10 rounded-full bg-stone-300" aria-hidden />
-            <div className="flex items-start justify-between gap-3 px-5 pb-3 pt-3">
-              <div>
-                <D.Title className="font-serif text-[22px] font-semibold text-marke-800">{tag ? datumLang(tag).replace(/ \d{4}$/, "") : ""}</D.Title>
-                <D.Description className="text-[14px] text-grau">
-                  {amTag.length ? `${amTag.length} ${amTag.length === 1 ? "Termin" : "Termine"}` : "Keine Termine"}
-                  {tag === heute ? " · heute" : ""}
-                </D.Description>
-              </div>
-              <D.Close className="grid size-9 place-items-center rounded-full bg-stone-200/70 text-grau" aria-label="Schließen">
-                <X className="size-[18px]" />
-              </D.Close>
-            </div>
-            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
-              {amTag.length ? (
-                amTag.map((t) => (
-                  <TerminZeile
-                    key={t.id}
-                    t={t}
-                    z={plan.get(t.id)}
-                    gruppen={gruppen}
-                    vorher={t.anschluss_an ? nachId.get(t.anschluss_an) : undefined}
-                  />
-                ))
-              ) : (
-                <p className="rounded-[14px] border border-linie bg-white px-4 py-6 text-center text-[16px] text-grau">
-                  An diesem Tag ist nichts geplant.
-                </p>
-              )}
-            </div>
-          </D.Content>
-        </D.Portal>
-      </D.Root>
     </>
   );
 }
