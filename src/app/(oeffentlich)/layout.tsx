@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Crown, TriangleAlert } from "lucide-react";
 import { FarbschemaKnopf } from "@/components/farbschema";
 import { NavLinks, Navigation } from "@/components/navigation";
+import { AktualisierenKnopf } from "@/components/pwa";
 import { datenquelle } from "@/lib/daten";
 import { APP_KURZ, APP_NAME } from "@/lib/marke";
 import { zugangsToken } from "@/lib/zugang";
@@ -28,6 +29,7 @@ export default function OeffentlichLayout({ children }: { children: React.ReactN
             <Suspense fallback={<NavLinks pfad={null} variante="oben" />}>
               <Navigation variante="oben" />
             </Suspense>
+            <AktualisierenKnopf className="text-white/90 hover:bg-white/10 active:bg-white/15" />
             <FarbschemaKnopf className="-mr-2 text-white/90 hover:bg-white/10 active:bg-white/15" />
           </div>
         </div>

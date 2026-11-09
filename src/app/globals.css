@@ -230,6 +230,11 @@ summary::-webkit-details-marker {
   body {
     overscroll-behavior-y: none;
   }
+  /* iOS rechnet mit durchsichtiger Statusleiste die Seitenhöhe ohne die Statusleiste –
+     auf kurzen Seiten säße die Tab-Leiste unten dann zu hoch. Seite mindestens bildschirmhoch machen. */
+  html {
+    min-height: calc(100% + env(safe-area-inset-top));
+  }
 }
 @media (pointer: coarse) {
   :is(button, [role="button"], a, summary) {

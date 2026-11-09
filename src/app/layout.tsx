@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import { FARBSCHEMA_SKRIPT } from "@/lib/farbschema";
-import { DienstHelfer } from "@/components/pwa";
+import { DienstHelfer, UpdateHinweis } from "@/components/pwa";
 import { Toaster } from "@/components/ui/toast";
 import { APP_BESCHREIBUNG, APP_NAME, FARBE_ROT } from "@/lib/marke";
 import "./globals.css";
@@ -37,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {children}
         <Toaster />
         <DienstHelfer />
+        <UpdateHinweis />
       </body>
     </html>
   );

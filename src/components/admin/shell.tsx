@@ -30,6 +30,7 @@ import { cn } from "@/components/ui/cn";
 import { TooltipProvider, Tooltip } from "@/components/ui/controls";
 import { Initials, Kbd } from "@/components/ui/display";
 import { FarbschemaKnopf, FarbschemaText, farbschemaUmschalten } from "@/components/farbschema";
+import { AktualisierenKnopf } from "@/components/pwa";
 import { ConfirmProvider, Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/components/ui/overlay";
 import { Befehlspalette } from "./befehle";
 import { APP_NAME } from "@/lib/marke";
@@ -166,6 +167,7 @@ export function AdminShell({ admin, children }: { admin: AdminInfo; children: Re
               >
                 <Search className="size-[18px]" />
               </button>
+              <AktualisierenKnopf className="size-9 rounded-md text-muted hover:bg-hover" />
               <FarbschemaKnopf className="size-9 rounded-md text-muted hover:bg-hover" />
             </div>
             <main id="inhalt" className="min-h-0 flex-1 overflow-y-auto">

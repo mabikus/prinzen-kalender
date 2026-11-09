@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Kennung dieses Builds: die App vergleicht sie mit /api/version und meldet neue Versionen
+  env: {
+    APP_VERSION: process.env.VERCEL_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA ?? `lokal-${Date.now()}`,
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
