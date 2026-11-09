@@ -17,6 +17,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Search,
+  Share2,
   UserCog,
   Users,
   X,
@@ -49,6 +50,7 @@ export const NAV: { label?: string; eintraege: NavEintrag[] }[] = [
       { href: "/verwaltung/kalender", label: "Kalender", icon: CalendarDays },
       { href: "/verwaltung/termine", label: "Termine", icon: List },
       { href: "/verwaltung/gruppen", label: "Gruppen", icon: Users },
+      { href: "/verwaltung/teilen", label: "Teilen", icon: Share2 },
     ],
   },
   {
