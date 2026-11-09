@@ -27,7 +27,10 @@ export async function aktualisieren() {
   } catch {
     // dann eben nur neu laden
   }
-  window.location.reload();
+  // Frischer Aufruf statt reload(): iOS stellt beim Neuladen die Scrollposition wieder her und zeichnet
+  // in der Home-Bildschirm-App dabei manchmal nur Teile der Seite (leerer Bildschirm). Darum oben neu öffnen.
+  window.scrollTo(0, 0);
+  window.location.replace(window.location.pathname + window.location.search);
 }
 
 /** Knopf „Aktualisieren“ für die Kopfzeile */
