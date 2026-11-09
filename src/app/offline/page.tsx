@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { WifiOff } from "lucide-react";
-import { APP_NAME } from "@/lib/marke";
 
 export const metadata = { title: "Offline" };
 
@@ -13,7 +12,7 @@ export default function Offline() {
       </span>
       <h1 className="font-serif text-2xl font-semibold">Keine Verbindung</h1>
       <p className="text-grau">
-        Diese Seite ist noch nicht auf dem Gerät gespeichert. Bereits geöffnete Seiten des {APP_NAME}s funktionieren auch
+        Diese Seite ist noch nicht auf dem Gerät gespeichert. Bereits geöffnete Seiten funktionieren auch
         offline.
       </p>
       <Link href="/" className="rounded-md bg-marke-700 px-4 py-2.5 font-semibold text-white">

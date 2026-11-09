@@ -20,7 +20,6 @@ import { PageHeader, Section } from "@/components/ui/page";
 import { toast } from "@/components/ui/toast";
 import type { BenutzerZeile } from "@/lib/benutzer";
 import { zeitpunkt } from "@/lib/protokoll-text";
-import { APP_NAME } from "@/lib/marke";
 
 interface EinladungInfo {
   id: string;
@@ -35,8 +34,10 @@ export function BenutzerVerwaltung({
   ich,
   benutzer,
   einladungen,
+  appName: APP_NAME,
 }: {
   ich: { id: string; role: "superadmin" | "admin" };
+  appName: string;
   benutzer: BenutzerZeile[];
   einladungen: EinladungInfo[];
 }) {

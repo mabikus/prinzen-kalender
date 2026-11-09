@@ -25,4 +25,6 @@ Tailwind 4 · Radix · lucide · sonner · cmdk. Oberfläche und Texte auf Deuts
 - Kalender: `src/components/kalender/*` – Rechenlogik in `geometrie.ts` (mit Vitest-Tests).
 - Gruppenlogik, Filter, Kartenbedarf: `src/lib/labels.ts`; Zeitlogik: `src/lib/zeit.ts`; Feed: `src/lib/ics.ts`.
 - Zugriffsschutz Ansicht: `src/proxy.ts` + `src/lib/zugang.ts`.
+- Darstellung (App-Name, Unterzeile, Logo): Verwaltung → Darstellung, Tabelle `einstellungen`, Laden über `src/lib/marke-laden.ts`
+  (`"use cache"` + `cacheTag("marke")`, nach dem Speichern `updateTag`). Bild-Adressen tragen `?v=<logo_stand>`.
 - Prüfen vor dem Commit: `npx tsc --noEmit`, `npm run lint`, `npm test`.

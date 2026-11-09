@@ -18,6 +18,7 @@ export const AKTION: Record<string, string> = {
   "benutzer.deaktiviert": "hat deaktiviert",
   "benutzer.aktiviert": "hat aktiviert",
   "benutzer.geloescht": "hat gelöscht",
+  "darstellung.geaendert": "hat die Darstellung geändert",
 };
 
 export const FELD: Record<string, string> = {

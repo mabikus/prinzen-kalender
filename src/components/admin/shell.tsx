@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Dialog as D } from "radix-ui";
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode, createContext, useContext } from "react";
 import {
   CalendarDays,
   ChevronsUpDown,
@@ -15,6 +15,7 @@ import {
   Menu as MenuIcon,
   Moon,
   PanelLeftClose,
+  Palette,
   PanelLeftOpen,
   Search,
   Share2,
@@ -61,6 +62,7 @@ export const NAV: { label?: string; eintraege: NavEintrag[] }[] = [
     label: "Verwaltung",
     eintraege: [
       { href: "/verwaltung/benutzer", label: "Benutzer", icon: UserCog },
+      { href: "/verwaltung/darstellung", label: "Darstellung", icon: Palette },
       { href: "/verwaltung/protokoll", label: "Protokoll", icon: History },
     ],
   },
@@ -95,7 +97,22 @@ function useSchmal(): [boolean, (v: boolean) => void] {
   return [wert, setzen];
 }
 
-export function AdminShell({ admin, children }: { admin: AdminInfo; children: ReactNode }) {
+/** Name und Logo-Stand der App (Verwaltung → Darstellung) für Logo und Kopf */
+export interface MarkeInfo {
+  name: string;
+  logoStand: number;
+}
+const MarkeKontext = createContext<MarkeInfo>({ name: APP_NAME, logoStand: 0 });
+
+export function AdminShell({ admin, marke, children }: { admin: AdminInfo; marke: MarkeInfo; children: ReactNode }) {
+  return (
+    <MarkeKontext.Provider value={marke}>
+      <Rahmen admin={admin}>{children}</Rahmen>
+    </MarkeKontext.Provider>
+  );
+}
+
+function Rahmen({ admin, children }: { admin: AdminInfo; children: ReactNode }) {
   const [schmal, setSchmal] = useSchmal();
   const [palette, setPalette] = useState(false);
   const pfad = usePathname();
@@ -182,12 +199,13 @@ export function AdminShell({ admin, children }: { admin: AdminInfo; children: Re
 }
 
 function Logo({ nurZeichen }: { nurZeichen?: boolean }) {
+  const marke = useContext(MarkeKontext);
   return (
     <Link href="/verwaltung/kalender" className="flex items-center gap-2.5">
-      <Vereinslogo groesse={34} />
+      <Vereinslogo groesse={34} stand={marke.logoStand} />
       {nurZeichen ? null : (
         <span className="leading-tight">
-          <span className="block font-display text-[15px] font-semibold text-ink">{APP_NAME}</span>
+          <span className="block font-display text-[15px] font-semibold text-ink">{marke.name}</span>
           <span className="block text-[11px] text-subtle">Verwaltung</span>
         </span>
       )}

@@ -7,7 +7,7 @@ import { Callout } from "@/components/ui/callout";
 import { Page, PageHeader } from "@/components/ui/page";
 import { ladeDaten } from "@/lib/daten";
 import { filterListe } from "@/lib/labels";
-import { APP_NAME } from "@/lib/marke";
+import { ladeMarke } from "@/lib/marke-laden";
 import { zugangsToken } from "@/lib/zugang";
 
 export const metadata = { title: "Teilen" };
@@ -29,7 +29,7 @@ async function Inhalt() {
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const basis = `${proto}://${host}`;
   const token = zugangsToken();
-  const { gruppen } = await ladeDaten();
+  const [{ gruppen }, { name: APP_NAME }] = await Promise.all([ladeDaten(), ladeMarke()]);
 
   if (!token) {
     return (

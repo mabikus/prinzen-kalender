@@ -4,6 +4,7 @@
 
 import { sql } from "drizzle-orm";
 import {
+  bytea,
   type AnyPgColumn,
   bigint,
   boolean,
@@ -92,6 +93,22 @@ export const termine = pgTable(
   },
   (t) => [index("termine_datum_idx").on(t.datum)],
 );
+
+/** Darstellung der App (eine Zeile, id = "app"): Name, Unterzeile, Logo – in der Verwaltung änderbar */
+export const einstellungen = pgTable("einstellungen", {
+  id: text("id").primaryKey(),
+  app_name: text("app_name").notNull(),
+  untertitel: text("untertitel").notNull(),
+  /** PNG 512×512 (weißer Hintergrund) und 144×144; null = mitgeliefertes Logo */
+  logo: bytea("logo"),
+  logo_klein: bytea("logo_klein"),
+  /** Zählt bei jedem neuen Logo hoch – hängt als ?v= an den Bild-Adressen (kein altes Logo aus Zwischenspeichern) */
+  logo_stand: integer("logo_stand").notNull().default(0),
+  geaendert_am: timestamp("geaendert_am", { withTimezone: true })
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
+});
 
 /** Welche Gruppen sind bei einem Termin angekreuzt? */
 export const terminGruppen = pgTable(

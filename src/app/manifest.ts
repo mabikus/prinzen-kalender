@@ -1,12 +1,15 @@
 import type { MetadataRoute } from "next";
-import { APP_BESCHREIBUNG, APP_NAME, FARBE_PAPIER, FARBE_ROT } from "@/lib/marke";
+import { FARBE_PAPIER, FARBE_ROT } from "@/lib/marke";
+import { beschreibung, ladeMarke } from "@/lib/marke-laden";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const m = await ladeMarke();
+  const v = `?v=${m.logoStand}`;
   return {
     id: "/",
-    name: APP_NAME,
-    short_name: "Session",
-    description: APP_BESCHREIBUNG,
+    name: m.name,
+    short_name: m.name,
+    description: beschreibung(m),
     lang: "de",
     start_url: "/",
     scope: "/",
@@ -16,9 +19,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: FARBE_ROT,
     categories: ["lifestyle", "productivity"],
     icons: [
-      { src: "/app-icon/192", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/app-icon/512", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/app-icon/maskable-512", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: `/app-icon/192${v}`, sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: `/app-icon/512${v}`, sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: `/app-icon/maskable-512${v}`, sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [
       { name: "Termine", url: "/" },

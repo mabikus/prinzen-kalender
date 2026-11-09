@@ -7,10 +7,11 @@ import { NavLinks, Navigation } from "@/components/navigation";
 import { AktualisierenKnopf } from "@/components/pwa";
 import { ZiehenZumAktualisieren } from "@/components/ziehen-aktualisieren";
 import { datenquelle } from "@/lib/daten";
-import { APP_KURZ, APP_NAME } from "@/lib/marke";
+import { ladeMarke } from "@/lib/marke-laden";
 import { zugangsToken } from "@/lib/zugang";
 
-export default function OeffentlichLayout({ children, modal }: LayoutProps<"/">) {
+export default async function OeffentlichLayout({ children, modal }: LayoutProps<"/">) {
+  const marke = await ladeMarke(); // zwischengespeichert (Verwaltung → Darstellung)
   const quelle = datenquelle();
   const offen = !zugangsToken();
   return (
@@ -19,10 +20,10 @@ export default function OeffentlichLayout({ children, modal }: LayoutProps<"/">)
       <header className="sticky top-0 z-20 border-b-[3px] border-kopf-rand bg-kopf pt-[env(safe-area-inset-top)] text-white">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
-            <Logo groesse={44} />
+            <Logo groesse={44} stand={marke.logoStand} />
             <span className="min-w-0 leading-tight">
-              <span className="block truncate font-serif text-[19px] font-semibold">{APP_NAME}</span>
-              <span className="block text-[12px] text-white/75">{APP_KURZ}</span>
+              <span className="block truncate font-serif text-[19px] font-semibold">{marke.name}</span>
+              <span className="block text-[12px] text-white/75">{marke.untertitel}</span>
             </span>
           </Link>
           <div className="flex items-center gap-1">

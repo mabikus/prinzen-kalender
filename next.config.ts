@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
     APP_VERSION: process.env.VERCEL_DEPLOYMENT_ID ?? process.env.VERCEL_GIT_COMMIT_SHA ?? `lokal-${Date.now()}`,
   },
   cacheComponents: true,
+  experimental: {
+    // Logo-Upload in der Verwaltung (zwei PNG-Größen)
+    serverActions: { bodySizeLimit: "5mb" },
+  },
   partialPrefetching: true,
   turbopack: {
     rules: {

@@ -6,7 +6,7 @@ import { I } from "@/components/termin";
 import { ladeDaten } from "@/lib/daten";
 import { filterListe, type Filter } from "@/lib/labels";
 import { feedToken } from "@/lib/zugang";
-import { APP_NAME } from "@/lib/marke";
+import { ladeMarke } from "@/lib/marke-laden";
 
 export const metadata = { title: "Kalender-Abo" };
 
@@ -71,11 +71,11 @@ function Anleitung({ icon, titel, children }: { icon: LucideIcon; titel: string;
 const KNOPF =
   "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium ring-1 ring-inset transition";
 
-function Knoepfe({ f, host, proto, token, haupt }: { f: Filter; host: string; proto: string; token: string; haupt?: boolean }) {
+function Knoepfe({ f, host, proto, token, haupt, appName }: { f: Filter; host: string; proto: string; token: string; haupt?: boolean; appName: string }) {
   const pfad = `${host}/kalender/${encodeURIComponent(token)}/${f.key}.ics`;
   const https = `${proto}://${pfad}`;
   const webcal = `webcal://${pfad}`;
-  const name = f.key === "alle" ? APP_NAME : `${APP_NAME} – ${f.label}`;
+  const name = f.key === "alle" ? appName : `${appName} – ${f.label}`;
   const zweit = `${KNOPF} bg-panel text-tinte ring-linie hover:text-marke-700 hover:ring-marke-300`;
   return (
     <div className="flex flex-wrap gap-2">
@@ -113,12 +113,14 @@ function Liste({
   host,
   proto,
   token,
+  appName,
 }: {
   titel: string;
   feeds: Filter[];
   host: string;
   proto: string;
   token: string;
+  appName: string;
 }) {
   return (
     <section className="space-y-2">
@@ -130,7 +132,7 @@ function Liste({
               <h3 className="font-semibold">{f.label}</h3>
               <p className="text-sm text-grau">{f.beschreibung}</p>
             </div>
-            <Knoepfe f={f} host={host} proto={proto} token={token} />
+            <Knoepfe f={f} host={host} proto={proto} token={token} appName={appName} />
           </li>
         ))}
       </ul>
@@ -143,7 +145,7 @@ async function Feeds() {
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   const token = feedToken();
-  const { gruppen } = await ladeDaten();
+  const [{ gruppen }, marke] = await Promise.all([ladeDaten(), ladeMarke()]);
   const [alle, ...weitere] = filterListe(gruppen);
   const gruppenFeeds = weitere.filter((f) => gruppen.some((g) => g.id === f.key));
   const sonstige = weitere.filter((f) => !gruppen.some((g) => g.id === f.key));
@@ -155,10 +157,10 @@ async function Feeds() {
           <h2 className="font-serif lining-nums text-2xl font-semibold">Alle Termine</h2>
           <p className="text-sm text-grau">Der komplette Plan der Session – für Prinz und Adjutanten.</p>
         </div>
-        <Knoepfe f={alle} host={host} proto={proto} token={token} haupt />
+        <Knoepfe f={alle} host={host} proto={proto} token={token} haupt appName={marke.name} />
       </section>
-      <Liste titel="Nur für eine Gruppe" feeds={gruppenFeeds} host={host} proto={proto} token={token} />
-      <Liste titel="Weitere" feeds={sonstige} host={host} proto={proto} token={token} />
+      <Liste titel="Nur für eine Gruppe" feeds={gruppenFeeds} host={host} proto={proto} token={token} appName={marke.name} />
+      <Liste titel="Weitere" feeds={sonstige} host={host} proto={proto} token={token} appName={marke.name} />
     </div>
   );
 }

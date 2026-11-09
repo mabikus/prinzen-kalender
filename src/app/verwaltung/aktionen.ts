@@ -18,6 +18,11 @@ import type { Anmeldung, Art, Farbe, Gruppe, Status, Termin, Umfang } from "@/li
 import { aktuellerAdmin, type Admin } from "@/lib/sitzung";
 import { basisUrl } from "@/lib/auth";
 import { headers } from "next/headers";
+import { updateTag } from "next/cache";
+import { sql } from "drizzle-orm";
+import { db, hatDatenbank, schema } from "@/db";
+import { protokolliereAktion } from "@/lib/daten";
+import { MARKE_TAG } from "@/lib/marke-laden";
 
 // Alle Änderungen aus der Verwaltung. Jede Aktion prüft selbst die Anmeldung –
 // Server Actions sind auch direkt per POST erreichbar.
@@ -296,5 +301,59 @@ export async function passkeyLoeschen(id: string) {
     const { db, schema } = await import("@/db");
     const { and, eq } = await import("drizzle-orm");
     await db().delete(schema.passkey).where(and(eq(schema.passkey.id, id), eq(schema.passkey.userId, a.id)));
+  });
+}
+
+// ───────────── Darstellung (Name, Unterzeile, Logo) ─────────────
+
+const PNG_KENNUNG = [0x89, 0x50, 0x4e, 0x47];
+
+/** Logo-Datei aus dem Formular: PNG (vom Browser vorbereitet), höchstens 2 MB */
+async function pngAus(form: FormData, feld: string): Promise<Buffer | null> {
+  const datei = form.get(feld);
+  if (!(datei instanceof File) || datei.size === 0) return null;
+  if (datei.size > 2 * 1024 * 1024) throw new BenutzerFehler("Das Logo ist zu groß (höchstens 2 MB).");
+  const bytes = Buffer.from(await datei.arrayBuffer());
+  if (!PNG_KENNUNG.every((b, i) => bytes[i] === b)) throw new BenutzerFehler("Das Logo konnte nicht gelesen werden.");
+  return bytes;
+}
+
+/**
+ * App-Name, Unterzeile und Logo speichern. Das Logo bereitet der Browser vor (512 px und 144 px, PNG auf Weiß).
+ * Danach sind Kopfzeilen, Symbole, Startbilder und Seitentitel sofort neu (updateTag).
+ */
+export async function darstellungSpeichern(form: FormData) {
+  return sicher(async (a) => {
+    if (!hatDatenbank()) throw new BenutzerFehler("Ändern ist erst möglich, wenn die Datenbank verbunden ist.");
+    const name = leer(form.get("name"));
+    const untertitel = leer(form.get("untertitel")) ?? "";
+    if (!name) throw new BenutzerFehler("Bitte einen App-Namen angeben.");
+    if (name.length > 40) throw new BenutzerFehler("Der App-Name darf höchstens 40 Zeichen lang sein.");
+    if (untertitel.length > 60) throw new BenutzerFehler("Die Unterzeile darf höchstens 60 Zeichen lang sein.");
+
+    const zuruecksetzen = form.get("logoZuruecksetzen") === "1";
+    const logo = zuruecksetzen ? null : await pngAus(form, "logo");
+    const logoKlein = zuruecksetzen ? null : await pngAus(form, "logoKlein");
+    if (!!logo !== !!logoKlein) throw new BenutzerFehler("Das Logo ist unvollständig angekommen. Bitte noch einmal wählen.");
+    const logoNeu = zuruecksetzen || !!logo;
+
+    const t = schema.einstellungen;
+    await db()
+      .insert(t)
+      .values({ id: "app", app_name: name, untertitel, logo, logo_klein: logoKlein, logo_stand: logoNeu ? 1 : 0 })
+      .onConflictDoUpdate({
+        target: t.id,
+        set: {
+          app_name: name,
+          untertitel,
+          ...(logoNeu ? { logo, logo_klein: logoKlein, logo_stand: sql`${t.logo_stand} + 1` } : {}),
+        },
+      });
+    await protokolliereAktion(wer(a), "darstellung.geaendert", { id: "app", titel: name }, {
+      name,
+      untertitel,
+      logo: zuruecksetzen ? "zurückgesetzt" : logo ? "neu" : "unverändert",
+    });
+    updateTag(MARKE_TAG);
   });
 }

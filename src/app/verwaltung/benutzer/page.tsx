@@ -1,3 +1,4 @@
+import { ladeMarke } from "@/lib/marke-laden";
 import { Suspense } from "react";
 import { BenutzerVerwaltung } from "@/components/admin/benutzer";
 import { Page } from "@/components/ui/page";
@@ -18,10 +19,11 @@ export default function Seite() {
 
 async function Inhalt() {
   const a = await brauchtAdmin();
-  const [benutzer, einladungen] = await Promise.all([ladeBenutzer(), offeneEinladungen()]);
+  const [benutzer, einladungen, marke] = await Promise.all([ladeBenutzer(), offeneEinladungen(), ladeMarke()]);
   return (
     <BenutzerVerwaltung
       ich={{ id: a.id, role: a.role }}
+      appName={marke.name}
       benutzer={benutzer}
       einladungen={einladungen.map((e) => ({ id: e.id, email: e.email, name: e.name, laeuftAb: e.laeuft_ab.toISOString() }))}
     />

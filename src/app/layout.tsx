@@ -3,7 +3,8 @@ import { Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import { FARBSCHEMA_SKRIPT } from "@/lib/farbschema";
 import { DienstHelfer, UpdateHinweis } from "@/components/pwa";
 import { Toaster } from "@/components/ui/toast";
-import { APP_BESCHREIBUNG, APP_NAME, FARBE_ROT } from "@/lib/marke";
+import { FARBE_ROT } from "@/lib/marke";
+import { beschreibung, ladeMarke } from "@/lib/marke-laden";
 import { STARTBILDER } from "@/lib/startbilder";
 import "./globals.css";
 
@@ -11,25 +12,34 @@ import "./globals.css";
 const sans = Source_Sans_3({ variable: "--font-text", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const serif = Source_Serif_4({ variable: "--font-titel", subsets: ["latin"], weight: ["600", "700"] });
 
-export const metadata: Metadata = {
-  title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
-  description: APP_BESCHREIBUNG,
-  applicationName: APP_NAME,
-  robots: {
-    index: false,
-    follow: false,
-    nocache: true,
-    googleBot: { index: false, follow: false, noimageindex: true, "max-snippet": 0, "max-image-preview": "none" },
-  },
-  appleWebApp: {
-    capable: true,
-    title: APP_NAME,
-    statusBarStyle: "black-translucent",
-    // Startbildschirm mit Logo statt leerer Fläche beim Öffnen der App
-    startupImage: STARTBILDER.map((s) => ({ url: `/startbild/${s.breite}x${s.hoehe}`, media: s.media })),
-  },
-  formatDetection: { telephone: false },
-};
+/** Name, Symbole und Startbilder aus der Verwaltung („Darstellung“) – zwischengespeichert, nach Änderung sofort neu */
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await ladeMarke();
+  const v = `?v=${m.logoStand}`;
+  return {
+    title: { default: m.name, template: `%s · ${m.name}` },
+    description: beschreibung(m),
+    applicationName: m.name,
+    robots: {
+      index: false,
+      follow: false,
+      nocache: true,
+      googleBot: { index: false, follow: false, noimageindex: true, "max-snippet": 0, "max-image-preview": "none" },
+    },
+    icons: {
+      icon: [{ url: `/app-icon/favicon${v}`, type: "image/png", sizes: "64x64" }],
+      apple: [{ url: `/app-icon/apple${v}`, type: "image/png", sizes: "180x180" }],
+    },
+    appleWebApp: {
+      capable: true,
+      title: m.name,
+      statusBarStyle: "black-translucent",
+      // Startbildschirm mit Logo statt leerer Fläche beim Öffnen der App
+      startupImage: STARTBILDER.map((s) => ({ url: `/startbild/${s.breite}x${s.hoehe}${v}`, media: s.media })),
+    },
+    formatDetection: { telephone: false },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: FARBE_ROT,
