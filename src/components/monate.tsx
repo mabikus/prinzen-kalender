@@ -93,7 +93,8 @@ export function Monate({
   return (
     <>
       <div
-        className="touch-pan-y select-none"
+        // Kalender bleibt oben stehen, die Termine darunter scrollen (wie beim iPhone-Kalender)
+        className="sticky top-[calc(59px+env(safe-area-inset-top))] z-10 -mx-4 -mt-5 touch-pan-y select-none border-b border-linie bg-papier px-4 pb-1 pt-2 sm:-mt-6"
         onTouchStart={(e) => {
           const p = e.touches[0];
           wisch.current = { x: p.clientX, y: p.clientY };
@@ -107,17 +108,17 @@ export function Monate({
           if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(p.clientY - s.y) * 1.5) blaettern(dx < 0 ? 1 : -1);
         }}
       >
-        <div className="flex items-center justify-between gap-2 pb-3">
+        <div className="flex items-center justify-between gap-2 pb-1">
           <h1 className="flex items-baseline gap-2">
-            <span className="font-serif text-[30px] font-semibold leading-none text-marke-800">{MONATE[m - 1]}</span>
-            <span className="text-[16px] text-grau">{y}</span>
+            <span className="font-serif text-[22px] font-semibold leading-none text-marke-800">{MONATE[m - 1]}</span>
+            <span className="text-[14px] text-grau">{y}</span>
           </h1>
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => waehle(heute)}
               disabled={tag === heute}
-              className="mr-1 rounded-full border border-linie bg-panel px-3.5 py-1.5 text-[15px] font-semibold text-marke-700 active:bg-marke-50 disabled:border-transparent disabled:bg-transparent disabled:text-stone-300"
+              className="mr-1 rounded-full border border-linie bg-panel px-3 py-1 text-[14px] font-semibold text-marke-700 active:bg-marke-50 disabled:border-transparent disabled:bg-transparent disabled:text-stone-300"
             >
               Heute
             </button>
@@ -142,10 +143,10 @@ export function Monate({
           </div>
         </div>
 
-        <div className="grid grid-cols-[1.5rem_repeat(7,minmax(0,1fr))] border-b border-linie pb-1.5">
+        <div className="grid grid-cols-[1.5rem_repeat(7,minmax(0,1fr))] pb-0.5">
           <span />
           {WT.map((w, i) => (
-            <span key={i} className={cn("text-center text-[13px] font-semibold", i >= 5 ? "text-grau" : "text-tinte")}>
+            <span key={i} className={cn("text-center text-[12px] font-semibold", i >= 5 ? "text-grau" : "text-tinte")}>
               {w}
             </span>
           ))}
@@ -155,8 +156,8 @@ export function Monate({
           const ersterTag = woche.find(Boolean)!;
           const aktuelleWoche = woche.includes(heute);
           return (
-            <div key={wi} className={cn("grid grid-cols-[1.5rem_repeat(7,minmax(0,1fr))]", wi > 0 && "border-t border-linie")}>
-              <span className={cn("pt-1 text-[11px] tabular-nums", aktuelleWoche ? "font-semibold text-marke-700" : "text-grau/80")}>
+            <div key={wi} className={cn("grid grid-cols-[1.5rem_repeat(7,minmax(0,1fr))]", "border-t border-linie")}>
+              <span className={cn("pt-0.5 text-[10px] tabular-nums", aktuelleWoche ? "font-semibold text-marke-700" : "text-grau/80")}>
                 {kalenderwoche(ersterTag)}
               </span>
               {woche.map((d, i) => {
@@ -171,11 +172,11 @@ export function Monate({
                     onClick={() => waehle(d)}
                     aria-label={`${datumLang(d)}, ${ts.length ? `${ts.length} ${ts.length === 1 ? "Termin" : "Termine"}` : "keine Termine"}`}
                     aria-pressed={gewaehlt}
-                    className="flex h-[52px] flex-col items-center gap-[3px] pt-[3px]"
+                    className="flex h-[40px] flex-col items-center gap-[2px] pt-[2px]"
                   >
                     <span
                       className={cn(
-                        "grid size-[34px] place-items-center rounded-full text-[19px] tabular-nums transition-colors",
+                        "grid size-[30px] place-items-center rounded-full text-[17px] tabular-nums transition-colors",
                         istHeute && "bg-marke-700 font-semibold text-white",
                         !istHeute && gewaehlt && "bg-tinte font-semibold text-papier",
                         !istHeute && !gewaehlt && (i >= 5 ? "text-grau" : "text-tinte"),
@@ -184,7 +185,7 @@ export function Monate({
                       {Number(d.slice(8))}
                     </span>
                     {ts.length ? (
-                      <span className={cn("flex h-[6px] overflow-hidden rounded-full", d < heute && "opacity-50")}>
+                      <span className={cn("flex h-[5px] overflow-hidden rounded-full", d < heute && "opacity-50")}>
                         {ts.slice(0, 5).map((t) => (
                           <span key={t.id} className={cn("h-full w-[7px]", FARBE[t.umfang], t.status === "vorbehalt" && "opacity-60")} />
                         ))}
@@ -199,7 +200,7 @@ export function Monate({
       </div>
 
       {/* Termine des gewählten Tages */}
-      <section aria-live="polite" className="mt-2 border-t border-linie pt-4">
+      <section aria-live="polite" className="pt-3">
         <h2 className="px-1 pb-2 text-[13px] font-semibold uppercase tracking-wide text-grau">
           {datumLang(tag).replace(/ \d{4}$/, "")}
           {tag === heute ? " · heute" : ""}
