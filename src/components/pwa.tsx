@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { datenFrischHolen } from "@/app/aktualisieren-aktion";
 import { RefreshCw, X } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 
@@ -15,39 +17,111 @@ export function DienstHelfer() {
   return null;
 }
 
-/**
- * Holt die neueste Fassung: gespeicherte Seiten und Dateien löschen, neuen Service Worker holen, neu laden.
- * Wichtig für die App vom Home-Bildschirm – die bleibt sonst tagelang im Hintergrund offen.
- */
-export async function aktualisieren() {
+/** Speicher der App leeren und neuen Service Worker holen */
+async function speicherLeeren() {
   try {
     if ("caches" in window) await Promise.all((await caches.keys()).map((k) => caches.delete(k)));
     const reg = await navigator.serviceWorker?.getRegistration();
     await reg?.update();
   } catch {
-    // dann eben nur neu laden
+    // dann eben ohne
   }
-  // Frischer Aufruf statt reload(): iOS stellt beim Neuladen die Scrollposition wieder her und zeichnet
-  // in der Home-Bildschirm-App dabei manchmal nur Teile der Seite (leerer Bildschirm). Darum oben neu öffnen.
+}
+
+/**
+ * Neue App-Version laden: Speicher leeren und Seite frisch öffnen (oben – iOS zeichnet beim Neuladen mit
+ * wiederhergestellter Scrollposition in der Home-Bildschirm-App manchmal nur Teile der Seite).
+ */
+export async function aktualisieren() {
+  await speicherLeeren();
   window.scrollTo(0, 0);
   window.location.replace(window.location.pathname + window.location.search);
 }
 
+const warte = (ms: number) => new Promise((ok) => window.setTimeout(ok, ms));
+const MINDESTENS_MS = 900;
+
+/**
+ * Aktualisieren ohne Flackern: Daten frisch holen und still einsetzen (keine neu geladene Seite).
+ * Mindestens knapp eine Sekunde sichtbar, damit es ruhig wirkt. Nur bei neuer App-Version komplett neu laden.
+ */
+export function useAktualisieren() {
+  const router = useRouter();
+  const [eigen, setEigen] = useState(false);
+  const [wartet, starte] = useTransition();
+  const laeuft = eigen || wartet;
+
+  const start = useCallback(async () => {
+    if (eigen) return;
+    setEigen(true);
+    const mindestens = warte(MINDESTENS_MS);
+    if (await neueVersion()) {
+      await mindestens;
+      return aktualisieren();
+    }
+    try {
+      await Promise.all([datenFrischHolen(), speicherLeeren()]);
+    } catch {
+      // offline: zeigt einfach den bisherigen Stand
+    }
+    starte(() => router.refresh());
+    await mindestens;
+    setEigen(false);
+  }, [eigen, router]);
+
+  return { laeuft, start };
+}
+
+/** Aktualisieren-Symbol: dreht ruhig und läuft am Ende weich bis zur vollen Umdrehung aus */
+export function DrehSymbol({ dreht, className, strokeWidth = 1.75 }: { dreht: boolean; className?: string; strokeWidth?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const vorher = useRef(dreht);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || vorher.current === dreht) return;
+    vorher.current = dreht;
+    if (dreht) return;
+    // gerade gestoppt: von der aktuellen Lage weich bis 360° auslaufen
+    const winkel = Number(el.dataset.winkel ?? 0);
+    if (!winkel) return;
+    el.animate([{ transform: `rotate(${winkel}deg)` }, { transform: "rotate(360deg)" }], {
+      duration: 250 + ((360 - winkel) / 360) * 450,
+      easing: "cubic-bezier(0.2, 0.7, 0.3, 1)",
+    });
+  }, [dreht]);
+  // aktuelle Lage der laufenden Drehung merken (für das Auslaufen)
+  useEffect(() => {
+    if (!dreht) return;
+    const el = ref.current;
+    let id = 0;
+    const t0 = performance.now();
+    const merken = () => {
+      if (el) el.dataset.winkel = String((((performance.now() - t0) % 1200) / 1200) * 360);
+      id = requestAnimationFrame(merken);
+    };
+    id = requestAnimationFrame(merken);
+    return () => cancelAnimationFrame(id);
+  }, [dreht]);
+  return (
+    <span ref={ref} className={cn("inline-grid place-items-center", dreht && "ui-drehen")}>
+      <RefreshCw className={className} strokeWidth={strokeWidth} aria-hidden />
+    </span>
+  );
+}
+
 /** Knopf „Aktualisieren“ für die Kopfzeile */
 export function AktualisierenKnopf({ className }: { className?: string }) {
-  const [laeuft, setLaeuft] = useState(false);
+  const { laeuft, start } = useAktualisieren();
   return (
     <button
       type="button"
-      onClick={() => {
-        setLaeuft(true);
-        void aktualisieren();
-      }}
-      aria-label="Aktualisieren"
+      onClick={() => void start()}
+      aria-label={laeuft ? "Wird aktualisiert" : "Aktualisieren"}
+      aria-busy={laeuft}
       title="Aktualisieren"
       className={cn("grid size-10 place-items-center rounded-full", className)}
     >
-      <RefreshCw className={cn("size-[19px]", laeuft && "animate-spin")} strokeWidth={1.75} aria-hidden />
+      <DrehSymbol dreht={laeuft} className="size-[19px]" />
     </button>
   );
 }
@@ -106,7 +180,7 @@ export function UpdateHinweis() {
         }}
         className="flex shrink-0 items-center gap-1.5 rounded-full bg-accent px-3.5 py-2 text-[15px] font-semibold text-accent-fg active:bg-accent-hover"
       >
-        {laeuft ? <RefreshCw className="size-4 animate-spin" strokeWidth={2} aria-hidden /> : null}
+        {laeuft ? <DrehSymbol dreht className="size-4" strokeWidth={2} /> : null}
         Aktualisieren
       </button>
       <button type="button" onClick={() => setNeu(false)} aria-label="Später" className="grid size-9 shrink-0 place-items-center rounded-full text-subtle active:bg-hover">

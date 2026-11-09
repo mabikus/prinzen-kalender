@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { RefreshCw } from "lucide-react";
-import { aktualisieren } from "@/components/pwa";
+import { DrehSymbol, useAktualisieren } from "@/components/pwa";
 import { cn } from "@/components/ui/cn";
 
 const SCHWELLE = 70; // so weit (nach Dämpfung) ziehen, dann wird beim Loslassen aktualisiert
@@ -24,7 +23,12 @@ function ganzOben(ziel: EventTarget | null): boolean {
  */
 export function ZiehenZumAktualisieren() {
   const [weg, setWeg] = useState(0);
-  const [laeuft, setLaeuft] = useState(false);
+  const [zieht, setZieht] = useState(false);
+  const { laeuft, start: aktualisieren } = useAktualisieren();
+  const aktualisierenRef = useRef(aktualisieren);
+  useEffect(() => {
+    aktualisierenRef.current = aktualisieren;
+  }, [aktualisieren]);
   const start = useRef<{ x: number; y: number } | null>(null);
   const aktiv = useRef(false);
   const wegRef = useRef(0);
@@ -49,21 +53,22 @@ export function ZiehenZumAktualisieren() {
         }
         if (dy < 8) return;
         aktiv.current = true;
+        setZieht(true);
       }
       wegRef.current = Math.min(MAX, (dy - 8) * 0.5);
       setWeg(wegRef.current);
     };
     const ende = () => {
       if (aktiv.current && wegRef.current >= SCHWELLE) {
-        setLaeuft(true);
-        setWeg(SCHWELLE);
-        void aktualisieren();
+        setWeg(0);
+        void aktualisierenRef.current();
       } else {
         setWeg(0);
       }
       wegRef.current = 0;
       start.current = null;
       aktiv.current = false;
+      setZieht(false);
     };
     window.addEventListener("touchstart", beginn, { passive: true });
     window.addEventListener("touchmove", bewegung, { passive: true });
@@ -77,23 +82,23 @@ export function ZiehenZumAktualisieren() {
     };
   }, []);
 
-  if (!weg && !laeuft) return null;
-  const anteil = Math.min(1, weg / SCHWELLE);
+  // Während des Aktualisierens steht der Kreis an der Schwelle und dreht ruhig; danach gleitet er weg
+  const sichtbarerWeg = laeuft ? SCHWELLE : weg;
+  const anteil = Math.min(1, sichtbarerWeg / SCHWELLE);
   return (
     <div
       aria-live="polite"
+      aria-hidden={!sichtbarerWeg}
       className={cn(
         "glas pointer-events-none fixed left-1/2 z-40 grid size-10 -translate-x-1/2 place-items-center rounded-full text-marke-700",
-        !weg && "transition-all",
+        // Mitziehen ohne Verzögerung, Einrasten und Wegfahren weich
+        zieht && !laeuft ? "" : "transition-[top,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
       )}
-      style={{ top: `calc(59px + env(safe-area-inset-top) + ${weg - 30}px)`, opacity: laeuft ? 1 : anteil }}
+      style={{ top: `calc(59px + env(safe-area-inset-top) + ${sichtbarerWeg - 30}px)`, opacity: anteil }}
     >
-      <RefreshCw
-        className={cn("size-5", laeuft && "animate-spin")}
-        strokeWidth={2}
-        style={laeuft ? undefined : { transform: `rotate(${anteil * 270}deg)` }}
-        aria-hidden
-      />
+      <span className="inline-grid" style={laeuft ? undefined : { transform: `rotate(${anteil * 270}deg)` }}>
+        <DrehSymbol dreht={laeuft} className="size-5" strokeWidth={2} />
+      </span>
       <span className="sr-only">{laeuft ? "Wird aktualisiert" : anteil >= 1 ? "Loslassen zum Aktualisieren" : ""}</span>
     </div>
   );

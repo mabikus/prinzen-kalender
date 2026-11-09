@@ -342,3 +342,13 @@ summary::-webkit-details-marker {
     transform: scale(1);
   }
 }
+
+/* Aktualisieren-Symbol: ruhige Drehung (auslaufen per Script in components/pwa.tsx) */
+.ui-drehen {
+  animation: ui-drehen 1.2s linear infinite;
+}
+@keyframes ui-drehen {
+  to {
+    transform: rotate(360deg);
+  }
+}
