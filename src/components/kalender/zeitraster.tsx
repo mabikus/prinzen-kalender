@@ -66,7 +66,10 @@ export function Zeitraster({
   onGroesse,
   onAnlegen,
   onTag,
+  ohneKopf,
 }: {
+  /** Tageskopf weglassen (Handy: der Wochenstreifen zeigt den Tag schon) */
+  ohneKopf?: boolean;
   tage: string[];
   eintraege: Eintrag[];
   heute: string;
@@ -195,7 +198,7 @@ export function Zeitraster({
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* Kopf: Tage */}
-      <div className="grid shrink-0 overflow-y-hidden border-b border-line bg-panel [scrollbar-gutter:stable]" style={{ gridTemplateColumns: `56px ${spalten}` }}>
+      <div hidden={ohneKopf} className="grid shrink-0 overflow-y-hidden border-b border-line bg-panel [scrollbar-gutter:stable]" style={{ gridTemplateColumns: `56px ${spalten}` }}>
         <div />
         {tage.map((tag) => {
           const [, , d] = tag.split("-");

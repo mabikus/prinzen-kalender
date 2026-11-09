@@ -5,7 +5,7 @@ const widths = { narrow: "max-w-[820px]", default: "max-w-[1320px]", full: "max-
 
 /** Seitenrahmen mit genau drei Breiten: narrow (Formulare), default (Übersichten), full (Listen). */
 export function Page({ width, children, className }: { width: keyof typeof widths; children: ReactNode; className?: string }) {
-  return <div className={cn("mx-auto w-full min-w-0 animate-fade-in px-4 py-5 sm:px-8 sm:py-7", widths[width], className)}>{children}</div>;
+  return <div className={cn("mx-auto w-full min-w-0 animate-fade-in px-4 pt-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:px-8 sm:pt-7 sm:pb-7", widths[width], className)}>{children}</div>;
 }
 
 export function PageHeader({ title, description, actions, eyebrow }: { title: ReactNode; description?: ReactNode; actions?: ReactNode; eyebrow?: ReactNode }) {

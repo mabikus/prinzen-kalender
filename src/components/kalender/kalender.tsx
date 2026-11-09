@@ -12,6 +12,7 @@ import {
   Keyboard,
   MapPin,
   Pencil,
+  Plus,
   Trash2,
   TriangleAlert,
   X,
@@ -111,6 +112,7 @@ export function Kalender({
   const [speichert, setSpeichert] = useState(false);
   const [zwischenablage, setZwischenablage] = useState<Termin | null>(null);
   const verlauf = useRef<Schritt[]>([]);
+  const wisch = useRef<{ x: number; y: number } | null>(null);
   const confirm = useConfirm();
 
   // Ansicht und Datum in der Adresse merken (ohne Neuladen)
@@ -134,6 +136,10 @@ export function Kalender({
     return alleEintraege.filter((e) => ids.has(e.t.id) && e.tag >= von && e.tag <= bis);
   }, [alleEintraege, sichtbar, tage]);
   const gewaehlt = termine.find((t) => t.id === auswahl) ?? null;
+  const tageMitTerminen = useMemo(() => {
+    const ids = new Set(sichtbar.map((t) => t.id));
+    return new Set(alleEintraege.filter((e) => ids.has(e.t.id)).map((e) => e.tag));
+  }, [alleEintraege, sichtbar]);
 
   const ersetze = useCallback((t: Termin) => setTermine((l) => l.map((x) => (x.id === t.id ? t : x))), []);
   const merke = (s: Schritt) => {
@@ -330,7 +336,20 @@ export function Kalender({
   return (
     <AktionenKontext.Provider value={aktionen}>
       <div className="flex h-full min-h-0 flex-col">
-        {/* Werkzeugleiste */}
+        {/* Werkzeugleiste – am Handy oben nur Datum + Wochenstreifen, Bedienung unten (Daumen) */}
+        {handy ? (
+          <HandyKopf
+            titel={titel(ansicht, tage, datum)}
+            ansicht={ansicht}
+            datum={datum}
+            heute={jetzt.datum}
+            mitTerminen={tageMitTerminen}
+            waehle={(tag) => {
+              setDatum(tag);
+              if (ansicht === "woche") setAnsicht("tag");
+            }}
+          />
+        ) : (
         <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line bg-panel px-4 py-3">
           <Button variant="secondary" size="sm" onClick={() => setDatum(jetzt.datum)}>
             Heute
@@ -371,9 +390,24 @@ export function Kalender({
             <span className="hidden sm:inline">Neuer Termin</span>
           </Button>
         </div>
+        )}
 
         <div className="flex min-h-0 flex-1">
-          <div className="min-w-0 flex-1">
+          <div
+            className="min-w-0 flex-1"
+            onTouchStart={(e) => {
+              wisch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            }}
+            onTouchEnd={(e) => {
+              const w = wisch.current;
+              wisch.current = null;
+              if (!w || !handy) return;
+              const dx = e.changedTouches[0].clientX - w.x;
+              const dy = e.changedTouches[0].clientY - w.y;
+              // Waagerecht wischen blättert (links = weiter, rechts = zurück)
+              if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) setDatum((d) => blaettern(ansicht, d, dx < 0 ? 1 : -1));
+            }}
+          >
             {ansicht === "monat" ? (
               <Monatsansicht
                 tage={tage}
@@ -386,6 +420,7 @@ export function Kalender({
                 onVerschieben={verschieben}
                 onAnlegen={(tag) => neu(tag, 18 * 60, 20 * 60)}
                 onTag={tagAnzeigen}
+                kompakt={handy}
               />
             ) : (
               <Zeitraster
@@ -400,6 +435,7 @@ export function Kalender({
                 onGroesse={groesse}
                 onAnlegen={neu}
                 onTag={tagAnzeigen}
+                ohneKopf={handy && ansicht === "tag"}
               />
             )}
           </div>
@@ -416,6 +452,16 @@ export function Kalender({
             />
           ) : null}
         </div>
+        {handy ? (
+          <HandyLeiste
+            ansicht={ansicht}
+            setAnsicht={setAnsicht}
+            heute={() => setDatum(jetzt.datum)}
+            zurueck={() => setDatum((d) => blaettern(ansicht, d, -1))}
+            weiter={() => setDatum((d) => blaettern(ansicht, d, 1))}
+            neu={() => neu(fokusTag ?? datum, 18 * 60, 20 * 60)}
+          />
+        ) : null}
       </div>
 
       <Blatt
@@ -651,5 +697,106 @@ function DetailsInhalt({ t, gruppen, vorher }: { t: Termin; gruppen: Gruppe[]; v
           </a>
         ) : null}
           </div>
+  );
+}
+
+const WT_KURZ = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+
+/** Handy: Datum groß, darunter die Woche zum Antippen (Punkt = Termine an dem Tag) */
+function HandyKopf({
+  titel,
+  ansicht,
+  datum,
+  heute,
+  mitTerminen,
+  waehle,
+}: {
+  titel: string;
+  ansicht: Ansicht;
+  datum: string;
+  heute: string;
+  mitTerminen: Set<string>;
+  waehle: (tag: string) => void;
+}) {
+  const woche = tageDerAnsicht("woche", datum);
+  return (
+    <div className="shrink-0 border-b border-line bg-panel px-3 pb-2 pt-3">
+      <h1 className="truncate px-1 font-display text-[20px] font-semibold text-ink">{titel}</h1>
+      {ansicht !== "monat" ? (
+        <div className="mt-2 grid grid-cols-7">
+          {woche.map((tag, i) => {
+            const gewaehlt = ansicht === "tag" && tag === datum;
+            const ist = tag === heute;
+            return (
+              <button key={tag} type="button" onClick={() => waehle(tag)} className="flex flex-col items-center gap-1 py-1">
+                <span className={cn("text-[11px] font-semibold uppercase", i >= 5 ? "text-accent-ink" : "text-subtle")}>{WT_KURZ[i]}</span>
+                <span
+                  className={cn(
+                    "grid size-9 place-items-center rounded-full text-[17px] font-semibold tabular-nums",
+                    gewaehlt ? "bg-accent text-accent-fg" : ist ? "text-accent-ink" : "text-ink",
+                  )}
+                >
+                  {Number(tag.slice(8))}
+                </span>
+                <span className={cn("size-1.5 rounded-full", mitTerminen.has(tag) ? (gewaehlt ? "bg-accent" : "bg-subtle") : "bg-transparent")} />
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Handy: Bedienleiste unten in Daumenreichweite */
+function HandyLeiste({
+  ansicht,
+  setAnsicht,
+  heute,
+  zurueck,
+  weiter,
+  neu,
+}: {
+  ansicht: Ansicht;
+  setAnsicht: (a: Ansicht) => void;
+  heute: () => void;
+  zurueck: () => void;
+  weiter: () => void;
+  neu: () => void;
+}) {
+  return (
+    <div className="shrink-0 border-t border-line bg-panel/95 px-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 backdrop-blur">
+      <div className="flex items-center gap-1">
+        <button type="button" onClick={heute} className="h-11 rounded-[10px] px-2.5 text-[16px] font-semibold text-accent-ink active:bg-hover">
+          Heute
+        </button>
+        <button type="button" onClick={zurueck} aria-label="Zurück" className="grid size-11 place-items-center rounded-[10px] text-ink active:bg-hover">
+          <ChevronLeft className="size-6" />
+        </button>
+        <button type="button" onClick={weiter} aria-label="Weiter" className="grid size-11 place-items-center rounded-[10px] text-ink active:bg-hover">
+          <ChevronRight className="size-6" />
+        </button>
+        <Segmented<Ansicht>
+          value={ansicht}
+          onChange={setAnsicht}
+          label="Ansicht"
+          size="sm"
+          className="ml-auto"
+          options={[
+            { value: "tag", label: "Tag" },
+            { value: "woche", label: "Woche" },
+            { value: "monat", label: "Monat" },
+          ]}
+        />
+        <button
+          type="button"
+          onClick={neu}
+          aria-label="Neuer Termin"
+          className="ml-1 grid size-11 shrink-0 place-items-center rounded-full bg-accent text-accent-fg shadow-[0_2px_8px_rgb(154_18_25/0.35)] active:bg-accent-hover"
+        >
+          <Plus className="size-6" strokeWidth={2.25} />
+        </button>
+      </div>
+    </div>
   );
 }

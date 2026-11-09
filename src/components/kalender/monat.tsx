@@ -23,7 +23,10 @@ export function Monatsansicht({
   onVerschieben,
   onAnlegen,
   onTag,
+  kompakt,
 }: {
+  /** Handy: statt Text nur farbige Striche, Tippen öffnet den Tag */
+  kompakt?: boolean;
   tage: string[];
   monat: string; // YYYY-MM
   eintraege: Eintrag[];
@@ -106,7 +109,7 @@ export function Monatsansicht({
           </div>
         ))}
       </div>
-      <div className="grid min-h-0 flex-1 grid-cols-7" style={{ gridTemplateRows: `repeat(${wochen}, minmax(var(--zeile, 110px), 1fr))` }}>
+      <div className="grid min-h-0 flex-1 grid-cols-7" style={{ gridTemplateRows: `repeat(${wochen}, minmax(${kompakt ? "64px" : "110px"}, 1fr))` }}>
         {tage.map((tag, i) => {
           const liste = eintraege.filter((e) => e.tag === tag).sort((a, b) => Number(!a.ganztags) - Number(!b.ganztags) || a.start - b.start);
           const fremd = !tag.startsWith(monat);
@@ -136,6 +139,21 @@ export function Monatsansicht({
                     {Number(tag.slice(8))}
                   </button>
                 </div>
+                {kompakt ? (
+                  <button type="button" onClick={() => onTag(tag)} className="flex w-full flex-col gap-[3px] px-0.5 pt-0.5" aria-label={`${liste.length} Termine`}>
+                    {liste.slice(0, 5).map((e) => (
+                      <span
+                        key={e.t.id}
+                        className={cn(
+                          "h-[5px] w-full rounded-full",
+                          e.t.umfang === "alle" ? "bg-accent" : e.t.umfang === "auswahl" ? "bg-accent/45" : "bg-subtle/45",
+                          e.t.status === "vorbehalt" && "opacity-60",
+                        )}
+                      />
+                    ))}
+                    {liste.length > 5 ? <span className="text-center text-[10px] leading-none text-subtle">+{liste.length - 5}</span> : null}
+                  </button>
+                ) : (
                 <div className="space-y-0.5">
                   {liste.slice(0, SICHTBAR).map((e) => (
                     <TerminMenue key={e.t.id} termin={e.t}>
@@ -168,6 +186,7 @@ export function Monatsansicht({
                     </button>
                   ) : null}
                 </div>
+                )}
               </div>
             </FlaecheMenue>
           );

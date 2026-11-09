@@ -162,7 +162,7 @@ export function AdminShell({ admin, children }: { admin: AdminInfo; children: Re
                 <Search className="size-[18px]" />
               </button>
             </div>
-            <main id="inhalt" className="min-h-0 flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
+            <main id="inhalt" className="min-h-0 flex-1 overflow-y-auto">
               {children}
             </main>
           </div>
