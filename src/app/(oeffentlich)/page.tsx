@@ -67,6 +67,7 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
           <Link
             href={`/termin/${encodeURIComponent(naechster.id)}`}
             scroll={false}
+            prefetch
             className="group grid grid-cols-[auto_1fr] gap-x-4 gap-y-3 p-4 hover:bg-papier sm:grid-cols-[auto_1fr_auto] sm:gap-x-5 sm:p-5"
           >
             {naechsterStart != null ? (

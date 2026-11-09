@@ -173,6 +173,7 @@ export function TerminZeile({
     <Link
       href={`/termin/${encodeURIComponent(t.id)}`}
       scroll={false}
+      prefetch // Details im Hintergrund laden, sobald sichtbar – Blatt öffnet ohne Wartezeit
       className={`group flex gap-4 p-3.5 transition ${
         kompakt
           ? "hover:bg-papier"

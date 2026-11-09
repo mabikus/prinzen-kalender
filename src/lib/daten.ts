@@ -1,5 +1,6 @@
 import "server-only";
 import { connection } from "next/server";
+import { cacheLife, cacheTag, updateTag } from "next/cache";
 import { desc, eq } from "drizzle-orm";
 import { startGruppen, startTermine } from "@/data/session-2026-27";
 import { db, hatDatenbank, schema } from "@/db";
@@ -77,6 +78,25 @@ function inDb(t: Termin): typeof schema.termine.$inferInsert {
 /** Alle Termine und Gruppen – bei jeder Anfrage frisch (kein Cache). */
 export async function ladeDaten(): Promise<Daten> {
   await connection();
+  return lesen();
+}
+
+/** Zwischengespeichert: jede Änderung über die Verwaltung erneuert den Speicher sofort (updateTag). */
+export const DATEN_TAG = "daten";
+
+/**
+ * Alle Termine und Gruppen aus dem Zwischenspeicher – für die Termin-Details. Nur so kann Next.js sie
+ * vorladen, sobald ein Termin sichtbar ist (Link prefetch): Beim Antippen ist der Inhalt sofort da.
+ * Nach dem Speichern in der Verwaltung sofort neu; spätestens nach einer Minute ohnehin.
+ */
+export async function ladeDatenZwischengespeichert(): Promise<Daten> {
+  "use cache";
+  cacheTag(DATEN_TAG);
+  cacheLife({ stale: 60, revalidate: 60, expire: 300 });
+  return lesen();
+}
+
+async function lesen(): Promise<Daten> {
   if (!hatDatenbank()) return ordne({ termine: structuredClone(startTermine), gruppen: structuredClone(startGruppen) });
 
   const d = db();
@@ -130,7 +150,7 @@ async function ladeTermin(tx: Tx, id: string): Promise<Termin | undefined> {
 }
 
 /** Termin anlegen oder ändern (mit Gruppen) – eine Transaktion, mit Protokoll. */
-export async function speichereTermin(t: Termin, wer: Wer, aktion?: string): Promise<Termin> {
+async function speichereTerminRoh(t: Termin, wer: Wer, aktion?: string): Promise<Termin> {
   return db().transaction(async (tx) => {
     const vorher = await ladeTermin(tx, t.id);
     const zeile = inDb(t);
@@ -148,7 +168,7 @@ export async function speichereTermin(t: Termin, wer: Wer, aktion?: string): Pro
 }
 
 /** Termin löschen; gibt den gelöschten Termin zurück (für „Rückgängig“). */
-export async function loescheTermin(id: string, wer: Wer): Promise<Termin | undefined> {
+async function loescheTerminRoh(id: string, wer: Wer): Promise<Termin | undefined> {
   return db().transaction(async (tx) => {
     const vorher = await ladeTermin(tx, id);
     if (!vorher) return undefined;
@@ -158,7 +178,7 @@ export async function loescheTermin(id: string, wer: Wer): Promise<Termin | unde
   });
 }
 
-export async function speichereGruppe(g: Gruppe, wer: Wer) {
+async function speichereGruppeRoh(g: Gruppe, wer: Wer) {
   await db().transaction(async (tx) => {
     const [vorher] = await tx.select().from(schema.gruppen).where(eq(schema.gruppen.id, g.id));
     await tx.insert(schema.gruppen).values(g).onConflictDoUpdate({ target: schema.gruppen.id, set: g });
@@ -166,7 +186,7 @@ export async function speichereGruppe(g: Gruppe, wer: Wer) {
   });
 }
 
-export async function loescheGruppe(id: string, wer: Wer) {
+async function loescheGruppeRoh(id: string, wer: Wer) {
   await db().transaction(async (tx) => {
     const [vorher] = await tx.select().from(schema.gruppen).where(eq(schema.gruppen.id, id));
     if (!vorher) return;
@@ -200,4 +220,26 @@ export async function ladeProtokoll(opts: { objektId?: string; limit?: number } 
 /** Protokolleintrag außerhalb einer Termin-/Gruppen-Änderung (z. B. Benutzer). */
 export async function protokolliereAktion(wer: Wer, aktion: string, objekt: { id: string; titel: string }, details?: unknown) {
   await db().transaction((tx) => protokolliere(tx, wer, aktion, objekt, details));
+}
+
+// Schreibende Zugriffe: danach den Zwischenspeicher (Termin-Details) sofort erneuern.
+export async function speichereTermin(...a: Parameters<typeof speichereTerminRoh>) {
+  const r = await speichereTerminRoh(...a);
+  updateTag(DATEN_TAG);
+  return r;
+}
+export async function loescheTermin(...a: Parameters<typeof loescheTerminRoh>) {
+  const r = await loescheTerminRoh(...a);
+  updateTag(DATEN_TAG);
+  return r;
+}
+export async function speichereGruppe(...a: Parameters<typeof speichereGruppeRoh>) {
+  const r = await speichereGruppeRoh(...a);
+  updateTag(DATEN_TAG);
+  return r;
+}
+export async function loescheGruppe(...a: Parameters<typeof loescheGruppeRoh>) {
+  const r = await loescheGruppeRoh(...a);
+  updateTag(DATEN_TAG);
+  return r;
 }

@@ -6,7 +6,9 @@ import { Dialog as D } from "radix-ui";
 import { X } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 
-const ZU_MS = 220;
+const ZU_MS = 260;
+/** Bewegungskurve der iOS-Blätter: schnell los, weich auslaufen */
+const IOS = "ease-[cubic-bezier(0.32,0.72,0,1)]";
 
 /**
  * Blatt von unten wie bei iOS (fast Vollbild): Liste oder Monat bleiben dahinter stehen –
@@ -60,8 +62,8 @@ export function BlattVonUnten({ titel, children }: { titel: string; children: Re
       <D.Portal>
         <D.Overlay
           className={cn(
-            "fixed inset-0 z-50 bg-black/40 transition-opacity duration-200",
-            zu ? "opacity-0" : "animate-in fade-in-0",
+            "fixed inset-0 z-50 bg-black/40 transition-opacity duration-300",
+            zu ? "opacity-0" : "animate-in fade-in-0 duration-300",
           )}
         />
         <D.Content
@@ -70,8 +72,8 @@ export function BlattVonUnten({ titel, children }: { titel: string; children: Re
           onOpenAutoFocus={(e) => e.preventDefault()}
           style={zug && !zu ? { transform: `translateY(${zug}px)`, transition: "none" } : undefined}
           className={cn(
-            "fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+0.5rem)] z-50 mx-auto flex max-w-3xl flex-col overflow-hidden rounded-t-[18px] bg-papier shadow-[0_-8px_40px_rgb(0_0_0/0.25)] outline-none transition-transform duration-200 ease-out sm:top-6",
-            zu ? "translate-y-full ease-in" : "animate-in slide-in-from-bottom duration-300",
+            "fixed inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+0.5rem)] z-50 mx-auto flex max-w-3xl flex-col overflow-hidden rounded-t-[18px] bg-papier shadow-[0_-8px_40px_rgb(0_0_0/0.25)] outline-none transition-transform sm:top-6",
+            zu ? `translate-y-full duration-[260ms] ${IOS}` : `animate-in slide-in-from-bottom duration-500 ${IOS}`,
           )}
         >
           <div className="relative h-14 shrink-0 touch-none select-none pt-2" {...griff}>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import {
   CalendarPlus,
   ChevronLeft,
@@ -15,7 +16,7 @@ import {
 } from "lucide-react";
 import { ANMELDUNG_ICON, GruppenBadges, I } from "@/components/termin";
 import { adresseText, kartenLink } from "@/lib/adresse";
-import { ladeDaten } from "@/lib/daten";
+import { ladeDatenZwischengespeichert } from "@/lib/daten";
 import { ANMELDUNG, ART, personenBedarf, STATUS, UMFANG } from "@/lib/labels";
 import { aktuellerAdmin } from "@/lib/sitzung";
 import { datumLang, zeitplan, zeitText } from "@/lib/zeit";
@@ -80,13 +81,43 @@ function OrtZeile({
   );
 }
 
+function Kopf({ datum, imBlatt, bearbeitenId }: { datum: string; imBlatt?: boolean; bearbeitenId?: string }) {
+  if (imBlatt && !bearbeitenId) return null;
+  return (
+    <div className="flex items-center justify-between">
+      {imBlatt ? (
+        <span />
+      ) : (
+        <Link href={`/#${datum}`} className="-ml-2 inline-flex items-center gap-0.5 rounded-md px-2 py-1.5 text-[16px] text-marke-700">
+          <I icon={ChevronLeft} className="size-5" />
+          Termine
+        </Link>
+      )}
+      {bearbeitenId ? (
+        <Link
+          href={`/verwaltung/termine/${encodeURIComponent(bearbeitenId)}`}
+          className="inline-flex items-center gap-1.5 rounded-full bg-panel px-3.5 py-1.5 text-[15px] font-semibold text-marke-700 ring-1 ring-inset ring-linie"
+        >
+          <I icon={Pencil} className="size-4" />
+          Bearbeiten
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+async function KopfMitBearbeiten({ id, datum, imBlatt }: { id: string; datum: string; imBlatt?: boolean }) {
+  const admin = await aktuellerAdmin();
+  return <Kopf datum={datum} imBlatt={imBlatt} bearbeitenId={admin ? id : undefined} />;
+}
+
 /**
  * Inhalt eines Termins – als eigene Seite (/termin/…) und als Blatt über Liste/Monat (@modal).
  * `imBlatt`: ohne „‹ Termine“-Link, das Blatt hat seinen eigenen Schließen-Knopf.
  */
 export async function TerminDetail({ params, imBlatt }: { params: Promise<{ id: string }>; imBlatt?: boolean }) {
   const { id } = await params;
-  const daten = await ladeDaten();
+  const daten = await ladeDatenZwischengespeichert();
   const t = daten.termine.find((x) => x.id === decodeURIComponent(id));
   if (!t) notFound();
 
@@ -94,7 +125,6 @@ export async function TerminDetail({ params, imBlatt }: { params: Promise<{ id: 
   const vorher = t.anschluss_an ? daten.termine.find((x) => x.id === t.anschluss_an) : undefined;
   const geschaetzt = !t.ende && z?.ende != null;
   const bedarf = personenBedarf(t, daten.gruppen);
-  const bearbeiten = !!(await aktuellerAdmin());
   const adresse = adresseText(t);
   // Veranstaltungsort: eigener Name, sonst (bei Adresse) der Treffpunkt bzw. die Adresse selbst
   const venue = (t.ort && t.ort !== t.treffpunkt) || adresse ? (t.ort ?? t.treffpunkt ?? adresse!) : null;
@@ -109,25 +139,10 @@ export async function TerminDetail({ params, imBlatt }: { params: Promise<{ id: 
   return (
     <article className="space-y-5">
       {/* Kopf */}
-      <div className={`flex items-center justify-between ${imBlatt && !bearbeiten ? "hidden" : ""}`}>
-        {imBlatt ? (
-          <span />
-        ) : (
-          <Link href={`/#${t.datum}`} className="-ml-2 inline-flex items-center gap-0.5 rounded-md px-2 py-1.5 text-[16px] text-marke-700">
-            <I icon={ChevronLeft} className="size-5" />
-            Termine
-          </Link>
-        )}
-        {bearbeiten ? (
-          <Link
-            href={`/verwaltung/termine/${encodeURIComponent(t.id)}`}
-            className="inline-flex items-center gap-1.5 rounded-full bg-panel px-3.5 py-1.5 text-[15px] font-semibold text-marke-700 ring-1 ring-inset ring-linie"
-          >
-            <I icon={Pencil} className="size-4" />
-            Bearbeiten
-          </Link>
-        ) : null}
-      </div>
+      {/* Kopf – „Bearbeiten“ hängt an der Anmeldung und kommt getrennt nach; der Rest ist vorbereitet */}
+      <Suspense fallback={imBlatt ? null : <Kopf datum={t.datum} />}>
+        <KopfMitBearbeiten id={t.id} datum={t.datum} imBlatt={imBlatt} />
+      </Suspense>
 
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-semibold uppercase tracking-[0.1em]">
