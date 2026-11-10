@@ -51,8 +51,11 @@ export function Monate({
 }) {
   const [jetzt, setJetzt] = useState(jetztStart);
   const heute = jetzt.datum;
+  // Gewählter Tag lebt hier im Monat (nur beim Öffnen aus der Adresse gelesen). Beim Schließen eines
+  // Termin-Blatts (Zurück) stellt Next.js kurz einen älteren Adress-Stand her – der Monat soll dabei nicht springen.
   const param = useSearchParams().get("tag");
-  const tag = istTag(param) ? param : heute;
+  const [gewaehlt, setGewaehlt] = useState<string | null>(() => (istTag(param) ? param : null));
+  const tag = gewaehlt ?? heute;
   const monat = tag.slice(0, 7);
 
   const plan = useMemo(() => zeitplan(termine), [termine]);
@@ -75,7 +78,11 @@ export function Monate({
     return () => window.clearInterval(id);
   }, []);
 
-  const waehle = (d: string) => window.history.replaceState(null, "", d === heute ? window.location.pathname : `?tag=${d}`);
+  const waehle = (d: string) => {
+    setGewaehlt(d === heute ? null : d);
+    // nur fürs Neuladen in die Adresse schreiben – Zustand von Next.js im Verlauf dabei erhalten
+    window.history.replaceState(window.history.state, "", d === heute ? window.location.pathname : `?tag=${d}`);
+  };
 
   /** Anderer Monat: heute, sonst der erste Tag mit Terminen, sonst der Erste */
   const blaettern = (richtung: 1 | -1) => {
