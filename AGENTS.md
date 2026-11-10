@@ -21,6 +21,9 @@ Tailwind 4 · Radix · lucide · sonner · cmdk. Oberfläche und Texte auf Deuts
 - Login: `src/lib/auth.ts` (Better Auth, Passwort + Passkeys), Sitzung `src/lib/sitzung.ts`, Benutzer `src/lib/benutzer.ts`.
   Nur Administratoren; genau ein Super-Admin (Trigger in `drizzle/*_sicherheit` schützt ihn).
 - Verwaltung: `src/app/verwaltung/*`, alle Änderungen über `src/app/verwaltung/aktionen.ts` (jede Aktion prüft die Anmeldung).
+- Verwaltung im Design der KBN-App: Schrift Plus Jakarta Sans/Bricolage (nur unter `[data-verwaltung]`), Seitenleiste
+  `src/components/admin/shell.tsx` (Menüpunkte in `menue.ts`; Zahnrad → Einstellungen mit eigenem Menü), Listen nur über
+  `src/components/ui/daten-tabelle.tsx` (Pills, Suche mit „/“, sortierbare Spalten, Blätterleiste, Karten am Handy).
 - UI-Bausteine aus Inkfuchs: `src/components/ui/*` – Farben nur über Tokens in `globals.css` (Rot-Weiß), keine Hex-Werte.
 - Kalender: `src/components/kalender/*` – Rechenlogik in `geometrie.ts` (mit Vitest-Tests).
 - Gruppenlogik, Filter, Kartenbedarf: `src/lib/labels.ts`; Zeitlogik: `src/lib/zeit.ts`; Feed: `src/lib/ics.ts`.

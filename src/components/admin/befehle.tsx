@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { CalendarPlus, CircleUser, Eye, FileText } from "lucide-react";
 import { paletteTermine } from "@/app/verwaltung/aktionen";
 import { datumKurz } from "@/lib/zeit";
-import { NAV } from "./shell";
+import { NAV } from "./menue";
 
 type T = { id: string; titel: string; datum: string; ort: string | null };
 

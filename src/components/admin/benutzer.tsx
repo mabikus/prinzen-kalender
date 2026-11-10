@@ -12,12 +12,12 @@ import {
 } from "@/app/verwaltung/aktionen";
 import { Kopieren } from "@/components/kopieren";
 import { Button } from "@/components/ui/button";
-import { Badge, Initials } from "@/components/ui/display";
+import { DatenTabelle } from "@/components/ui/daten-tabelle";
+import { Badge, Initials, StatusDot } from "@/components/ui/display";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Dialog, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, useConfirm } from "@/components/ui/overlay";
 import { PageHeader, Section } from "@/components/ui/page";
-import { Tabelle, Td, Th, Tr } from "@/components/ui/tabelle";
 import { toast } from "@/components/ui/toast";
 import type { BenutzerZeile } from "@/lib/benutzer";
 import { zeitpunkt } from "@/lib/protokoll-text";
@@ -108,88 +108,96 @@ export function BenutzerVerwaltung({
         }
       />
       <div className="space-y-6">
-        {/* PC: Tabelle mit Spalten */}
-        <Tabelle>
-          <thead>
-            <tr>
-              <Th>Name</Th>
-              <Th>E-Mail</Th>
-              <Th>Rolle</Th>
-              <Th>Status</Th>
-              <Th rechts>Passkeys</Th>
-              <Th>Zuletzt aktiv</Th>
-              <Th className="w-12" />
-            </tr>
-          </thead>
-          <tbody>
-            {benutzer.map((b) => {
-              const geschuetzt = b.role === "superadmin" || b.id === ich.id;
-              const pwErlaubt = b.role !== "superadmin" || ich.role === "superadmin";
-              return (
-                <Tr key={b.id}>
-                  <Td>
-                    <span className="flex items-center gap-2.5">
-                      <Initials name={b.name} color={b.banned ? "var(--subtle)" : "var(--accent)"} size={28} />
-                      <span className="font-medium text-ink">{b.name}</span>
-                      {b.id === ich.id ? <Badge>Du</Badge> : null}
-                    </span>
-                  </Td>
-                  <Td className="text-muted">{b.email}</Td>
-                  <Td>
-                    {b.role === "superadmin" ? (
-                      <Badge tone="accent">
-                        <Crown className="size-3" />
-                        Super-Admin
-                      </Badge>
-                    ) : (
-                      <span className="text-muted">Administrator</span>
-                    )}
-                  </Td>
-                  <Td>{b.banned ? <Badge tone="danger">Deaktiviert</Badge> : <span className="text-muted">aktiv</span>}</Td>
-                  <Td rechts className="text-muted">
-                    {b.passkeys || "–"}
-                  </Td>
-                  <Td className="whitespace-nowrap text-muted">{b.zuletztAktiv ? zeitpunkt(b.zuletztAktiv) : "–"}</Td>
-                  <Td className="py-1.5">
-                    <BenutzerMenue b={b} pwErlaubt={pwErlaubt} geschuetzt={geschuetzt} pwLink={pwLink} aktiv={aktiv} loeschen={loeschen} />
-                  </Td>
-                </Tr>
-              );
-            })}
-          </tbody>
-        </Tabelle>
-
-        {/* Handy: Liste */}
-        <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] bg-panel shadow-[inset_0_0_0_1px_var(--line)] xl:hidden">
-          {benutzer.map((b) => {
-            const geschuetzt = b.role === "superadmin" || b.id === ich.id;
-            const pwErlaubt = b.role !== "superadmin" || ich.role === "superadmin";
-            return (
-              <li key={b.id} className="flex items-center gap-3 px-4 py-3">
-                <Initials name={b.name} color={b.banned ? "var(--subtle)" : "var(--accent)"} size={34} />
-                <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-center gap-2 text-[14px] font-medium">
-                    {b.name}
-                    {b.role === "superadmin" ? (
-                      <Badge tone="accent">
-                        <Crown className="size-3" />
-                        Super-Admin
-                      </Badge>
-                    ) : null}
-                    {b.id === ich.id ? <Badge>Du</Badge> : null}
-                    {b.banned ? <Badge tone="danger">Deaktiviert</Badge> : null}
-                  </span>
-                  <span className="block truncate text-[12.5px] text-subtle">
-                    {b.email}
-                    {b.passkeys ? ` · ${b.passkeys} Passkey${b.passkeys > 1 ? "s" : ""}` : ""}
-                    {b.zuletztAktiv ? ` · zuletzt aktiv ${zeitpunkt(b.zuletztAktiv)}` : ""}
-                  </span>
+        <DatenTabelle
+          zeilen={benutzer}
+          schluessel={(b) => b.id}
+          spalten={[
+            {
+              id: "name",
+              titel: "Name",
+              breite: "24%",
+              sortWert: (b) => b.name,
+              zelle: (b) => (
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <Initials name={b.name} color={b.banned ? "var(--subtle)" : "var(--accent)"} size={26} />
+                  <span className="min-w-0 truncate font-medium">{b.name}</span>
+                  {b.id === ich.id ? <Badge>Du</Badge> : null}
                 </span>
-                <BenutzerMenue b={b} pwErlaubt={pwErlaubt} geschuetzt={geschuetzt} pwLink={pwLink} aktiv={aktiv} loeschen={loeschen} />
-              </li>
-            );
-          })}
-        </ul>
+              ),
+            },
+            { id: "email", titel: "E-Mail", sortWert: (b) => b.email, titelText: (b) => b.email, zelle: (b) => <span className="text-muted">{b.email}</span> },
+            {
+              id: "rolle",
+              titel: "Rolle",
+              breite: "150px",
+              sortWert: (b) => (b.role === "superadmin" ? 0 : 1),
+              zelle: (b) =>
+                b.role === "superadmin" ? (
+                  <Badge tone="accent">
+                    <Crown className="size-3" />
+                    Super-Admin
+                  </Badge>
+                ) : (
+                  <span className="text-muted">Administrator</span>
+                ),
+            },
+            {
+              id: "status",
+              titel: "Status",
+              breite: "130px",
+              sortWert: (b) => (b.banned ? 1 : 0),
+              zelle: (b) => (b.banned ? <StatusDot tone="danger">Deaktiviert</StatusDot> : <StatusDot tone="success">Aktiv</StatusDot>),
+            },
+            { id: "passkeys", titel: "Passkeys", breite: "112px", rechts: true, sortWert: (b) => b.passkeys, zelle: (b) => <span className="text-muted">{b.passkeys || "–"}</span> },
+            {
+              id: "zuletzt",
+              titel: "Zuletzt aktiv",
+              breite: "170px",
+              sortWert: (b) => b.zuletztAktiv,
+              zelle: (b) => <span className="text-muted tabular">{b.zuletztAktiv ? zeitpunkt(b.zuletztAktiv) : "–"}</span>,
+            },
+          ]}
+          pillen={[
+            { wert: "alle", titel: "Alle", passt: () => true },
+            { wert: "aktiv", titel: "Aktiv", passt: (b) => !b.banned },
+            { wert: "aus", titel: "Deaktiviert", passt: (b) => b.banned },
+          ]}
+          suchtext={(b) => `${b.name} ${b.email}`}
+          suchPlatzhalter="Name oder E-Mail …"
+          aktionen={(b) => (
+            <BenutzerMenue
+              b={b}
+              pwErlaubt={b.role !== "superadmin" || ich.role === "superadmin"}
+              geschuetzt={b.role === "superadmin" || b.id === ich.id}
+              pwLink={pwLink}
+              aktiv={aktiv}
+              loeschen={loeschen}
+            />
+          )}
+          karte={(b) => (
+            <span className="flex items-center gap-3">
+              <Initials name={b.name} color={b.banned ? "var(--subtle)" : "var(--accent)"} size={34} />
+              <span className="min-w-0 flex-1">
+                <span className="flex flex-wrap items-center gap-2 text-[14px] font-medium">
+                  {b.name}
+                  {b.role === "superadmin" ? (
+                    <Badge tone="accent">
+                      <Crown className="size-3" />
+                      Super-Admin
+                    </Badge>
+                  ) : null}
+                  {b.id === ich.id ? <Badge>Du</Badge> : null}
+                  {b.banned ? <Badge tone="danger">Deaktiviert</Badge> : null}
+                </span>
+                <span className="block truncate text-[12.5px] text-subtle">
+                  {b.email}
+                  {b.passkeys ? ` · ${b.passkeys} Passkey${b.passkeys > 1 ? "s" : ""}` : ""}
+                  {b.zuletztAktiv ? ` · zuletzt aktiv ${zeitpunkt(b.zuletztAktiv)}` : ""}
+                </span>
+              </span>
+            </span>
+          )}
+        />
 
         {einladungen.length ? (
           <Section title="Offene Einladungen">

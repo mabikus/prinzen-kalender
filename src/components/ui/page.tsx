@@ -10,7 +10,7 @@ export function Page({ width, children, className }: { width: keyof typeof width
 
 export function PageHeader({ title, description, actions, eyebrow }: { title: ReactNode; description?: ReactNode; actions?: ReactNode; eyebrow?: ReactNode }) {
   return (
-    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
       <div className="min-w-0">
         {eyebrow ? <div className="mb-1 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-accent-ink">{eyebrow}</div> : null}
         <h1 className="font-display text-[26px] font-bold leading-tight tracking-[-0.02em] text-ink">{title}</h1>
@@ -40,7 +40,7 @@ export function Section({
   bodyClassName?: string;
 }) {
   return (
-    <section className={cn("rounded-[var(--radius-card)] bg-panel shadow-[inset_0_0_0_1px_var(--line)]", className)}>
+    <section className={cn("rounded-[var(--radius-card)] bg-panel shadow-[var(--shadow-card)]", className)}>
       {title ? (
         // Aktion rechts neben dem Titel, wenn Platz ist – sonst darunter (statt den Text zu quetschen)
         <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 border-b border-line px-5 py-4">
@@ -72,7 +72,7 @@ export function PropertyList({ items }: { items: { label: ReactNode; value: Reac
 
 export function KpiCard({ label, value, hint, icon, tone }: { label: ReactNode; value: ReactNode; hint?: ReactNode; icon?: ReactNode; tone?: "accent" }) {
   return (
-    <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-panel p-5 shadow-[inset_0_0_0_1px_var(--line)]">
+    <div className="relative overflow-hidden rounded-[var(--radius-card)] bg-panel p-5 shadow-[var(--shadow-card)]">
       {tone === "accent" ? <div className="pointer-events-none absolute -right-10 -top-10 size-32 rounded-full bg-accent opacity-[0.12] blur-2xl" /> : null}
       <div className="flex items-center justify-between text-[12.5px] font-medium text-subtle">
         {label}

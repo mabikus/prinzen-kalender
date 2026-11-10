@@ -9,7 +9,7 @@ export const metadata = { title: "Termine" };
 
 export default function Seite() {
   return (
-    <Page width="default">
+    <Page width="full">
       <Suspense fallback={<SeitenPlatzhalter />}>
         <Liste />
       </Suspense>

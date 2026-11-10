@@ -171,7 +171,7 @@ export function Darstellung({
         description="Am besten quadratisch, mindestens 512 Pixel, PNG oder JPG. Weiße oder durchsichtige Ränder werden automatisch abgeschnitten."
       >
         <div className="flex flex-wrap items-center gap-5">
-          <div className="grid size-36 shrink-0 place-items-center rounded-[var(--radius-card)] bg-white shadow-[inset_0_0_0_1px_var(--line)]">
+          <div className="grid size-36 shrink-0 place-items-center rounded-[var(--radius-card)] bg-white shadow-[var(--shadow-card)]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={aktuellesLogo} alt="Logo" className="size-32 object-contain" />
           </div>

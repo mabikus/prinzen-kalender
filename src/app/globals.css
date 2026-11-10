@@ -29,6 +29,8 @@
   --info: #1d5fa8;
   --danger: #b4141c;
   --shadow-pop: 0 12px 32px -8px rgb(31 26 23 / 0.22), 0 0 0 1px rgb(31 26 23 / 0.06);
+  /* Karten (wie KBN): Kante plus weicher Schatten – Tiefe statt flacher Linie */
+  --shadow-card: 0 0 0 1px rgb(15 23 42 / 0.06), 0 1px 2px rgb(15 23 42 / 0.04), 0 6px 20px -6px rgb(15 23 42 / 0.08);
   /* Kopfzeile der öffentlichen Seiten */
   --kopf: #9a1219;
   --kopf-rand: #7c0f15;
@@ -68,6 +70,7 @@
   --info: #0a84ff;
   --danger: #ff453a;
   --shadow-pop: 0 12px 32px -8px rgb(0 0 0 / 0.7), 0 0 0 1px rgb(255 255 255 / 0.08);
+  --shadow-card: 0 0 0 1px var(--line), 0 1px 2px rgb(0 0 0 / 0.25), 0 8px 24px -8px rgb(0 0 0 / 0.35);
   /* Kopfzeile im selben satten Rot wie im hellen Design */
   --kopf: #9a1219;
   --kopf-rand: #6e0c12;
@@ -120,9 +123,9 @@
   --color-kopf: var(--kopf);
   --color-kopf-rand: var(--kopf-rand);
 
-  --radius-control: 6px;
-  --radius-card: 10px;
-  --radius-dialog: 14px;
+  --radius-control: 8px;
+  --radius-card: 14px;
+  --radius-dialog: 18px;
 
   /* Rot-Abstufungen und Papier-Töne der öffentlichen Seiten */
   --color-marke-50: #fdf4f4;
@@ -174,6 +177,16 @@
 
 html {
   -webkit-tap-highlight-color: transparent;
+}
+
+/* Verwaltung im Design der KBN-App: eigene Schriften und 14 px Grundgröße. Über :has, damit auch Menüs und
+   Dialoge (in einem Portal außerhalb der Verwaltung) dieselbe Schrift bekommen. */
+html:has([data-verwaltung]) {
+  --font-text: var(--font-jakarta);
+  --font-titel: var(--font-bricolage);
+}
+html:has([data-verwaltung]) body {
+  font-size: 14px;
 }
 
 /* Fokus immer sichtbar */

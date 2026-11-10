@@ -2,16 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { MoreHorizontal, Pencil, Plus, Trash2, Users } from "lucide-react";
+import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { gruppeLoeschen, gruppeSpeichern } from "@/app/verwaltung/aktionen";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/controls";
-import { Badge, EmptyState } from "@/components/ui/display";
+import { DatenTabelle } from "@/components/ui/daten-tabelle";
+import { Badge } from "@/components/ui/display";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Dialog, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, useConfirm } from "@/components/ui/overlay";
 import { PageHeader } from "@/components/ui/page";
-import { Tabelle, Td, Th, Tr } from "@/components/ui/tabelle";
 import { toast } from "@/components/ui/toast";
 import type { Gruppe } from "@/lib/types";
 
@@ -56,7 +56,7 @@ export function GruppenVerwaltung({ gruppen, anzahl }: { gruppen: Gruppe[]; anza
     <>
       <PageHeader
         title="Gruppen"
-        description="Wer ist bei einem Termin dabei? Die Personenzahl wird für die Eintrittskarten zusammengerechnet."
+        description={`Wer ist bei einem Termin dabei? Die Personenzahl wird für die Eintrittskarten zusammengerechnet – „Alle“ zusammen: ${gesamt} Personen.`}
         actions={
           <Button variant="primary" onClick={() => setEntwurf({ ...NEU })}>
             <Plus />
@@ -64,83 +64,64 @@ export function GruppenVerwaltung({ gruppen, anzahl }: { gruppen: Gruppe[]; anza
           </Button>
         }
       />
-      {gruppen.length === 0 ? (
-        <EmptyState icon={<Users />} title="Noch keine Gruppen" />
-      ) : (
-        <>
-          {/* PC: Tabelle mit Spalten */}
-          <Tabelle>
-            <thead>
-              <tr>
-                <Th className="w-20">Kürzel</Th>
-                <Th>Name</Th>
-                <Th>Beschreibung</Th>
-                <Th rechts>Personen</Th>
-                <Th>In „Alle“</Th>
-                <Th rechts>Termine</Th>
-                <Th rechts>Reihenf.</Th>
-                <Th className="w-12" />
-              </tr>
-            </thead>
-            <tbody>
-              {gruppen.map((g) => (
-                <Tr key={g.id} onClick={() => setEntwurf({ ...g })}>
-                  <Td>
-                    <Kuerzel g={g} />
-                  </Td>
-                  <Td className="font-medium text-ink">{g.name}</Td>
-                  <Td className="text-muted">{g.beschreibung ?? <span className="text-subtle/60">–</span>}</Td>
-                  <Td rechts>{g.personen == null ? <span className="text-accent-ink">fehlt</span> : g.personen}</Td>
-                  <Td>{g.in_alle ? <span className="text-muted">ja</span> : <Badge>nein</Badge>}</Td>
-                  <Td rechts className="text-muted">
-                    {anzahl[g.id] ?? 0}
-                  </Td>
-                  <Td rechts className="text-subtle">
-                    {g.sortierung}
-                  </Td>
-                  <Td className="py-1.5">
-                    <GruppenMenue g={g} bearbeiten={() => setEntwurf({ ...g })} loeschen={() => void loeschen(g)} />
-                  </Td>
-                </Tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="bg-bg/60 text-[13px] text-subtle">
-                <td className="px-4 py-2.5" colSpan={3}>
-                  „Alle“ zusammen
-                </td>
-                <td className="px-4 py-2.5 text-right font-semibold text-ink tabular">{gesamt}</td>
-                <td colSpan={4} />
-              </tr>
-            </tfoot>
-          </Tabelle>
-
-          {/* Handy: Liste */}
-          <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] bg-panel shadow-[inset_0_0_0_1px_var(--line)] xl:hidden">
-            {gruppen.map((g) => (
-              <li key={g.id} className="flex items-center gap-4 px-4 py-3">
-                <Kuerzel g={g} />
-                <button type="button" onClick={() => setEntwurf({ ...g })} className="min-w-0 flex-1 text-left">
-                  <span className="block text-[14px] font-medium text-ink">{g.name}</span>
-                  <span className="block truncate text-[12.5px] text-subtle">
-                    {[g.beschreibung, g.in_alle ? null : "zählt nicht zu „Alle“", `${anzahl[g.id] ?? 0} Termine`]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </span>
-                </button>
-                <span className={g.personen == null ? "text-[13px] text-accent-ink" : "text-[13px] text-subtle tabular"}>
-                  {g.personen == null ? "Anzahl fehlt" : `${g.personen} Pers.`}
-                </span>
-                <GruppenMenue g={g} bearbeiten={() => setEntwurf({ ...g })} loeschen={() => void loeschen(g)} />
-              </li>
-            ))}
-            <li className="flex justify-between bg-bg px-4 py-2.5 text-[13px] text-subtle">
-              <span>„Alle“ zusammen</span>
-              <span className="tabular">{gesamt} Personen</span>
-            </li>
-          </ul>
-        </>
-      )}
+      <DatenTabelle
+        zeilen={gruppen}
+        schluessel={(g) => g.id}
+        spalten={[
+          { id: "kuerzel", titel: "Kürzel", breite: "92px", sortWert: (g) => g.kuerzel, zelle: (g) => <Kuerzel g={g} /> },
+          { id: "name", titel: "Name", breite: "20%", sortWert: (g) => g.name, zelle: (g) => <span className="font-medium">{g.name}</span> },
+          {
+            id: "beschreibung",
+            titel: "Beschreibung",
+            sortWert: (g) => g.beschreibung,
+            titelText: (g) => g.beschreibung ?? undefined,
+            zelle: (g) => (g.beschreibung ? <span className="text-muted">{g.beschreibung}</span> : <span className="text-subtle/60">–</span>),
+          },
+          {
+            id: "personen",
+            titel: "Personen",
+            breite: "112px",
+            rechts: true,
+            sortWert: (g) => g.personen,
+            zelle: (g) => (g.personen == null ? <span className="text-accent-ink">fehlt</span> : g.personen),
+          },
+          {
+            id: "alle",
+            titel: "In „Alle“",
+            breite: "104px",
+            sortWert: (g) => (g.in_alle ? 1 : 0),
+            zelle: (g) => (g.in_alle ? <span className="text-muted">ja</span> : <Badge>nein</Badge>),
+          },
+          { id: "termine", titel: "Termine", breite: "104px", rechts: true, sortWert: (g) => anzahl[g.id] ?? 0, zelle: (g) => <span className="text-muted">{anzahl[g.id] ?? 0}</span> },
+          { id: "sortierung", titel: "Reihenf.", breite: "104px", rechts: true, sortWert: (g) => g.sortierung, zelle: (g) => <span className="text-subtle">{g.sortierung}</span> },
+        ]}
+        pillen={[
+          { wert: "alle", titel: "Alle", passt: () => true },
+          { wert: "in-alle", titel: "In „Alle“", passt: (g) => g.in_alle },
+          { wert: "extra", titel: "Extra", passt: (g) => !g.in_alle },
+          { wert: "fehlt", titel: "Anzahl fehlt", passt: (g) => g.personen == null, hervorheben: true },
+        ]}
+        suchtext={(g) => [g.kuerzel, g.name, g.beschreibung].filter(Boolean).join(" ")}
+        suchPlatzhalter="Kürzel, Name, Beschreibung …"
+        sortStart={{ id: "sortierung", richtung: "asc" }}
+        aufZeile={(g) => setEntwurf({ ...g })}
+        aktionen={(g) => <GruppenMenue g={g} bearbeiten={() => setEntwurf({ ...g })} loeschen={() => void loeschen(g)} />}
+        karte={(g) => (
+          <span className="flex items-center gap-4">
+            <Kuerzel g={g} />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14px] font-medium text-ink">{g.name}</span>
+              <span className="block truncate text-[12.5px] text-subtle">
+                {[g.beschreibung, g.in_alle ? null : "zählt nicht zu „Alle“", `${anzahl[g.id] ?? 0} Termine`].filter(Boolean).join(" · ")}
+              </span>
+            </span>
+            <span className={g.personen == null ? "text-[13px] text-accent-ink" : "text-[13px] text-subtle tabular"}>
+              {g.personen == null ? "Anzahl fehlt" : `${g.personen} Pers.`}
+            </span>
+          </span>
+        )}
+        leerTitel="Noch keine Gruppen"
+      />
 
       <Dialog
         open={!!entwurf}

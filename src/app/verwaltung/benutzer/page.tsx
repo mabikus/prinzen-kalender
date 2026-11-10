@@ -10,7 +10,7 @@ export const metadata = { title: "Benutzer" };
 
 export default function Seite() {
   return (
-    <Page width="default">
+    <Page width="full">
       <Suspense fallback={<SeitenPlatzhalter />}>
         <Inhalt />
       </Suspense>
