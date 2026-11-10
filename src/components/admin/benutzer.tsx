@@ -17,6 +17,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Dialog, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, useConfirm } from "@/components/ui/overlay";
 import { PageHeader, Section } from "@/components/ui/page";
+import { Tabelle, Td, Th, Tr } from "@/components/ui/tabelle";
 import { toast } from "@/components/ui/toast";
 import type { BenutzerZeile } from "@/lib/benutzer";
 import { zeitpunkt } from "@/lib/protokoll-text";
@@ -107,7 +108,59 @@ export function BenutzerVerwaltung({
         }
       />
       <div className="space-y-6">
-        <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] bg-panel shadow-[inset_0_0_0_1px_var(--line)]">
+        {/* PC: Tabelle mit Spalten */}
+        <Tabelle>
+          <thead>
+            <tr>
+              <Th>Name</Th>
+              <Th>E-Mail</Th>
+              <Th>Rolle</Th>
+              <Th>Status</Th>
+              <Th rechts>Passkeys</Th>
+              <Th>Zuletzt aktiv</Th>
+              <Th className="w-12" />
+            </tr>
+          </thead>
+          <tbody>
+            {benutzer.map((b) => {
+              const geschuetzt = b.role === "superadmin" || b.id === ich.id;
+              const pwErlaubt = b.role !== "superadmin" || ich.role === "superadmin";
+              return (
+                <Tr key={b.id}>
+                  <Td>
+                    <span className="flex items-center gap-2.5">
+                      <Initials name={b.name} color={b.banned ? "var(--subtle)" : "var(--accent)"} size={28} />
+                      <span className="font-medium text-ink">{b.name}</span>
+                      {b.id === ich.id ? <Badge>Du</Badge> : null}
+                    </span>
+                  </Td>
+                  <Td className="text-muted">{b.email}</Td>
+                  <Td>
+                    {b.role === "superadmin" ? (
+                      <Badge tone="accent">
+                        <Crown className="size-3" />
+                        Super-Admin
+                      </Badge>
+                    ) : (
+                      <span className="text-muted">Administrator</span>
+                    )}
+                  </Td>
+                  <Td>{b.banned ? <Badge tone="danger">Deaktiviert</Badge> : <span className="text-muted">aktiv</span>}</Td>
+                  <Td rechts className="text-muted">
+                    {b.passkeys || "–"}
+                  </Td>
+                  <Td className="whitespace-nowrap text-muted">{b.zuletztAktiv ? zeitpunkt(b.zuletztAktiv) : "–"}</Td>
+                  <Td className="py-1.5">
+                    <BenutzerMenue b={b} pwErlaubt={pwErlaubt} geschuetzt={geschuetzt} pwLink={pwLink} aktiv={aktiv} loeschen={loeschen} />
+                  </Td>
+                </Tr>
+              );
+            })}
+          </tbody>
+        </Tabelle>
+
+        {/* Handy: Liste */}
+        <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] bg-panel shadow-[inset_0_0_0_1px_var(--line)] xl:hidden">
           {benutzer.map((b) => {
             const geschuetzt = b.role === "superadmin" || b.id === ich.id;
             const pwErlaubt = b.role !== "superadmin" || ich.role === "superadmin";
@@ -132,43 +185,7 @@ export function BenutzerVerwaltung({
                     {b.zuletztAktiv ? ` · zuletzt aktiv ${zeitpunkt(b.zuletztAktiv)}` : ""}
                   </span>
                 </span>
-                {pwErlaubt || !geschuetzt ? (
-                  <Menu>
-                    <MenuTrigger asChild>
-                      <Button variant="ghost" size="icon-sm" aria-label="Aktionen">
-                        <MoreHorizontal />
-                      </Button>
-                    </MenuTrigger>
-                    <MenuContent>
-                      {pwErlaubt ? (
-                        <MenuItem onSelect={() => void pwLink(b)}>
-                          <KeyRound />
-                          Passwort-Link erstellen
-                        </MenuItem>
-                      ) : null}
-                      {!geschuetzt ? (
-                        <>
-                          {b.banned ? (
-                            <MenuItem onSelect={() => void aktiv(b, true)}>
-                              <CircleCheck />
-                              Aktivieren
-                            </MenuItem>
-                          ) : (
-                            <MenuItem onSelect={() => void aktiv(b, false)}>
-                              <Ban />
-                              Deaktivieren
-                            </MenuItem>
-                          )}
-                          <MenuSeparator />
-                          <MenuItem destructive onSelect={() => void loeschen(b)}>
-                            <Trash2 />
-                            Löschen
-                          </MenuItem>
-                        </>
-                      ) : null}
-                    </MenuContent>
-                  </Menu>
-                ) : null}
+                <BenutzerMenue b={b} pwErlaubt={pwErlaubt} geschuetzt={geschuetzt} pwLink={pwLink} aktiv={aktiv} loeschen={loeschen} />
               </li>
             );
           })}
@@ -257,5 +274,60 @@ export function BenutzerVerwaltung({
         ) : null}
       </Dialog>
     </>
+  );
+}
+
+function BenutzerMenue({
+  b,
+  pwErlaubt,
+  geschuetzt,
+  pwLink,
+  aktiv,
+  loeschen,
+}: {
+  b: BenutzerZeile;
+  pwErlaubt: boolean;
+  geschuetzt: boolean;
+  pwLink: (b: BenutzerZeile) => Promise<void>;
+  aktiv: (b: BenutzerZeile, wert: boolean) => Promise<void>;
+  loeschen: (b: BenutzerZeile) => Promise<void>;
+}) {
+  if (!pwErlaubt && geschuetzt) return null;
+  return (
+    <Menu>
+      <MenuTrigger asChild>
+        <Button variant="ghost" size="icon-sm" aria-label={`Aktionen für ${b.name}`}>
+          <MoreHorizontal />
+        </Button>
+      </MenuTrigger>
+      <MenuContent>
+        {pwErlaubt ? (
+          <MenuItem onSelect={() => void pwLink(b)}>
+            <KeyRound />
+            Passwort-Link erstellen
+          </MenuItem>
+        ) : null}
+        {!geschuetzt ? (
+          <>
+            {b.banned ? (
+              <MenuItem onSelect={() => void aktiv(b, true)}>
+                <CircleCheck />
+                Aktivieren
+              </MenuItem>
+            ) : (
+              <MenuItem onSelect={() => void aktiv(b, false)}>
+                <Ban />
+                Deaktivieren
+              </MenuItem>
+            )}
+            <MenuSeparator />
+            <MenuItem destructive onSelect={() => void loeschen(b)}>
+              <Trash2 />
+              Löschen
+            </MenuItem>
+          </>
+        ) : null}
+      </MenuContent>
+    </Menu>
   );
 }

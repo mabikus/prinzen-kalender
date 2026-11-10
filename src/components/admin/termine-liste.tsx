@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { CircleHelp, Clock, Copy, MoreHorizontal, Pencil, Plus, Search, Ticket, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { Segmented } from "@/components/ui/controls";
-import { EmptyState } from "@/components/ui/display";
+import { Badge, EmptyState } from "@/components/ui/display";
 import { Input } from "@/components/ui/input";
 import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/components/ui/overlay";
 import { PageHeader } from "@/components/ui/page";
+import { Tabelle, Td, Th, Tr, TrAbschnitt } from "@/components/ui/tabelle";
 import { personenBedarf, werText } from "@/lib/labels";
 import type { Gruppe, Termin } from "@/lib/types";
 import { datumKurz, jetztInBerlin, MONATE, startzeit } from "@/lib/zeit";
@@ -18,7 +19,7 @@ import { useTerminAktionen } from "./termin-aktionen";
 
 type Ansicht = "kommend" | "alle" | "pruefen" | "karten";
 
-export function TermineListe({ termine, gruppen }: { termine: Termin[]; gruppen: Gruppe[] }) {
+export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin[]; gruppen: Gruppe[]; untertitel: string }) {
   const [suche, setSuche] = useState("");
   const [ansicht, setAnsicht] = useState<Ansicht>("kommend");
   const router = useRouter();
@@ -50,7 +51,7 @@ export function TermineListe({ termine, gruppen }: { termine: Termin[]; gruppen:
   return (
     <>
       <PageHeader
-        eyebrow="Session 2026/27"
+        eyebrow={untertitel}
         title="Termine"
         description={`${termine.length} Termine insgesamt`}
         actions={
@@ -89,7 +90,93 @@ export function TermineListe({ termine, gruppen }: { termine: Termin[]; gruppen:
       {liste.length === 0 ? (
         <EmptyState title="Keine Termine" text="Mit dieser Auswahl gibt es keine Termine." />
       ) : (
-        <div className="space-y-6">
+        <>
+          {/* PC: Tabelle mit Spalten, Monate als Zwischenzeilen */}
+          <Tabelle>
+            <thead>
+              <tr>
+                <Th>Datum</Th>
+                <Th>Zeit</Th>
+                <Th>Termin</Th>
+                <Th>Treffpunkt → Veranstaltungsort</Th>
+                <Th>Wer</Th>
+                <Th rechts>Karten</Th>
+                <Th className="w-12" />
+              </tr>
+            </thead>
+            <tbody>
+              {monate.map(([monat, ts]) => {
+                const [j, m] = monat.split("-").map(Number);
+                return (
+                  <Fragment key={monat}>
+                    <TrAbschnitt spalten={7}>
+                      <span className="font-display text-[17px] font-semibold text-accent-ink">{MONATE[m - 1]}</span>{" "}
+                      <span className="text-[12.5px] text-subtle">{j}</span>
+                    </TrAbschnitt>
+                    {ts.map((t) => {
+                      const b = t.anmeldung ? personenBedarf(t, gruppen) : null;
+                      const orte = [t.treffpunkt, t.ort && t.ort !== t.treffpunkt ? t.ort : null].filter(Boolean).join(" → ");
+                      return (
+                        <Tr
+                          key={t.id}
+                          onClick={() => router.push(`/verwaltung/termine/${encodeURIComponent(t.id)}`)}
+                          className={cn(t.datum < heute && "opacity-55")}
+                        >
+                          <Td className="whitespace-nowrap text-muted tabular">{datumKurz(t.datum)}</Td>
+                          <Td className="whitespace-nowrap tabular">
+                            <span className="font-medium text-ink">{startzeit(t) ?? <span className="text-subtle/60">–</span>}</span>
+                            {t.treffzeit && t.beginn && t.treffzeit !== t.beginn ? (
+                              <span className="block text-[12px] text-subtle">Beginn {t.beginn}</span>
+                            ) : null}
+                          </Td>
+                          <Td className="min-w-[12rem]">
+                            <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                              <span className="font-medium text-ink">{t.titel}</span>
+                              {t.pruefen ? <CircleHelp className="size-3.5 shrink-0 text-accent-ink" aria-label="Noch prüfen" /> : null}
+                              {t.status === "vorbehalt" ? (
+                                <Badge className="shrink-0">
+                                  <Clock className="size-3" />
+                                  Vorbehalt
+                                </Badge>
+                              ) : null}
+                            </span>
+                            {t.tagesprogramm ? <span className="block text-[12px] text-subtle">{t.tagesprogramm}</span> : null}
+                          </Td>
+                          <Td className="min-w-[9rem] text-muted">{orte || <span className="text-subtle/60">–</span>}</Td>
+                          <Td className="min-w-[7rem] text-muted">
+                            {werText(t, gruppen)}
+                          </Td>
+                          <Td rechts className="whitespace-nowrap">
+                            {b ? (
+                              <span
+                                className={cn(
+                                  "inline-flex items-center gap-1",
+                                  t.karten_bestellt == null || t.karten_bestellt < b.summe ? "text-accent-ink" : "text-muted",
+                                )}
+                                title="bestellt / benötigt"
+                              >
+                                <Ticket className="size-3.5" />
+                                {t.karten_bestellt ?? 0}/{b.summe}
+                                {b.ohneAngabe.length ? "+" : ""}
+                              </span>
+                            ) : (
+                              <span className="text-subtle/60">–</span>
+                            )}
+                          </Td>
+                          <Td className="py-1.5">
+                            <TerminMenue t={t} aktionen={aktionen} />
+                          </Td>
+                        </Tr>
+                      );
+                    })}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </Tabelle>
+
+          {/* Handy: Liste */}
+        <div className="space-y-6 xl:hidden">
           {monate.map(([monat, ts]) => {
             const [j, m] = monat.split("-").map(Number);
             return (
@@ -138,28 +225,7 @@ export function TermineListe({ termine, gruppen }: { termine: Termin[]; gruppen:
                             </span>
                           ) : null}
                         </button>
-                        <Menu>
-                          <MenuTrigger asChild>
-                            <Button variant="ghost" size="icon-sm" aria-label="Aktionen">
-                              <MoreHorizontal />
-                            </Button>
-                          </MenuTrigger>
-                          <MenuContent>
-                            <MenuItem onSelect={() => router.push(`/verwaltung/termine/${encodeURIComponent(t.id)}`)}>
-                              <Pencil />
-                              Bearbeiten
-                            </MenuItem>
-                            <MenuItem onSelect={() => void aktionen.duplizieren(t)}>
-                              <Copy />
-                              Duplizieren
-                            </MenuItem>
-                            <MenuSeparator />
-                            <MenuItem destructive onSelect={() => void aktionen.loeschen(t)}>
-                              <Trash2 />
-                              Löschen
-                            </MenuItem>
-                          </MenuContent>
-                        </Menu>
+                        <TerminMenue t={t} aktionen={aktionen} />
                       </li>
                     );
                   })}
@@ -168,7 +234,36 @@ export function TermineListe({ termine, gruppen }: { termine: Termin[]; gruppen:
             );
           })}
         </div>
+        </>
       )}
     </>
+  );
+}
+
+function TerminMenue({ t, aktionen }: { t: Termin; aktionen: ReturnType<typeof useTerminAktionen> }) {
+  const router = useRouter();
+  return (
+    <Menu>
+      <MenuTrigger asChild>
+        <Button variant="ghost" size="icon-sm" aria-label={`Aktionen für ${t.titel}`}>
+          <MoreHorizontal />
+        </Button>
+      </MenuTrigger>
+      <MenuContent>
+        <MenuItem onSelect={() => router.push(`/verwaltung/termine/${encodeURIComponent(t.id)}`)}>
+          <Pencil />
+          Bearbeiten
+        </MenuItem>
+        <MenuItem onSelect={() => void aktionen.duplizieren(t)}>
+          <Copy />
+          Duplizieren
+        </MenuItem>
+        <MenuSeparator />
+        <MenuItem destructive onSelect={() => void aktionen.loeschen(t)}>
+          <Trash2 />
+          Löschen
+        </MenuItem>
+      </MenuContent>
+    </Menu>
   );
 }

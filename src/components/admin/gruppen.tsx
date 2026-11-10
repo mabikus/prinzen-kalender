@@ -6,11 +6,12 @@ import { MoreHorizontal, Pencil, Plus, Trash2, Users } from "lucide-react";
 import { gruppeLoeschen, gruppeSpeichern } from "@/app/verwaltung/aktionen";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/controls";
-import { EmptyState } from "@/components/ui/display";
+import { Badge, EmptyState } from "@/components/ui/display";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Dialog, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, useConfirm } from "@/components/ui/overlay";
 import { PageHeader } from "@/components/ui/page";
+import { Tabelle, Td, Th, Tr } from "@/components/ui/tabelle";
 import { toast } from "@/components/ui/toast";
 import type { Gruppe } from "@/lib/types";
 
@@ -66,48 +67,79 @@ export function GruppenVerwaltung({ gruppen, anzahl }: { gruppen: Gruppe[]; anza
       {gruppen.length === 0 ? (
         <EmptyState icon={<Users />} title="Noch keine Gruppen" />
       ) : (
-        <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] bg-panel shadow-[inset_0_0_0_1px_var(--line)]">
-          {gruppen.map((g) => (
-            <li key={g.id} className="flex items-center gap-4 px-4 py-3">
-              <span className="grid h-8 min-w-10 place-items-center rounded-[var(--radius-control)] bg-accent px-2 text-[12px] font-bold text-accent-fg">
-                {g.kuerzel}
-              </span>
-              <button type="button" onClick={() => setEntwurf({ ...g })} className="min-w-0 flex-1 text-left">
-                <span className="block text-[14px] font-medium text-ink">{g.name}</span>
-                <span className="block truncate text-[12.5px] text-subtle">
-                  {[g.beschreibung, g.in_alle ? null : "zählt nicht zu „Alle“", `${anzahl[g.id] ?? 0} Termine`]
-                    .filter(Boolean)
-                    .join(" · ")}
+        <>
+          {/* PC: Tabelle mit Spalten */}
+          <Tabelle>
+            <thead>
+              <tr>
+                <Th className="w-20">Kürzel</Th>
+                <Th>Name</Th>
+                <Th>Beschreibung</Th>
+                <Th rechts>Personen</Th>
+                <Th>In „Alle“</Th>
+                <Th rechts>Termine</Th>
+                <Th rechts>Reihenf.</Th>
+                <Th className="w-12" />
+              </tr>
+            </thead>
+            <tbody>
+              {gruppen.map((g) => (
+                <Tr key={g.id} onClick={() => setEntwurf({ ...g })}>
+                  <Td>
+                    <Kuerzel g={g} />
+                  </Td>
+                  <Td className="font-medium text-ink">{g.name}</Td>
+                  <Td className="text-muted">{g.beschreibung ?? <span className="text-subtle/60">–</span>}</Td>
+                  <Td rechts>{g.personen == null ? <span className="text-accent-ink">fehlt</span> : g.personen}</Td>
+                  <Td>{g.in_alle ? <span className="text-muted">ja</span> : <Badge>nein</Badge>}</Td>
+                  <Td rechts className="text-muted">
+                    {anzahl[g.id] ?? 0}
+                  </Td>
+                  <Td rechts className="text-subtle">
+                    {g.sortierung}
+                  </Td>
+                  <Td className="py-1.5">
+                    <GruppenMenue g={g} bearbeiten={() => setEntwurf({ ...g })} loeschen={() => void loeschen(g)} />
+                  </Td>
+                </Tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="bg-bg/60 text-[13px] text-subtle">
+                <td className="px-4 py-2.5" colSpan={3}>
+                  „Alle“ zusammen
+                </td>
+                <td className="px-4 py-2.5 text-right font-semibold text-ink tabular">{gesamt}</td>
+                <td colSpan={4} />
+              </tr>
+            </tfoot>
+          </Tabelle>
+
+          {/* Handy: Liste */}
+          <ul className="divide-y divide-line overflow-hidden rounded-[var(--radius-card)] bg-panel shadow-[inset_0_0_0_1px_var(--line)] xl:hidden">
+            {gruppen.map((g) => (
+              <li key={g.id} className="flex items-center gap-4 px-4 py-3">
+                <Kuerzel g={g} />
+                <button type="button" onClick={() => setEntwurf({ ...g })} className="min-w-0 flex-1 text-left">
+                  <span className="block text-[14px] font-medium text-ink">{g.name}</span>
+                  <span className="block truncate text-[12.5px] text-subtle">
+                    {[g.beschreibung, g.in_alle ? null : "zählt nicht zu „Alle“", `${anzahl[g.id] ?? 0} Termine`]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                </button>
+                <span className={g.personen == null ? "text-[13px] text-accent-ink" : "text-[13px] text-subtle tabular"}>
+                  {g.personen == null ? "Anzahl fehlt" : `${g.personen} Pers.`}
                 </span>
-              </button>
-              <span className={g.personen == null ? "text-[13px] text-accent-ink" : "text-[13px] text-subtle tabular"}>
-                {g.personen == null ? "Anzahl fehlt" : `${g.personen} Pers.`}
-              </span>
-              <Menu>
-                <MenuTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" aria-label="Aktionen">
-                    <MoreHorizontal />
-                  </Button>
-                </MenuTrigger>
-                <MenuContent>
-                  <MenuItem onSelect={() => setEntwurf({ ...g })}>
-                    <Pencil />
-                    Bearbeiten
-                  </MenuItem>
-                  <MenuSeparator />
-                  <MenuItem destructive onSelect={() => void loeschen(g)}>
-                    <Trash2 />
-                    Löschen
-                  </MenuItem>
-                </MenuContent>
-              </Menu>
+                <GruppenMenue g={g} bearbeiten={() => setEntwurf({ ...g })} loeschen={() => void loeschen(g)} />
+              </li>
+            ))}
+            <li className="flex justify-between bg-bg px-4 py-2.5 text-[13px] text-subtle">
+              <span>„Alle“ zusammen</span>
+              <span className="tabular">{gesamt} Personen</span>
             </li>
-          ))}
-          <li className="flex justify-between bg-bg px-4 py-2.5 text-[13px] text-subtle">
-            <span>„Alle“ zusammen</span>
-            <span className="tabular">{gesamt} Personen</span>
-          </li>
-        </ul>
+          </ul>
+        </>
       )}
 
       <Dialog
@@ -168,5 +200,36 @@ export function GruppenVerwaltung({ gruppen, anzahl }: { gruppen: Gruppe[]; anza
         ) : null}
       </Dialog>
     </>
+  );
+}
+
+function Kuerzel({ g }: { g: Gruppe }) {
+  return (
+    <span className="inline-grid h-8 min-w-10 place-items-center rounded-[var(--radius-control)] bg-accent px-2 text-[12px] font-bold text-accent-fg">
+      {g.kuerzel}
+    </span>
+  );
+}
+
+function GruppenMenue({ g, bearbeiten, loeschen }: { g: Gruppe; bearbeiten: () => void; loeschen: () => void }) {
+  return (
+    <Menu>
+      <MenuTrigger asChild>
+        <Button variant="ghost" size="icon-sm" aria-label={`Aktionen für ${g.name}`}>
+          <MoreHorizontal />
+        </Button>
+      </MenuTrigger>
+      <MenuContent>
+        <MenuItem onSelect={bearbeiten}>
+          <Pencil />
+          Bearbeiten
+        </MenuItem>
+        <MenuSeparator />
+        <MenuItem destructive onSelect={loeschen}>
+          <Trash2 />
+          Löschen
+        </MenuItem>
+      </MenuContent>
+    </Menu>
   );
 }

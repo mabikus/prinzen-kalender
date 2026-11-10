@@ -9,7 +9,7 @@ export const metadata = { title: "Gruppen" };
 
 export default function Seite() {
   return (
-    <Page width="narrow">
+    <Page width="default">
       <Suspense fallback={<SeitenPlatzhalter />}>
         <Inhalt />
       </Suspense>
