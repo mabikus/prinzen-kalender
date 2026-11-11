@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { CalendarPlus, Lock, Mail, MonitorSmartphone, Smartphone, TriangleAlert, type LucideIcon } from "lucide-react";
+import { CalendarPlus, FileDown, Lock, Mail, MonitorSmartphone, Smartphone, TriangleAlert, type LucideIcon } from "lucide-react";
 import { Kopieren } from "@/components/kopieren";
 import { I } from "@/components/termin";
 import { basisUrl } from "@/lib/auth";
@@ -25,6 +25,32 @@ export default function AboSeite() {
       <Suspense fallback={<div aria-hidden className="h-[300px] animate-pulse rounded-lg bg-stone-200/40" />}>
         <Feeds />
       </Suspense>
+
+      <section className="space-y-3 rounded-lg border border-linie bg-panel p-5">
+        <div>
+          <h2 className="font-serif lining-nums text-2xl font-semibold">Zum Ausdrucken</h2>
+          <p className="text-sm text-grau">Alle Termine mit Zeiten, Orten und wer dabei ist – als PDF auf DIN A4.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/terminplan.pdf"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-11 items-center gap-2 rounded-full bg-marke-700 px-5 font-semibold text-white active:bg-marke-800"
+          >
+            <I icon={FileDown} className="size-[18px]" />
+            Kommende Termine
+          </a>
+          <a
+            href="/terminplan.pdf?alle=1"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-11 items-center gap-2 rounded-full border border-linie px-5 font-semibold text-tinte active:bg-stone-100"
+          >
+            Ganze Session
+          </a>
+        </div>
+      </section>
 
       <section className="space-y-5 rounded-lg border border-linie bg-panel p-5">
         <h2 className="font-serif lining-nums text-2xl font-semibold">So geht’s</h2>

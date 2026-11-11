@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CircleHelp, Clock, Copy, Lock, MoreHorizontal, Pencil, Plus, Ticket, Trash2 } from "lucide-react";
+import { CircleHelp, Clock, Copy, FileDown, Lock, MoreHorizontal, Pencil, Plus, Ticket, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { Tooltip } from "@/components/ui/controls";
 import { DatenTabelle, type Spalte } from "@/components/ui/daten-tabelle";
-import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger } from "@/components/ui/overlay";
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from "@/components/ui/overlay";
 import { PageHeader } from "@/components/ui/page";
 import { personenBedarf, werText } from "@/lib/labels";
 import type { Gruppe, Termin } from "@/lib/types";
@@ -104,12 +104,15 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
         title="Termine"
         description="Alle Termine der Session – Zeile anklicken zum Bearbeiten."
         actions={
+          <>
+          <PdfMenue />
           <Button asChild variant="primary">
             <Link href="/verwaltung/termine/neu">
               <Plus />
               Neuer Termin
             </Link>
           </Button>
+          </>
         }
       />
       <DatenTabelle
@@ -165,6 +168,37 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
         leerText="Mit dieser Auswahl gibt es keine Termine."
       />
     </>
+  );
+}
+
+/** Terminplan als A4-PDF – mit oder ohne vertrauliche Termine (öffnet in neuem Tab) */
+function PdfMenue() {
+  const punkt = (href: string, text: string) => (
+    <MenuItem asChild>
+      <a href={href} target="_blank" rel="noreferrer">
+        <FileDown />
+        {text}
+      </a>
+    </MenuItem>
+  );
+  return (
+    <Menu>
+      <MenuTrigger asChild>
+        <Button variant="outline">
+          <FileDown />
+          PDF
+        </Button>
+      </MenuTrigger>
+      <MenuContent className="w-64">
+        <MenuLabel>Ohne vertrauliche Termine</MenuLabel>
+        {punkt("/verwaltung/termine/pdf", "Kommende Termine")}
+        {punkt("/verwaltung/termine/pdf?alle=1", "Ganze Session")}
+        <MenuSeparator />
+        <MenuLabel>Mit vertraulichen Terminen</MenuLabel>
+        {punkt("/verwaltung/termine/pdf?vertraulich=1", "Kommende Termine")}
+        {punkt("/verwaltung/termine/pdf?alle=1&vertraulich=1", "Ganze Session")}
+      </MenuContent>
+    </Menu>
   );
 }
 
