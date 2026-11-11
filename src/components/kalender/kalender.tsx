@@ -196,11 +196,18 @@ export function Kalender({
 
   const loeschen = useCallback(
     async (t: Termin) => {
-      const ok = await confirm({ title: "Termin löschen?", description: `„${t.titel}“ am ${datumKurz(t.datum)}`, confirmLabel: "Löschen", destructive: true });
+      let absage = false;
+      const ok = await confirm({
+        title: "Termin löschen?",
+        description: `„${t.titel}“ am ${datumKurz(t.datum)}`,
+        confirmLabel: "Löschen",
+        destructive: true,
+        option: { label: "Absage mitteilen (Push an alle Geräte)", ergebnis: (an) => (absage = an) },
+      });
       if (!ok) return;
       setTermine((l) => l.filter((x) => x.id !== t.id));
       setAuswahl(null);
-      const r = await terminLoeschen(t.id);
+      const r = await terminLoeschen(t.id, absage);
       if (!r.ok) {
         setTermine((l) => [...l, t]);
         return void toast.error(r.fehler);

@@ -111,6 +111,9 @@ export const einstellungen = pgTable("einstellungen", {
   /** PIN für vertrauliche Termine (4–8 Ziffern); null = keine vertraulichen Termine freischaltbar.
    *  Bewusst lesbar gespeichert: die Verwaltung soll sie anzeigen und weitergeben können. */
   pin: text("pin"),
+  /** Schlüssel für Push-Mitteilungen (VAPID) – beim ersten Gebrauch automatisch erzeugt */
+  vapid_oeffentlich: text("vapid_oeffentlich"),
+  vapid_privat: text("vapid_privat"),
   geaendert_am: timestamp("geaendert_am", { withTimezone: true })
     .notNull()
     .defaultNow()
@@ -250,4 +253,15 @@ export const rateLimit = pgTable("rate_limit", {
   key: text("key").notNull().unique(),
   count: integer("count").notNull(),
   lastRequest: bigint("last_request", { mode: "number" }).notNull(),
+});
+
+/** Geräte mit eingeschalteten Push-Mitteilungen (ohne Konto – nur die Adresse des Push-Dienstes) */
+export const pushAbos = pgTable("push_abos", {
+  endpoint: text("endpoint").primaryKey(),
+  p256dh: text("p256dh").notNull(),
+  auth: text("auth").notNull(),
+  /** Freischalt-Schlüssel (PIN-Cookie) beim Anmelden – nur dann auch Mitteilungen zu vertraulichen Terminen */
+  pin_schluessel: text("pin_schluessel"),
+  erstellt_am: timestamp("erstellt_am", { withTimezone: true }).notNull().defaultNow(),
+  zuletzt_zugestellt: timestamp("zuletzt_zugestellt", { withTimezone: true }),
 });

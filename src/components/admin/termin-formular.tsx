@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
-import { Check, ChevronDown, Lock, Minus, Plus, Ticket, TriangleAlert, X } from "lucide-react";
+import { Bell, Check, ChevronDown, Lock, Minus, Plus, Ticket, TriangleAlert, X } from "lucide-react";
 import { terminSpeichern, type TerminEingabe } from "@/app/verwaltung/aktionen";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
-import { Segmented } from "@/components/ui/controls";
+import { Segmented, Switch } from "@/components/ui/controls";
 import { toast } from "@/components/ui/toast";
 import { personenBedarf } from "@/lib/labels";
 import type { Gruppe, Termin, Umfang } from "@/lib/types";
@@ -399,6 +399,8 @@ export function TerminFormular({
   const [fehler, setFehler] = useState<string>();
   const [adresseOffen, setAdresseOffen] = useState(() => !!(w.strasse || w.plz || w.stadt));
   const [laeuft, starte] = useTransition();
+  // Push-Mitteilung beim Speichern – bewusst aus: nicht jeder Tippfehler soll alle Handys klingeln lassen
+  const [mitteilen, setMitteilen] = useState(false);
   const setze = <K extends keyof TerminEingabe>(k: K, v: TerminEingabe[K]) => setW((x) => ({ ...x, [k]: v }));
   useEffect(() => onLaeuft?.(laeuft), [laeuft, onLaeuft]);
 
@@ -431,12 +433,23 @@ export function TerminFormular({
       gruppen: w.umfang === "auswahl" ? w.gruppen : w.gruppen.filter((id) => !gruppen.find((g) => g.id === id)?.in_alle),
     };
     starte(async () => {
-      const r = await terminSpeichern(eingabe);
+      const r = await terminSpeichern(eingabe, mitteilen);
       if (!r.ok) {
         setFehler(r.fehler);
         return;
       }
-      toast.success(termin ? "Termin gespeichert" : "Termin angelegt");
+      const n = r.daten.mitgeteilt;
+      toast.success(termin ? "Termin gespeichert" : "Termin angelegt", {
+        description:
+          n === undefined
+            ? undefined
+            : n === 0
+              ? r.daten.vertraulich
+                ? "Kein mit PIN freigeschaltetes Gerät hat Mitteilungen eingeschaltet."
+                : "Noch hat kein Gerät Mitteilungen eingeschaltet."
+              : `Mitteilung an ${n} ${n === 1 ? "Gerät" : "Geräte"} verschickt.`,
+      });
+      setMitteilen(false);
       onGespeichert(r.daten);
     });
   };
@@ -687,6 +700,23 @@ export function TerminFormular({
 
       <Liste titel="Weitere Angaben" fuss="Gleiches Tagesprogramm am selben Tag fasst Termine zusammen, z. B. „Weiberdonnerstag“.">
         <TextZeile label="Programm" wert={w.tagesprogramm} setze={(v) => setze("tagesprogramm", v)} platzhalter="–" liste="pk-programme" />
+      </Liste>
+
+      <Liste
+        titel="Mitteilung"
+        fuss={
+          mitteilen
+            ? w.vertraulich
+              ? "Geht beim Speichern nur an Geräte, die mit der PIN freigeschaltet sind."
+              : "Geht beim Speichern als Push-Mitteilung an alle Geräte mit eingeschalteten Mitteilungen – mit dem, was sich geändert hat."
+            : "Aus: Es geht keine Mitteilung raus (z. B. bei Tippfehlern)."
+        }
+      >
+        <label className="flex min-h-[52px] cursor-pointer items-center gap-3 px-4">
+          <Bell className="size-[18px] shrink-0 text-subtle" />
+          <span className="min-w-0 flex-1 text-[16px] text-ink">{termin ? "Änderung mitteilen" : "Neuen Termin mitteilen"}</span>
+          <Switch checked={mitteilen} onCheckedChange={setMitteilen} aria-label={termin ? "Änderung mitteilen" : "Neuen Termin mitteilen"} />
+        </label>
       </Liste>
 
       {ohneAktionen ? (

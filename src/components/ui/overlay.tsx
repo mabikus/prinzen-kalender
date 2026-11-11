@@ -5,6 +5,7 @@ import { AlertTriangle, X } from "lucide-react";
 import { createContext, useCallback, useContext, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import { Button } from "./button";
 import { cn } from "./cn";
+import { Checkbox } from "./controls";
 import { Input } from "./input";
 import { useKeyboardInset } from "./keyboard";
 import { usePhoneLayout } from "./phone";
@@ -82,6 +83,8 @@ interface ConfirmOptions {
   destructive?: boolean;
   /** Unwiderrufliches: dieses Wort muss eingetippt werden. */
   typeToConfirm?: string;
+  /** Zusätzliches Häkchen (z. B. „Absage mitteilen“); `ergebnis` bekommt beim Bestätigen den Stand */
+  option?: { label: string; an?: boolean; ergebnis: (an: boolean) => void };
 }
 
 const ConfirmCtx = createContext<(o: ConfirmOptions) => Promise<boolean>>(async () => false);
@@ -94,13 +97,16 @@ export function useConfirm() {
 export function ConfirmProvider({ children }: { children: ReactNode }) {
   const [opts, setOpts] = useState<ConfirmOptions | null>(null);
   const [typed, setTyped] = useState("");
+  const [optionAn, setOptionAn] = useState(false);
   const resolver = useRef<(v: boolean) => void>(() => {});
   const confirm = useCallback((o: ConfirmOptions) => {
     setTyped("");
+    setOptionAn(!!o.option?.an);
     setOpts(o);
     return new Promise<boolean>((res) => (resolver.current = res));
   }, []);
   const close = (v: boolean) => {
+    if (v) opts?.option?.ergebnis(optionAn);
     resolver.current(v);
     setOpts(null);
   };
@@ -137,6 +143,12 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                       </p>
                       <Input value={typed} onChange={(e) => setTyped(e.target.value)} className="touch-auto" />
                     </div>
+                  ) : null}
+                  {opts?.option ? (
+                    <label className="mt-3 flex cursor-pointer items-center justify-center gap-2.5 text-[14px] text-ink">
+                      <Checkbox checked={optionAn} onCheckedChange={(v) => setOptionAn(v === true)} className="size-5" />
+                      {opts.option.label}
+                    </label>
                   ) : null}
                 </div>
                 <button
@@ -185,6 +197,12 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
                       </p>
                       <Input value={typed} onChange={(e) => setTyped(e.target.value)} />
                     </div>
+                  ) : null}
+                  {opts?.option ? (
+                    <label className="mt-4 flex cursor-pointer items-center gap-2.5 text-[13.5px] text-ink">
+                      <Checkbox checked={optionAn} onCheckedChange={(v) => setOptionAn(v === true)} />
+                      {opts.option.label}
+                    </label>
                   ) : null}
                 </div>
               </div>

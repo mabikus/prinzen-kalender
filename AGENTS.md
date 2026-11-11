@@ -33,6 +33,10 @@ Tailwind 4 · Radix · lucide · sonner · cmdk. Oberfläche und Texte auf Deuts
   abgeleitetem Schlüssel), Logik in `src/lib/vertraulich.ts`. Öffentliche Seiten laden Termine nur über `ladeAnsicht()`
   (nie direkt `ladeDatenZwischengespeichert()`), Feeds/Routen prüfen selbst. Neue PIN = alle Freischaltungen und
   vertraulichen Abos enden. „Bestellt“ (Karten) ist ebenfalls intern und erscheint nie in der Ansicht.
+- Push-Mitteilungen: `src/lib/push.ts` (web-push 3.6, VAPID-Schlüssel automatisch in `einstellungen`, Geräte in `push_abos`),
+  Einschalten in der App (`src/components/mitteilungen.tsx`, iPhone nur als installierte App), Versand nur bewusst:
+  Häkchen „Änderung mitteilen“ im Termin-Formular bzw. „Absage mitteilen“ beim Löschen. Vertrauliche Termine nur an Geräte,
+  die beim Einschalten mit der aktuellen PIN freigeschaltet waren. Empfang/Antippen im Service Worker `public/sw.js`.
 - Darstellung (App-Name, Unterzeile, Logo): Verwaltung → Darstellung, Tabelle `einstellungen`, Laden über `src/lib/marke-laden.ts`
   (`"use cache"` + `cacheTag("marke")`, nach dem Speichern `updateTag`). Bild-Adressen tragen `?v=<logo_stand>`.
 - Prüfen vor dem Commit: `npx tsc --noEmit`, `npm run lint`, `npm test`.

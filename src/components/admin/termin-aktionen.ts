@@ -15,14 +15,16 @@ export function useTerminAktionen(nachAenderung?: () => void) {
 
   return {
     async loeschen(t: Termin) {
+      let absage = false;
       const ok = await confirm({
         title: "Termin löschen?",
         description: `„${t.titel}“ am ${datumKurz(t.datum)}`,
         confirmLabel: "Löschen",
         destructive: true,
+        option: { label: "Absage mitteilen (Push an alle Geräte)", ergebnis: (an) => (absage = an) },
       });
       if (!ok) return false;
-      const r = await terminLoeschen(t.id);
+      const r = await terminLoeschen(t.id, absage);
       if (!r.ok) return void toast.error(r.fehler);
       toast.success("Termin gelöscht", {
         undo: async () => {

@@ -161,7 +161,7 @@ export function InstallHinweis({ logoStand }: { logoStand: number }) {
             <img src={`/app-icon/apple?v=${logoStand}`} alt="" width={48} height={48} className="size-12 rounded-[12px] shadow-sm" />
             <div>
               <p className="font-serif text-[18px] font-semibold leading-tight">Als App installieren</p>
-              <p className="text-[14px] text-grau">Mit eigenem Symbol auf dem Home-Bildschirm – öffnet sich wie eine App.</p>
+              <p className="text-[14px] text-grau">Mit eigenem Symbol – und auf Wunsch mit Mitteilung, wenn ein Termin ausfällt oder sich ändert.</p>
             </div>
           </div>
           {ios ? (

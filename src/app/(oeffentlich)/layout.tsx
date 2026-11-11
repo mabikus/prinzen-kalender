@@ -8,6 +8,7 @@ import { AktualisierenKnopf } from "@/components/pwa";
 import { ZiehenZumAktualisieren } from "@/components/ziehen-aktualisieren";
 import { LinkAufraeumen } from "@/components/link-aufraeumen";
 import { InstallHinweis } from "@/components/installieren";
+import { MitteilungenHinweis } from "@/components/mitteilungen";
 import { datenquelle } from "@/lib/daten";
 import { ladeMarke } from "@/lib/marke-laden";
 import { zugangsToken } from "@/lib/zugang";
@@ -59,6 +60,7 @@ export default async function OeffentlichLayout({ children, modal }: LayoutProps
       <ZiehenZumAktualisieren />
       <LinkAufraeumen />
       <InstallHinweis logoStand={marke.logoStand} />
+      <MitteilungenHinweis />
       {/* Termin als Blatt über Liste/Monat (abgefangene Route @modal/(.)termin) */}
       {modal}
     </>

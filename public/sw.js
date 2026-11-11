@@ -2,7 +2,7 @@
 // - Seiten der Ansicht (Termine, Monat, Termin, Abo): erst Netz, sonst gespeicherte Fassung (offline lesbar)
 // - Statische Dateien (/_next/static, Schriften, Icons): aus dem Speicher, sie ändern sich nie
 // - Verwaltung, Anmeldung, API, Kalender-Feeds: immer nur übers Netz, nichts speichern
-const VERSION = "v1";
+const VERSION = "v2";
 const SEITEN = `seiten-${VERSION}`;
 const DATEIEN = `dateien-${VERSION}`;
 const OFFLINE = "/offline";
@@ -62,4 +62,44 @@ self.addEventListener("fetch", (event) => {
         .catch(async () => (await caches.match(req)) ?? (await caches.match(OFFLINE)) ?? Response.error()),
     );
   }
+});
+
+// Push-Mitteilungen (Terminänderungen aus der Verwaltung)
+self.addEventListener("push", (event) => {
+  let m = {};
+  try {
+    m = event.data ? event.data.json() : {};
+  } catch {
+    m = { titel: "Sessionskalender", text: event.data ? event.data.text() : "" };
+  }
+  event.waitUntil(
+    self.registration.showNotification(m.titel || "Sessionskalender", {
+      body: m.text || "",
+      icon: "/app-icon/apple",
+      badge: "/app-icon/apple",
+      tag: m.kennung || undefined,
+      renotify: !!m.kennung,
+      data: { url: m.url || "/" },
+    }),
+  );
+});
+
+// Antippen: App öffnen (vorhandenes Fenster nutzen) und zum Termin springen
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const ziel = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((fenster) => {
+      const offen = fenster.find((f) => new URL(f.url).origin === self.location.origin);
+      if (offen) return offen.focus().then((f) => (f && "navigate" in f ? f.navigate(ziel) : undefined));
+      return self.clients.openWindow(ziel);
+    }),
+  );
+});
+
+// Der Push-Dienst hat die Anmeldung erneuert: neue Adresse beim Server hinterlegen
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    self.clients.matchAll({ type: "window" }).then((fenster) => fenster.forEach((f) => f.postMessage({ typ: "push-erneuern" }))),
+  );
 });

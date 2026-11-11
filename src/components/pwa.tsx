@@ -13,6 +13,12 @@ export function DienstHelfer() {
   useEffect(() => {
     if (process.env.NODE_ENV !== "production" || !("serviceWorker" in navigator)) return;
     navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" }).catch(() => {});
+    // Der Push-Dienst hat die Anmeldung erneuert (Meldung vom Service Worker): beim Server auffrischen
+    const nachricht = (e: MessageEvent) => {
+      if (e.data?.typ === "push-erneuern") void import("./mitteilungen").then((m) => m.pushAuffrischen());
+    };
+    navigator.serviceWorker.addEventListener("message", nachricht);
+    return () => navigator.serviceWorker.removeEventListener("message", nachricht);
   }, []);
   return null;
 }

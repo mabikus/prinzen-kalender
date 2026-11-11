@@ -1,5 +1,6 @@
 "use server";
 
+import { absageMitteilung, mitteilen as pushSenden, terminMitteilung } from "@/lib/push";
 import { ladeMarke } from "@/lib/marke-laden";
 import { PIN_TAG } from "@/lib/vertraulich";
 import { redirect } from "next/navigation";
@@ -158,8 +159,16 @@ async function zuTermin(e: TerminEingabe): Promise<Termin> {
   };
 }
 
-export async function terminSpeichern(e: TerminEingabe) {
-  return sicher(async (a) => speichereTermin(await zuTermin(e), wer(a)));
+/** Speichern; mit `mitteilen` geht eine Push-Mitteilung an alle Geräte (vertrauliche nur an Freigeschaltete). */
+export async function terminSpeichern(e: TerminEingabe, mitteilen = false): Promise<Ergebnis<Termin & { mitgeteilt?: number }>> {
+  return sicher(async (a) => {
+    const t = await zuTermin(e);
+    const vorher = e.id ? (await ladeDaten()).termine.find((x) => x.id === t.id) : undefined;
+    const gespeichert = await speichereTermin(t, wer(a));
+    if (!mitteilen) return gespeichert;
+    const mitgeteilt = await pushSenden(terminMitteilung(vorher, gespeichert), { vertraulich: gespeichert.vertraulich });
+    return { ...gespeichert, mitgeteilt };
+  });
 }
 
 /** Verschieben/Größe ändern im Kalender: nur Datum und Zeiten. */
@@ -192,10 +201,12 @@ export async function terminDuplizieren(id: string, datum?: string) {
   });
 }
 
-export async function terminLoeschen(id: string) {
+/** Löschen; mit `absageMitteilen` geht „Abgesagt: …“ an alle Geräte (vertrauliche nur an Freigeschaltete). */
+export async function terminLoeschen(id: string, absageMitteilen = false) {
   return sicher(async (a) => {
     const t = await loescheTermin(id, wer(a));
     if (!t) throw new BenutzerFehler("Termin nicht gefunden.");
+    if (absageMitteilen) await pushSenden(absageMitteilung(t), { vertraulich: t.vertraulich });
     return t;
   });
 }

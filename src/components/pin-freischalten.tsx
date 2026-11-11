@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { pinFreischalten, pinSperren } from "@/app/(oeffentlich)/pin-aktion";
+import { pushAuffrischen } from "@/components/mitteilungen";
 
 /** PIN eingeben bzw. wieder sperren – danach Seiten neu laden, damit Liste, Monat und Abo stimmen */
 export function PinFreischalten({ frei }: { frei: boolean }) {
@@ -27,6 +28,8 @@ export function PinFreischalten({ frei }: { frei: boolean }) {
           onClick={() =>
             starte(async () => {
               await pinSperren();
+              // Mitteilungen zu vertraulichen Terminen ab jetzt nicht mehr an dieses Gerät
+              await pushAuffrischen();
               router.refresh();
             })
           }
@@ -51,6 +54,8 @@ export function PinFreischalten({ frei }: { frei: boolean }) {
             return;
           }
           setPin("");
+          // Mitteilungen zu vertraulichen Terminen ab jetzt auch an dieses Gerät
+          await pushAuffrischen();
           router.refresh();
         });
       }}
