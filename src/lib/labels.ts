@@ -86,7 +86,5 @@ export function filterListe(gruppen: Gruppe[]): Filter[] {
       beschreibung: "Termine mit Eintrittskarte",
       passt: (t: Termin) => t.anmeldung !== null,
     },
-    { key: "intern", label: "Intern", beschreibung: "Eigene Veranstaltungen der KG", passt: (t) => t.art === "intern" },
-    { key: "extern", label: "Extern", beschreibung: "Besuche bei anderen", passt: (t) => t.art === "extern" },
   ];
 }

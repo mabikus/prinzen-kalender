@@ -6,7 +6,7 @@ import { ladePin, vertraulichesAboToken } from "@/lib/vertraulich";
 import { ladeMarke } from "@/lib/marke-laden";
 
 // Kalender-Abo: /kalender/<token>/<filter>.ics
-// <filter> = "alle", eine Gruppen-ID (z. B. "senat"), "karten", "intern" oder "extern"
+// <filter> = "alle", eine Gruppen-ID (z. B. "senat") oder "karten"
 export async function GET(request: Request, ctx: RouteContext<"/kalender/[token]/[datei]">) {
   const { token, datei } = await ctx.params;
   // Normales Abo: Zugangs-Token, ohne vertrauliche Termine. Mit PIN freigeschaltetes Abo: eigenes Token (aus der PIN
