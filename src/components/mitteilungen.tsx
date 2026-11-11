@@ -112,7 +112,7 @@ export function MitteilungenBereich() {
       {stand === "laden" ? <div aria-hidden className="h-11" /> : null}
       {stand === "erst-installieren" ? (
         <p className="text-[15px]">
-          Am iPhone gehen Mitteilungen nur in der installierten App: erst unten bei „Als App installieren“ die App auf den
+          Am iPhone gehen Mitteilungen nur in der installierten App: erst oben bei „Als App installieren“ die App auf den
           Home-Bildschirm holen, sie von dort öffnen und dann hier einschalten.
         </p>
       ) : null}

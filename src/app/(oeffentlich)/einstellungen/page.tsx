@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { ChevronRight, Lock, UserCog } from "lucide-react";
+import { ChevronRight, UserCog } from "lucide-react";
 import { I } from "@/components/termin";
 import { PinFreischalten } from "@/components/pin-freischalten";
 import { InstallBereich } from "@/components/installieren";
@@ -17,13 +17,13 @@ export default function EinstellungenSeite() {
         <h1 className="font-serif lining-nums text-4xl font-semibold">Einstellungen</h1>
       </header>
 
-      <Suspense fallback={<div aria-hidden className="h-[220px] animate-pulse rounded-lg bg-stone-200/40" />}>
-        <Vertraulich />
-      </Suspense>
+      <InstallBereich />
 
       <MitteilungenBereich />
 
-      <InstallBereich />
+      <Suspense fallback={null}>
+        <Vertraulich />
+      </Suspense>
 
       <Link
         href="/verwaltung"
@@ -45,20 +45,16 @@ export default function EinstellungenSeite() {
 async function Vertraulich() {
   const [pin, frei] = await Promise.all([ladePin(), freigeschaltet()]);
   if (!pin) return null;
+  // Bewusst unauffällig und unten: Wer keinen Code hat, soll hier nicht herumprobieren
   return (
-    <section className="space-y-4 rounded-lg border border-linie bg-panel p-5">
-      <div className="flex items-start gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-marke-50 text-marke-700">
-          <I icon={Lock} className="size-[18px]" />
-        </span>
-        <div>
-          <h2 className="font-serif lining-nums text-2xl font-semibold">Vertrauliche Termine</h2>
-          <p className="text-[15px] text-grau">
-            {frei
-              ? "Auf diesem Gerät freigeschaltet: Die vertraulichen Termine stehen mit Schloss in der Liste, im Monat und im Kalender-Abo."
-              : "Für Eingeweihte, z. B. Vorstand und Familie: Mit der PIN erscheinen zusätzlich die vertraulichen Termine – auch im Kalender-Abo."}
-          </p>
-        </div>
+    <section className="space-y-3 rounded-lg border border-linie bg-panel px-4 py-4">
+      <div>
+        <h2 className="text-[16px] font-semibold">Weitere Termine</h2>
+        <p className="text-[14px] text-grau">
+          {frei
+            ? "Auf diesem Gerät freigeschaltet – die zusätzlichen Termine stehen mit Schloss in Liste, Monat und Kalender-Abo."
+            : "Mit einem Code vom Vorstand erscheinen zusätzliche Termine."}
+        </p>
       </div>
       <PinFreischalten frei={frei} />
     </section>

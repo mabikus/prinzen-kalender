@@ -10,13 +10,13 @@ type Antwort = { ok: true } | { ok: false; fehler: string };
 /** PIN eingeben → vertrauliche Termine auf diesem Gerät sichtbar (Cookie, ein gutes Jahr) */
 export async function pinFreischalten(eingabe: string): Promise<Antwort> {
   const pin = await ladePin();
-  if (!pin) return { ok: false, fehler: "Zurzeit gibt es keine PIN." };
+  if (!pin) return { ok: false, fehler: "Zurzeit gibt es keinen Code." };
   // Gegen Durchprobieren: 8 Versuche je Viertelstunde und Adresse
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unbekannt";
   if (hatDatenbank() && !(await versuchErlaubt(`pin:${ip}`, 8, 15 * 60_000))) {
     return { ok: false, fehler: "Zu viele Versuche. Bitte in einer Viertelstunde noch einmal." };
   }
-  if (!pinRichtig(String(eingabe ?? ""), pin)) return { ok: false, fehler: "Die PIN stimmt nicht." };
+  if (!pinRichtig(String(eingabe ?? ""), pin)) return { ok: false, fehler: "Der Code stimmt nicht." };
   (await cookies()).set(PIN_COOKIE, pinSchluessel(pin), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

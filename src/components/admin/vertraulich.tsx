@@ -64,7 +64,7 @@ export function VertraulichVerwaltung({
   };
 
   const nachricht = pin
-    ? `PIN für die vertraulichen Termine im ${appName}: ${pin}\n\nIn der App unten auf das Zahnrad (Einstellungen) tippen und die PIN eingeben.`
+    ? `Code für die weiteren Termine im ${appName}: ${pin}\n\nIn der App unten auf das Zahnrad (Einstellungen) tippen und bei „Weitere Termine“ den Code eingeben.`
     : "";
 
   return (
@@ -129,7 +129,7 @@ export function VertraulichVerwaltung({
           <ol className="list-decimal space-y-1.5 pl-5 text-[14px] text-muted">
             <li>Termin bearbeiten und unter „Status“ bei „Sichtbar für“ auf „Nur mit PIN“ stellen.</li>
             <li>PIN an Vorstand, Familie & Co. weitergeben (z. B. per WhatsApp).</li>
-            <li>Die tippen in der App unten auf das Zahnrad (Einstellungen) und geben die PIN ein.</li>
+            <li>Die tippen in der App unten auf das Zahnrad (Einstellungen) und geben bei „Weitere Termine“ die PIN als Code ein.</li>
             <li>Ab dann sehen sie die vertraulichen Termine mit Schloss – in Liste, Monat und im Kalender-Abo.</li>
             <li>Neue PIN = alle sind wieder draußen (auch ihre vertraulichen Abos).</li>
           </ol>

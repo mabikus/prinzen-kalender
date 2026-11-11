@@ -18,7 +18,7 @@ export function PinFreischalten({ frei }: { frei: boolean }) {
       <div className="flex flex-wrap gap-2">
         <Link
           href="/abo"
-          className="inline-flex h-11 items-center rounded-full bg-marke-700 px-5 font-semibold text-white active:bg-marke-800"
+          className="inline-flex h-10 items-center rounded-full border border-linie px-4 text-[15px] font-semibold text-tinte active:bg-stone-100"
         >
           Zum Kalender-Abo
         </Link>
@@ -33,7 +33,7 @@ export function PinFreischalten({ frei }: { frei: boolean }) {
               router.refresh();
             })
           }
-          className="inline-flex h-11 items-center rounded-full border border-linie px-5 font-semibold text-tinte active:bg-stone-100 disabled:opacity-60"
+          className="inline-flex h-10 items-center rounded-full px-4 text-[15px] font-semibold text-grau active:bg-stone-100 disabled:opacity-60"
         >
           Wieder ausblenden
         </button>
@@ -70,17 +70,17 @@ export function PinFreischalten({ frei }: { frei: boolean }) {
           inputMode="numeric"
           autoComplete="off"
           enterKeyHint="go"
-          placeholder="PIN"
-          aria-label="PIN"
+          placeholder="Code"
+          aria-label="Code"
           aria-invalid={fehler ? true : undefined}
-          className={`h-12 min-w-0 flex-1 rounded-lg border bg-white px-4 text-center font-serif text-2xl tracking-[0.4em] tabular-nums outline-none placeholder:font-sans placeholder:text-base placeholder:tracking-normal placeholder:text-grau focus:border-marke-700 dark:bg-transparent ${
+          className={`h-11 min-w-0 flex-1 rounded-lg border bg-white px-4 text-center text-lg tracking-[0.3em] tabular-nums outline-none placeholder:font-sans placeholder:text-base placeholder:tracking-normal placeholder:text-grau focus:border-marke-700 dark:bg-transparent ${
             fehler ? "border-marke-700" : "border-linie"
           }`}
         />
         <button
           type="submit"
           disabled={laeuft || pin.length < 4}
-          className="h-12 shrink-0 rounded-lg bg-marke-700 px-5 font-semibold text-white active:bg-marke-800 disabled:opacity-50"
+          className="h-11 shrink-0 rounded-lg border border-linie px-4 font-semibold text-tinte active:bg-stone-100 disabled:opacity-50"
         >
           {laeuft ? "Prüfe …" : "Freischalten"}
         </button>
