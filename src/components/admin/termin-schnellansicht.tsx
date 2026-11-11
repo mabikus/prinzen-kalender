@@ -211,7 +211,12 @@ export function SchnellansichtInhalt({
             wert={start ? `${start} Uhr` : vorher ? "im Anschluss" : "offen"}
             unter={[t.treffzeit && t.beginn && t.treffzeit !== t.beginn ? `Beginn ${t.beginn}` : null, bis ? `bis ${bis}` : null].filter(Boolean).join(" · ") || undefined}
           />
-          <Kachel icon={MapPin} label={t.treffpunkt ? "Treffpunkt" : "Ort"} wert={t.treffpunkt ?? t.ort ?? "–"} unter={venue && venue !== t.treffpunkt ? venue : undefined} />
+          <Kachel
+            icon={MapPin}
+            label={t.treffpunkt ? "Treffpunkt" : "Ort"}
+            wert={t.treffpunkt ?? venue ?? "–"}
+            unter={t.treffpunkt && venue && venue !== t.treffpunkt ? venue : undefined}
+          />
           <Kachel icon={Users} label="Wer" wert={werText(t, gruppen)} unter={`ca. ${bedarf.summe}${bedarf.ohneAngabe.length ? "+" : ""} Personen`} />
           <Kachel
             icon={Ticket}
@@ -317,14 +322,22 @@ export function SchnellansichtDrawer({
   );
 }
 
-/** Angedockt im Kalender (PC): schwebende Karte rechts, Kalender bleibt bedienbar */
+/**
+ * Im Kalender (PC): schwebt über dem Kalender rechts – schiebt ihn nicht weg. Nicht modal: Ein Klick auf einen
+ * anderen Termin wechselt die Ansicht, Esc oder × schließt.
+ */
 export function SchnellansichtPanel(props: { t: Termin; gruppen: Gruppe[]; alle: Termin[]; aktionen: SchnellAktionen; schliessen: () => void }) {
-  // D.Root ohne Portal/Modal: Title/Description brauchen den Dialog-Kontext
   return (
-    <D.Root open modal={false}>
-      <aside className="m-2 ml-0 flex w-[400px] shrink-0 flex-col overflow-hidden rounded-[18px] bg-bg shadow-[var(--shadow-pop)] ring-1 ring-line">
-        <SchnellansichtInhalt {...props} />
-      </aside>
+    <D.Root open modal={false} onOpenChange={(o) => !o && props.schliessen()}>
+      <D.Portal>
+        <D.Content
+          onInteractOutside={(e) => e.preventDefault()}
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className="fixed bottom-2 right-2 top-[60px] z-30 flex w-[clamp(460px,28vw,620px)] flex-col overflow-hidden rounded-[18px] bg-bg shadow-[0_24px_60px_-16px_rgb(0_0_0/0.35),0_0_0_1px_var(--line)] outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-right-6"
+        >
+          <SchnellansichtInhalt {...props} />
+        </D.Content>
+      </D.Portal>
     </D.Root>
   );
 }
