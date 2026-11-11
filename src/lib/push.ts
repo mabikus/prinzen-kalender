@@ -99,8 +99,16 @@ export interface Mitteilung {
  * freigeschaltet waren. Abgelaufene Geräte (404/410) werden entfernt. Gibt die Zahl der erreichten Geräte zurück.
  */
 export async function mitteilen(m: Mitteilung, opts: { vertraulich?: boolean; nurEndpoint?: string } = {}): Promise<number> {
+  return (await mitteilenMitBericht(m, opts)).erreicht;
+}
+
+/** Wie `mitteilen`, mit den Gründen fehlgeschlagener Zustellungen (Dienst + Antwort, keine Geräteadresse) */
+export async function mitteilenMitBericht(
+  m: Mitteilung,
+  opts: { vertraulich?: boolean; nurEndpoint?: string } = {},
+): Promise<{ erreicht: number; geraete: number; fehler: string[] }> {
   const k = await schluessel();
-  if (!k) return 0;
+  if (!k) return { erreicht: 0, geraete: 0, fehler: ["Keine Push-Schlüssel (Datenbank?)"] };
   let abos = await db().select().from(schema.pushAbos);
   if (opts.nurEndpoint) abos = abos.filter((a) => a.endpoint === opts.nurEndpoint);
   if (opts.vertraulich) {
@@ -108,7 +116,7 @@ export async function mitteilen(m: Mitteilung, opts: { vertraulich?: boolean; nu
     const soll = pin ? pinSchluessel(pin) : null;
     abos = soll ? abos.filter((a) => a.pin_schluessel === soll) : [];
   }
-  if (!abos.length) return 0;
+  if (!abos.length) return { erreicht: 0, geraete: 0, fehler: [] };
 
   const nutzlast = JSON.stringify({ ...m, url: new URL(m.url, basisUrl()).toString() });
   const optionen = {
@@ -116,11 +124,13 @@ export async function mitteilen(m: Mitteilung, opts: { vertraulich?: boolean; nu
     vapidDetails: { subject: basisUrl().startsWith("https://") ? basisUrl() : `mailto:push@${APP_DOMAIN}`, publicKey: k.oeffentlich, privateKey: k.privat },
     TTL: 24 * 60 * 60,
     urgency: "high" as const,
-    topic: m.kennung?.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 32) || undefined,
+    // Kein „Topic“-Kopf: Apple lehnte Mitteilungen damit mit 400 ab. Ältere Mitteilungen zum selben Termin
+    // ersetzt das Handy trotzdem – über `tag` im Service Worker.
   };
 
   const weg: string[] = [];
   const ok: string[] = [];
+  const fehler: string[] = [];
   // In kleinen Paketen, damit viele Geräte den Server nicht überfahren
   for (let i = 0; i < abos.length; i += 25) {
     await Promise.all(
@@ -129,10 +139,12 @@ export async function mitteilen(m: Mitteilung, opts: { vertraulich?: boolean; nu
           await webpush.sendNotification({ endpoint: a.endpoint, keys: { p256dh: a.p256dh, auth: a.auth } }, nutzlast, optionen);
           ok.push(a.endpoint);
         } catch (e) {
-          const code = (e as { statusCode?: number }).statusCode;
-          if (code === 404 || code === 410) weg.push(a.endpoint);
-          // Nur Dienst und Code ins Protokoll – keine Geräteadresse
-          else console.warn(`Push nicht zugestellt (${new URL(a.endpoint).host}): ${code ?? (e as Error).message}`);
+          const f = e as { statusCode?: number; body?: string; message?: string };
+          const grund = `${new URL(a.endpoint).host}: ${f.statusCode ?? ""} ${(f.body || f.message || "").toString().slice(0, 160)}`.trim();
+          fehler.push(grund);
+          if (f.statusCode === 404 || f.statusCode === 410) weg.push(a.endpoint);
+          // Nur Dienst und Antwort ins Protokoll – keine Geräteadresse
+          console.warn(`Push nicht zugestellt – ${grund}`);
         }
       }),
     );
@@ -140,7 +152,7 @@ export async function mitteilen(m: Mitteilung, opts: { vertraulich?: boolean; nu
   if (weg.length) await db().delete(schema.pushAbos).where(inArray(schema.pushAbos.endpoint, weg));
   if (ok.length)
     await db().update(schema.pushAbos).set({ zuletzt_zugestellt: new Date() }).where(inArray(schema.pushAbos.endpoint, ok));
-  return ok.length;
+  return { erreicht: ok.length, geraete: abos.length, fehler };
 }
 
 // ───────────── Texte ─────────────

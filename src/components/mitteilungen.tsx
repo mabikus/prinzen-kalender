@@ -150,8 +150,9 @@ export function MitteilungenBereich() {
               onClick={() =>
                 starte(async () => {
                   const abo = await aktuellesAbo();
-                  const ok = abo ? await pushProbe(abo.endpoint) : false;
-                  setMeldung(ok ? "Probe-Mitteilung ist unterwegs." : "Die Probe kam nicht durch – bitte aus- und wieder einschalten.");
+                  if (!abo) return setMeldung("Auf diesem Gerät ist keine Anmeldung mehr da – bitte aus- und wieder einschalten.");
+                  const r = await pushProbe(abo.endpoint);
+                  setMeldung(r.ok ? "Probe-Mitteilung ist unterwegs." : `Die Probe kam nicht durch. Grund: ${r.grund}`);
                 })
               }
               className={`${knopf} border border-linie text-tinte active:bg-stone-100`}
