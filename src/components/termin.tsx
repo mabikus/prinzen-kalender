@@ -1,5 +1,5 @@
 import Link from "next/link";
-import {
+import { Lock,
   ChevronDown,
   CircleHelp,
   Clock,
@@ -89,6 +89,12 @@ export function KartenBadge({ t, gruppen, mitBestellt }: { t: Termin; gruppen: G
 export function TerminBadges({ t, gruppen }: { t: Termin; gruppen: Gruppe[] }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
+      {t.vertraulich && (
+        <Badge variante="hell" title="Nur mit PIN sichtbar">
+          <I icon={Lock} className="size-3.5" />
+          Vertraulich
+        </Badge>
+      )}
       <GruppenBadges t={t} gruppen={gruppen} />
       <KartenBadge t={t} gruppen={gruppen} />
       {t.status === "vorbehalt" && (

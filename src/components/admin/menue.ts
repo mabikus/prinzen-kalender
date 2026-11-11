@@ -2,6 +2,7 @@ import {
   CalendarDays,
   History,
   List,
+  Lock,
   Palette,
   Settings,
   Share2,
@@ -32,6 +33,7 @@ export const HAUPT: NavEintrag[] = [
 /** Hinter dem Zahnrad: selten gebraucht – unter diesen Pfaden zeigt die Leiste das Einstellungs-Menü */
 export const EINSTELLUNGEN: NavEintrag[] = [
   { href: "/verwaltung/darstellung", label: "Darstellung", icon: Palette, text: "App-Name, Unterzeile und Logo" },
+  { href: "/verwaltung/vertraulich", label: "Vertrauliche Termine", icon: Lock, text: "PIN für Vorstand, Familie & Co." },
   { href: "/verwaltung/benutzer", label: "Benutzer", icon: UserCog, text: "Wer die Verwaltung bedienen darf" },
   { href: "/verwaltung/protokoll", label: "Protokoll", icon: History, text: "Wer wann was geändert hat" },
   { href: "/verwaltung/konto", label: "Mein Konto", icon: UserRound, text: "Name, Passwort und Passkeys" },

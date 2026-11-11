@@ -28,6 +28,11 @@ Tailwind 4 · Radix · lucide · sonner · cmdk. Oberfläche und Texte auf Deuts
 - Kalender: `src/components/kalender/*` – Rechenlogik in `geometrie.ts` (mit Vitest-Tests).
 - Gruppenlogik, Filter, Kartenbedarf: `src/lib/labels.ts`; Zeitlogik: `src/lib/zeit.ts`; Feed: `src/lib/ics.ts`.
 - Zugriffsschutz Ansicht: `src/proxy.ts` + `src/lib/zugang.ts`.
+- Vertrauliche Termine (`termine.vertraulich`): nur nach PIN sichtbar, ohne Benutzerkonto. PIN in der Verwaltung
+  (`/verwaltung/vertraulich`, Spalte `einstellungen.pin`), Freischalten in der App unter Einstellungen (Cookie mit aus der PIN
+  abgeleitetem Schlüssel), Logik in `src/lib/vertraulich.ts`. Öffentliche Seiten laden Termine nur über `ladeAnsicht()`
+  (nie direkt `ladeDatenZwischengespeichert()`), Feeds/Routen prüfen selbst. Neue PIN = alle Freischaltungen und
+  vertraulichen Abos enden. „Bestellt“ (Karten) ist ebenfalls intern und erscheint nie in der Ansicht.
 - Darstellung (App-Name, Unterzeile, Logo): Verwaltung → Darstellung, Tabelle `einstellungen`, Laden über `src/lib/marke-laden.ts`
   (`"use cache"` + `cacheTag("marke")`, nach dem Speichern `updateTag`). Bild-Adressen tragen `?v=<logo_stand>`.
 - Prüfen vor dem Commit: `npx tsc --noEmit`, `npm run lint`, `npm test`.

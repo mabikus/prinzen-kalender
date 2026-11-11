@@ -24,6 +24,7 @@ const t = (felder: Partial<Termin>): Termin => ({
   anmeldung: null,
   karten_bestellt: null,
   personen: {},
+  vertraulich: false,
   hinweis: null,
   bemerkung: null,
   quelle: [],

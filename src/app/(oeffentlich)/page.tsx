@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import { ArrowRight } from "lucide-react";
 import { I, Orte, ProgrammKarte, TerminBadges, TerminZeile } from "@/components/termin";
 import { ListenSkelett } from "@/components/termin-skelett";
-import { jetztZwischengespeichert, ladeDatenZwischengespeichert } from "@/lib/daten";
+import { jetztZwischengespeichert } from "@/lib/daten";
+import { ladeAnsicht } from "@/lib/vertraulich";
 import { filterListe } from "@/lib/labels";
 import type { Termin } from "@/lib/types";
 import { datumKurz, datumLang, MONATE, zeitplan, zeitText } from "@/lib/zeit";
@@ -21,7 +22,7 @@ async function Agenda({ searchParams }: Pick<PageProps<"/">, "searchParams">) {
   const mitVergangenen = sp.vergangen === "1";
 
   // Zwischengespeichert, damit der Tab vorgeladen ist (Änderungen in der Verwaltung erneuern sofort)
-  const [{ termine: alle, gruppen }, jetzt] = await Promise.all([ladeDatenZwischengespeichert(), jetztZwischengespeichert()]);
+  const [{ termine: alle, gruppen }, jetzt] = await Promise.all([ladeAnsicht(), jetztZwischengespeichert()]);
   const filterAuswahl = filterListe(gruppen);
   const aktiv = filterAuswahl.find((f) => f.key === sp.f) ?? filterAuswahl[0];
   const filter = aktiv.key;

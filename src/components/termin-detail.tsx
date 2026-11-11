@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import {
+import { Lock,
   CalendarPlus,
   ChevronLeft,
   ChevronRight,
@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { ANMELDUNG_ICON, GruppenBadges, I } from "@/components/termin";
 import { adresseText, kartenLink } from "@/lib/adresse";
-import { ladeDatenZwischengespeichert } from "@/lib/daten";
+import { ladeAnsicht } from "@/lib/vertraulich";
 import { ANMELDUNG, ART, personenBedarf, personenVon, STATUS, UMFANG } from "@/lib/labels";
 import { aktuellerAdmin } from "@/lib/sitzung";
 import { datumLang, zeitplan, zeitText } from "@/lib/zeit";
@@ -117,7 +117,7 @@ async function KopfMitBearbeiten({ id, datum, imBlatt }: { id: string; datum: st
  */
 export async function TerminDetail({ params, imBlatt }: { params: Promise<{ id: string }>; imBlatt?: boolean }) {
   const { id } = await params;
-  const daten = await ladeDatenZwischengespeichert();
+  const daten = await ladeAnsicht();
   const t = daten.termine.find((x) => x.id === decodeURIComponent(id));
   if (!t) notFound();
 
@@ -146,6 +146,12 @@ export async function TerminDetail({ params, imBlatt }: { params: Promise<{ id: 
 
       <header className="space-y-2">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[13px] font-semibold uppercase tracking-[0.1em]">
+          {t.vertraulich ? (
+            <span className="inline-flex items-center gap-1 text-marke-700">
+              <I icon={Lock} className="size-3.5" />
+              Vertraulich ·
+            </span>
+          ) : null}
           <span className="text-marke-700">{ART[t.art]}</span>
           {t.tagesprogramm ? <span className="text-grau">· {t.tagesprogramm}</span> : null}
         </div>

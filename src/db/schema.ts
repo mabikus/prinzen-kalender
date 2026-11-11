@@ -82,6 +82,8 @@ export const termine = pgTable(
     anmeldung: terminAnmeldung("anmeldung"),
     karten_bestellt: integer("karten_bestellt"),
     /** Abweichende Personenzahl je Gruppe nur für diesen Termin (Gruppen-ID → Anzahl) */
+    /** Nur mit PIN sichtbar (z. B. Vorstandstermine) – nicht in der normalen Ansicht und nicht im normalen Abo */
+    vertraulich: boolean("vertraulich").notNull().default(false),
     personen: jsonb("personen").$type<Record<string, number>>().notNull().default(sql`'{}'::jsonb`),
     hinweis: text("hinweis"),
     bemerkung: text("bemerkung"),
@@ -106,6 +108,9 @@ export const einstellungen = pgTable("einstellungen", {
   logo_klein: bytea("logo_klein"),
   /** Zählt bei jedem neuen Logo hoch – hängt als ?v= an den Bild-Adressen (kein altes Logo aus Zwischenspeichern) */
   logo_stand: integer("logo_stand").notNull().default(0),
+  /** PIN für vertrauliche Termine (4–8 Ziffern); null = keine vertraulichen Termine freischaltbar.
+   *  Bewusst lesbar gespeichert: die Verwaltung soll sie anzeigen und weitergeben können. */
+  pin: text("pin"),
   geaendert_am: timestamp("geaendert_am", { withTimezone: true })
     .notNull()
     .defaultNow()

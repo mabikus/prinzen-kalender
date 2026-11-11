@@ -1,5 +1,7 @@
 "use server";
 
+import { ladeMarke } from "@/lib/marke-laden";
+import { PIN_TAG } from "@/lib/vertraulich";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import {
@@ -73,6 +75,7 @@ export interface TerminEingabe {
   anmeldung: Anmeldung | null;
   karten_bestellt: number | null;
   personen: Record<string, number>;
+  vertraulich: boolean;
   hinweis: string | null;
   bemerkung: string | null;
   pruefen: string | null;
@@ -147,6 +150,7 @@ async function zuTermin(e: TerminEingabe): Promise<Termin> {
     anmeldung: e.anmeldung === "eintrittskarte" ? e.anmeldung : null,
     karten_bestellt: typeof karten === "number" && Number.isInteger(karten) && karten >= 0 ? karten : null,
     personen,
+    vertraulich: e.vertraulich === true,
     hinweis: leer(e.hinweis),
     bemerkung: leer(e.bemerkung),
     quelle: alt?.quelle ?? [],
@@ -367,5 +371,25 @@ export async function darstellungSpeichern(form: FormData) {
       logo: zuruecksetzen ? "zurückgesetzt" : logo ? "neu" : "unverändert",
     });
     updateTag(MARKE_TAG);
+  });
+}
+
+// ───────────── Vertrauliche Termine (PIN) ─────────────
+
+/** PIN für vertrauliche Termine setzen, ändern (alle Freischaltungen und vertraulichen Abos enden) oder entfernen (null) */
+export async function pinSpeichern(eingabe: string | null) {
+  return sicher(async (a) => {
+    if (!hatDatenbank()) throw new BenutzerFehler("Ändern ist erst möglich, wenn die Datenbank verbunden ist.");
+    const pin = eingabe === null ? null : eingabe.trim();
+    if (pin !== null && !/^\d{4,8}$/.test(pin)) throw new BenutzerFehler("Die PIN muss aus 4 bis 8 Ziffern bestehen.");
+    const marke = await ladeMarke();
+    const t = schema.einstellungen;
+    await db()
+      .insert(t)
+      .values({ id: "app", app_name: marke.name, untertitel: marke.untertitel, pin })
+      .onConflictDoUpdate({ target: t.id, set: { pin } });
+    // Die PIN selbst nicht ins Protokoll
+    await protokolliereAktion(wer(a), pin ? "pin.geaendert" : "pin.entfernt", { id: "app", titel: "Vertrauliche Termine" });
+    updateTag(PIN_TAG);
   });
 }

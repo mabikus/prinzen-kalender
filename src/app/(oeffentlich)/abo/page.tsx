@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { CalendarPlus, Mail, MonitorSmartphone, Smartphone, TriangleAlert, type LucideIcon } from "lucide-react";
+import { CalendarPlus, Lock, Mail, MonitorSmartphone, Smartphone, TriangleAlert, type LucideIcon } from "lucide-react";
 import { Kopieren } from "@/components/kopieren";
 import { I } from "@/components/termin";
 import { basisUrl } from "@/lib/auth";
-import { ladeDatenZwischengespeichert } from "@/lib/daten";
 import { filterListe, type Filter } from "@/lib/labels";
 import { feedToken } from "@/lib/zugang";
+import { aboTokenFuerAnsicht, ladeAnsicht } from "@/lib/vertraulich";
 import { ladeMarke } from "@/lib/marke-laden";
 
 export const metadata = { title: "Kalender-Abo" };
@@ -145,8 +145,9 @@ async function Feeds() {
   const basis = new URL(basisUrl());
   const host = basis.host;
   const proto = basis.protocol.replace(":", "");
-  const token = feedToken();
-  const [{ gruppen }, marke] = await Promise.all([ladeDatenZwischengespeichert(), ladeMarke()]);
+  // Freigeschaltet (PIN): eigene Abo-Adressen, die auch die vertraulichen Termine enthalten
+  const [{ gruppen }, marke, vertraulichToken] = await Promise.all([ladeAnsicht(), ladeMarke(), aboTokenFuerAnsicht()]);
+  const token = vertraulichToken ?? feedToken();
   const [alle, ...weitere] = filterListe(gruppen);
   const gruppenFeeds = weitere.filter((f) => gruppen.some((g) => g.id === f.key));
   const sonstige = weitere.filter((f) => !gruppen.some((g) => g.id === f.key));
@@ -157,6 +158,12 @@ async function Feeds() {
         <div>
           <h2 className="font-serif lining-nums text-2xl font-semibold">Alle Termine</h2>
           <p className="text-sm text-grau">Der komplette Plan der Session – für Prinz und Adjutanten.</p>
+          {vertraulichToken ? (
+            <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-marke-700">
+              <I icon={Lock} className="size-4" />
+              Mit vertraulichen Terminen – diese Links nur an Eingeweihte geben.
+            </p>
+          ) : null}
         </div>
         <Knoepfe f={alle} host={host} proto={proto} token={token} haupt appName={marke.name} />
       </section>

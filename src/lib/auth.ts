@@ -35,7 +35,7 @@ function vertrauteHerkuenfte(): string[] {
  * sonst abgeleitet (SHA-256) aus der Datenbank-Adresse – die enthält das geheime Datenbank-Passwort und liegt nur
  * auf dem Server. Wird das Datenbank-Passwort geändert, müssen sich alle neu anmelden.
  */
-function anmeldeGeheimnis(): string | undefined {
+export function anmeldeGeheimnis(): string | undefined {
   if (process.env.BETTER_AUTH_SECRET) return process.env.BETTER_AUTH_SECRET;
   if (process.env.SUPABASE_JWT_SECRET) return process.env.SUPABASE_JWT_SECRET;
   const url = datenbankUrl();

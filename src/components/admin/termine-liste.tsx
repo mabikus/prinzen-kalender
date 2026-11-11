@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { CircleHelp, Clock, Copy, MoreHorizontal, Pencil, Plus, Ticket, Trash2 } from "lucide-react";
+import { CircleHelp, Clock, Copy, Lock, MoreHorizontal, Pencil, Plus, Ticket, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { Tooltip } from "@/components/ui/controls";
@@ -49,6 +49,11 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
       titelText: (t) => [t.tagesprogramm, t.titel].filter(Boolean).join(": "),
       zelle: (t) => (
         <span className="flex min-w-0 items-center gap-1.5">
+          {t.vertraulich ? (
+            <Tooltip content="Vertraulich – nur mit PIN sichtbar">
+              <Lock className="size-3.5 shrink-0 text-accent-ink" aria-label="Vertraulich" />
+            </Tooltip>
+          ) : null}
           <span className="min-w-0 truncate">
             {t.tagesprogramm ? <span className="text-subtle">{t.tagesprogramm}: </span> : null}
             <span className="font-medium">{t.titel}</span>
@@ -116,6 +121,7 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
           { wert: "alle", titel: "Alle", passt: () => true },
           { wert: "pruefen", titel: "Prüfen", passt: (t) => !!t.pruefen, hervorheben: true },
           { wert: "karten", titel: "Karten", passt: (t) => !!t.anmeldung },
+          { wert: "vertraulich", titel: "Vertraulich", passt: (t) => t.vertraulich },
         ]}
         suchtext={(t) =>
           [t.titel, t.tagesprogramm, t.treffpunkt, t.ort, t.veranstalter, t.bemerkung, datumKurz(t.datum), werText(t, gruppen)]

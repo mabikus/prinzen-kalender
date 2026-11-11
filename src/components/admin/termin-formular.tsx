@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
-import { Check, ChevronDown, Minus, Plus, Ticket, TriangleAlert, X } from "lucide-react";
+import { Check, ChevronDown, Lock, Minus, Plus, Ticket, TriangleAlert, X } from "lucide-react";
 import { terminSpeichern, type TerminEingabe } from "@/app/verwaltung/aktionen";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
@@ -35,6 +35,7 @@ function leererTermin(v: Vorlage = {}): TerminEingabe {
     anmeldung: null,
     karten_bestellt: null,
     personen: {},
+    vertraulich: false,
     hinweis: null,
     bemerkung: null,
     pruefen: null,
@@ -513,7 +514,14 @@ export function TerminFormular({
         ) : null}
       </Liste>
 
-      <Liste titel="Status">
+      <Liste
+        titel="Status"
+        fuss={
+          w.vertraulich
+            ? "Vertraulich: erscheint nur, wer in der App unter Einstellungen die PIN eingegeben hat (PIN: Verwaltung → Einstellungen → Vertrauliche Termine)."
+            : undefined
+        }
+      >
         <Zeile label="Zusage">
           <Segmented
             value={w.status}
@@ -533,6 +541,17 @@ export function TerminFormular({
             options={[
               { value: "intern", label: "Intern" },
               { value: "extern", label: "Extern" },
+            ]}
+          />
+        </Zeile>
+        <Zeile label="Sichtbar für">
+          <Segmented
+            value={w.vertraulich ? "pin" : "alle"}
+            onChange={(v) => setze("vertraulich", v === "pin")}
+            size="sm"
+            options={[
+              { value: "alle", label: "Alle" },
+              { value: "pin", label: "Nur mit PIN", icon: <Lock /> },
             ]}
           />
         </Zeile>

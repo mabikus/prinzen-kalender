@@ -5,7 +5,8 @@ import { EINSTELLUNGEN } from "@/components/admin/menue";
 import { Skeleton } from "@/components/ui/display";
 import { Page, PageHeader } from "@/components/ui/page";
 import { ladeBenutzer } from "@/lib/benutzer";
-import { ladeProtokoll } from "@/lib/daten";
+import { ladeDaten, ladeProtokoll } from "@/lib/daten";
+import { ladePin } from "@/lib/vertraulich";
 import { ladeMarke } from "@/lib/marke-laden";
 import { zeitpunkt } from "@/lib/protokoll-text";
 import { brauchtAdmin } from "@/lib/sitzung";
@@ -16,7 +17,7 @@ export const metadata = { title: "Einstellungen" };
 export default function Seite() {
   return (
     <Page width="default">
-      <PageHeader title="Einstellungen" description="Nur das Wichtigste – Aussehen der App, wer sie bedienen darf und was geändert wurde." />
+      <PageHeader title="Einstellungen" description="Nur das Wichtigste – Aussehen der App, vertrauliche Termine, wer sie bedienen darf und was geändert wurde." />
       <section aria-labelledby="bereiche">
         <h2 id="bereiche" className="mb-3 px-1 text-[11.5px] font-semibold uppercase tracking-[0.12em] text-subtle">
           Bereiche
@@ -61,6 +62,11 @@ async function standText(href: string): Promise<string | null> {
     switch (href) {
       case "/verwaltung/darstellung":
         return (await ladeMarke()).name;
+      case "/verwaltung/vertraulich": {
+        const [pin, daten] = await Promise.all([ladePin(), ladeDaten()]);
+        const n = daten.termine.filter((t) => t.vertraulich).length;
+        return pin ? `PIN gesetzt · ${n} vertraulich` : "Noch keine PIN";
+      }
       case "/verwaltung/benutzer": {
         const b = await ladeBenutzer();
         const aktiv = b.filter((x) => !x.banned).length;

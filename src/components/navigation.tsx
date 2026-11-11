@@ -8,7 +8,7 @@ const NAV = [
   { href: "/", label: "Termine", icon: List },
   { href: "/monat", label: "Monat", icon: CalendarDays },
   { href: "/abo", label: "Abo", icon: Rss },
-  { href: "/verwaltung", label: "Verwaltung", icon: Settings },
+  { href: "/einstellungen", label: "Einstellungen", icon: Settings },
 ] as const;
 
 type Variante = "oben" | "unten";
@@ -80,7 +80,7 @@ export function NavLinks({ pfad, variante }: { pfad: string | null; variante: Va
             }`}
           >
             <Icon className="size-4" strokeWidth={1.75} aria-hidden />
-            {n.href === "/verwaltung" ? <span className="sr-only">{n.label}</span> : n.label}
+            {n.href === "/einstellungen" ? <span className="sr-only">{n.label}</span> : n.label}
           </Link>
         );
       })}

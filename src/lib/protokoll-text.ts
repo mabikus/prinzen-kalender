@@ -19,6 +19,8 @@ export const AKTION: Record<string, string> = {
   "benutzer.aktiviert": "hat aktiviert",
   "benutzer.geloescht": "hat gelöscht",
   "darstellung.geaendert": "hat die Darstellung geändert",
+  "pin.geaendert": "hat die PIN für vertrauliche Termine geändert",
+  "pin.entfernt": "hat die PIN für vertrauliche Termine entfernt",
 };
 
 export const FELD: Record<string, string> = {
@@ -42,6 +44,7 @@ export const FELD: Record<string, string> = {
   anmeldung: "Karten/Anmeldung",
   karten_bestellt: "Bestellt",
   personen: "Personen am Termin",
+  vertraulich: "Nur mit PIN",
   hinweis: "Hinweis",
   bemerkung: "Bemerkung",
   pruefen: "Prüfen",

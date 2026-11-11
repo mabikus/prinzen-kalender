@@ -79,6 +79,8 @@ export interface Termin {
   /** Abweichende Personenzahl je Gruppe nur für diesen Termin (Gruppen-ID → Anzahl), z. B. „vom Elferrat nur 2“.
    *  Ohne Eintrag gilt die Zahl der Gruppe. */
   personen: Record<string, number>;
+  /** Nur mit PIN sichtbar (z. B. Vorstandstermine) */
+  vertraulich: boolean;
   /** Sonstiger wichtiger Hinweis, z. B. "Abfahrt 12:00 Uhr!" */
   hinweis: string | null;
   bemerkung: string | null;

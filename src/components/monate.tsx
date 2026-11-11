@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
+import { Lock, ChevronLeft, ChevronRight, Clock, MapPin } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import { hhmm, kalenderwoche } from "@/components/kalender/geometrie";
 import { werText } from "@/lib/labels";
@@ -226,7 +226,10 @@ export function Monate({
                       <Link href={`/termin/${t.id}`} scroll={false} prefetch className="flex items-stretch gap-3 px-3 py-3 active:bg-papier">
                         <span className={cn("w-1 shrink-0 rounded-full", FARBE[t.umfang], t.status === "vorbehalt" && "opacity-60")} />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-[17px] font-semibold leading-snug text-tinte">{t.titel}</span>
+                          <span className="flex items-center gap-1.5 text-[17px] font-semibold leading-snug text-tinte">
+                            {t.vertraulich ? <Lock className="size-4 shrink-0 text-marke-700" strokeWidth={2} aria-label="Vertraulich" /> : null}
+                            <span className="truncate">{t.titel}</span>
+                          </span>
                           {ort ? (
                             <span className="mt-0.5 flex items-center gap-1 text-[14px] text-grau">
                               <MapPin className="size-3.5 shrink-0" strokeWidth={1.75} aria-hidden />
