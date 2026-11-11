@@ -79,8 +79,8 @@ export function beschreibung(t: Termin, daten: Daten, link?: string): string {
   if (t.anmeldung) {
     const b = personenBedarf(t, daten.gruppen);
     z.push(
-      `${ANMELDUNG[t.anmeldung].label}: ${b.summe}${b.ohneAngabe.length ? "+" : ""} Personen` +
-        (t.karten_bestellt != null ? ` (bestellt: ${t.karten_bestellt})` : ""),
+      // ohne „bestellt“ – das Abo ist öffentlich, die Bestellung intern
+      `${ANMELDUNG[t.anmeldung].label}: ${b.summe}${b.ohneAngabe.length ? "+" : ""} Personen`,
     );
   }
   if (t.status === "vorbehalt") z.push(`Status: ${STATUS.vorbehalt}`);

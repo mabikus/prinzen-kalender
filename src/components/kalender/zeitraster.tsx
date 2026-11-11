@@ -20,12 +20,11 @@ import {
 } from "./geometrie";
 import { FlaecheMenue, TerminMenue } from "./menue";
 
-/** Farbe eines Termins im Kalender: Alle = rot, Auswahl = hellrot, Jeder Verfügbare = grau */
+/** Farbe eines Termins im Kalender: Alle = rot, Auswahl = hellrot */
 export function kachelStil(t: Termin) {
   return cn(
     t.umfang === "alle" && "bg-accent text-accent-fg",
     t.umfang === "auswahl" && "bg-[color-mix(in_srgb,var(--accent)_10%,var(--panel))] text-accent-ink border-l-[3px] border-accent",
-    t.umfang === "jeder_verfuegbare" && "bg-active text-muted border-l-[3px] border-line-strong",
     t.status === "vorbehalt" &&
       "opacity-80 [background-image:repeating-linear-gradient(135deg,transparent_0,transparent_6px,rgb(255_255_255/0.22)_6px,rgb(255_255_255/0.22)_12px)]",
   );

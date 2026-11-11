@@ -11,12 +11,11 @@ export type Art = "intern" | "extern";
  * Wer ist dabei?
  * - auswahl: nur die angekreuzten Gruppen
  * - alle: alle Gruppen (die zu "Alle" zählen) + angekreuzte Extras
- * - jeder_verfuegbare: wie "alle", aber freiwillig ("Viele Hände …")
  */
-export type Umfang = "auswahl" | "alle" | "jeder_verfuegbare";
+export type Umfang = "auswahl" | "alle";
 
 /** Muss vorher etwas bestellt / angemeldet werden? */
-export type Anmeldung = "eintrittskarte" | "voranmeldung";
+export type Anmeldung = "eintrittskarte";
 
 export type Farbe =
   | "rot"
@@ -39,7 +38,7 @@ export interface Gruppe {
   /** Anzahl Personen – für die Berechnung der Eintrittskarten */
   personen: number | null;
   farbe: Farbe;
-  /** Gehört zu "Alle" / "Jeder Verfügbare"? (z. B. Familie: nein) */
+  /** Gehört zu "Alle"? (z. B. Familie: nein) */
   in_alle: boolean;
   sortierung: number;
 }
@@ -75,7 +74,7 @@ export interface Termin {
   /** IDs der angekreuzten Gruppen */
   gruppen: string[];
   anmeldung: Anmeldung | null;
-  /** Wie viele Karten / Anmeldungen bereits bestellt sind */
+  /** Wie viele Karten bereits bestellt sind – nur intern (Verwaltung), nie öffentlich anzeigen */
   karten_bestellt: number | null;
   /** Sonstiger wichtiger Hinweis, z. B. "Abfahrt 12:00 Uhr!" */
   hinweis: string | null;

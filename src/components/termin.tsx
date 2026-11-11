@@ -3,7 +3,6 @@ import {
   ChevronDown,
   CircleHelp,
   Clock,
-  ClipboardPen,
   MapPin,
   Ticket,
   TriangleAlert,
@@ -19,7 +18,7 @@ export function I({ icon: Icon, className = "size-4" }: { icon: LucideIcon; clas
   return <Icon className={`shrink-0 ${className}`} strokeWidth={1.75} aria-hidden />;
 }
 
-export const ANMELDUNG_ICON = { eintrittskarte: Ticket, voranmeldung: ClipboardPen } as const;
+export const ANMELDUNG_ICON = { eintrittskarte: Ticket } as const;
 
 type Variante = "voll" | "rahmen" | "neutral" | "hell" | "gestrichelt";
 
@@ -59,7 +58,7 @@ export function GruppenBadges({ t, gruppen }: { t: Termin; gruppen: Gruppe[] }) 
   return (
     <>
       {t.umfang !== "auswahl" && (
-        <Badge variante={t.umfang === "alle" ? "voll" : "rahmen"} title={UMFANG[t.umfang].beschreibung}>
+        <Badge variante="voll" title={UMFANG[t.umfang].beschreibung}>
           {UMFANG[t.umfang].label}
         </Badge>
       )}
@@ -72,16 +71,17 @@ export function GruppenBadges({ t, gruppen }: { t: Termin; gruppen: Gruppe[] }) 
   );
 }
 
-export function KartenBadge({ t, gruppen }: { t: Termin; gruppen: Gruppe[] }) {
+/** Kartenbedarf. „Bestellt“ ist intern – nur in der Verwaltung (`mitBestellt`), nie in der öffentlichen Ansicht. */
+export function KartenBadge({ t, gruppen, mitBestellt }: { t: Termin; gruppen: Gruppe[]; mitBestellt?: boolean }) {
   if (!t.anmeldung) return null;
   const b = personenBedarf(t, gruppen);
-  const offen = t.karten_bestellt == null || t.karten_bestellt < b.summe;
+  const offen = !mitBestellt || t.karten_bestellt == null || t.karten_bestellt < b.summe;
   return (
     <Badge variante={offen ? "hell" : "neutral"} title={ANMELDUNG[t.anmeldung].label}>
       <I icon={ANMELDUNG_ICON[t.anmeldung]} className="size-3.5" />
       {b.summe}
       {b.ohneAngabe.length > 0 && "+"} Pers.
-      {t.karten_bestellt != null && ` · ${t.karten_bestellt} bestellt`}
+      {mitBestellt && t.karten_bestellt != null && ` · ${t.karten_bestellt} bestellt`}
     </Badge>
   );
 }
@@ -272,7 +272,7 @@ export function ProgrammKarte({
               {karten > 0 && (
                 <Badge variante="hell">
                   <I icon={Ticket} className="size-3.5" />
-                  {karten}× Karten/Anmeldung
+                  {karten}× Karten
                 </Badge>
               )}
             </div>

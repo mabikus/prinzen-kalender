@@ -33,8 +33,8 @@ const zeitstempel = {
 
 export const terminStatus = pgEnum("termin_status", ["bestaetigt", "vorbehalt"]);
 export const terminArt = pgEnum("termin_art", ["intern", "extern"]);
-export const terminUmfang = pgEnum("termin_umfang", ["auswahl", "alle", "jeder_verfuegbare"]);
-export const terminAnmeldung = pgEnum("termin_anmeldung", ["eintrittskarte", "voranmeldung"]);
+export const terminUmfang = pgEnum("termin_umfang", ["auswahl", "alle"]);
+export const terminAnmeldung = pgEnum("termin_anmeldung", ["eintrittskarte"]);
 export const gruppenFarbe = pgEnum("gruppen_farbe", [
   "rot",
   "orange",

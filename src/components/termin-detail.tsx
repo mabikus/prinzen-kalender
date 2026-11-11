@@ -217,25 +217,20 @@ export async function TerminDetail({ params, imBlatt }: { params: Promise<{ id: 
         </Karte>
       ) : null}
 
-      {/* Karten / Anmeldung */}
+      {/* Karten */}
       {t.anmeldung ? (
         <Karte titel={ANMELDUNG[t.anmeldung].label}>
           <div className="flex items-center gap-3 px-4 py-3">
             <span className="grid size-10 shrink-0 place-items-center rounded-full bg-marke-50 text-marke-700">
               <I icon={ANMELDUNG_ICON[t.anmeldung]} className="size-[18px]" />
             </span>
-            <div className="grid flex-1 grid-cols-2 text-center">
-              <div>
-                <div className="font-serif text-[26px] font-semibold leading-none tabular-nums">
-                  {bedarf.summe}
-                  {bedarf.ohneAngabe.length ? <span className="text-grau">+</span> : null}
-                </div>
-                <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.1em] text-grau">benötigt</div>
-              </div>
-              <div>
-                <div className="font-serif text-[26px] font-semibold leading-none tabular-nums text-tinte/70">{t.karten_bestellt ?? "–"}</div>
-                <div className="mt-1 text-[12px] font-semibold uppercase tracking-[0.1em] text-grau">bestellt</div>
-              </div>
+            {/* „Bestellt“ ist intern und steht nur in der Verwaltung */}
+            <div className="flex flex-1 items-baseline gap-2">
+              <span className="font-serif text-[26px] font-semibold leading-none tabular-nums">
+                {bedarf.summe}
+                {bedarf.ohneAngabe.length ? <span className="text-grau">+</span> : null}
+              </span>
+              <span className="text-[12px] font-semibold uppercase tracking-[0.1em] text-grau">Personen</span>
             </div>
           </div>
           {bedarf.dabei.map((g) => (

@@ -298,7 +298,7 @@ export function TerminFormular({
     e.preventDefault();
     setFehler(undefined);
     if (!w.datum) return setFehler("Bitte ein Datum wählen.");
-    // Bei "Alle"/"Jeder Verfügbare" nur die Extras speichern (z. B. Familie)
+    // Bei "Alle" nur die Extras speichern (z. B. Familie)
     const eingabe: TerminEingabe = {
       ...w,
       id: termin?.id,
@@ -429,7 +429,6 @@ export function TerminFormular({
             className="w-full [&>button]:flex-1 [&>button]:justify-center [&>button]:px-1"
             options={[
               { value: "alle", label: "Alle" },
-              { value: "jeder_verfuegbare", label: "Jeder Verfügb." },
               { value: "auswahl", label: "Auswahl" },
             ]}
           />
@@ -462,7 +461,7 @@ export function TerminFormular({
         })}
       </Liste>
 
-      <Liste titel="Karten / Anmeldung">
+      <Liste titel="Karten">
         <div className="px-3 py-2.5">
           <Segmented
             value={w.anmeldung ?? "keine"}
@@ -471,7 +470,6 @@ export function TerminFormular({
             options={[
               { value: "keine", label: "Nicht nötig" },
               { value: "eintrittskarte", label: "Karte", icon: <Ticket /> },
-              { value: "voranmeldung", label: "Anmeldung" },
             ]}
           />
         </div>

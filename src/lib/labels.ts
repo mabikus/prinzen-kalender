@@ -13,15 +13,10 @@ export const ART: Record<Art, string> = {
 export const UMFANG: Record<Umfang, { label: string; beschreibung: string }> = {
   auswahl: { label: "Auswahl", beschreibung: "Nur die angekreuzten Gruppen" },
   alle: { label: "Alle", beschreibung: "Alle Gruppen sind dabei" },
-  jeder_verfuegbare: {
-    label: "Jeder Verfügbare",
-    beschreibung: "Alle, die können – „Viele Hände …“",
-  },
 };
 
 export const ANMELDUNG: Record<Anmeldung, { label: string; kurz: string }> = {
   eintrittskarte: { label: "Eintrittskarte nötig", kurz: "Eintrittskarte" },
-  voranmeldung: { label: "Voranmeldung nötig", kurz: "Voranmeldung" },
 };
 
 /** Gespeicherte Gruppenfarbe – wird in der Oberfläche derzeit nicht genutzt (Rot-Weiß-Design). */
@@ -42,7 +37,7 @@ export function gruppenDabei(t: Termin, gruppen: Gruppe[]): Gruppe[] {
   return gruppen.filter((g) => gruppeDabei(t, g));
 }
 
-/** Wie viele Personen kommen mit? (für Eintrittskarten / Anmeldung) */
+/** Wie viele Personen kommen mit? (für Eintrittskarten) */
 export function personenBedarf(t: Termin, gruppen: Gruppe[]) {
   const dabei = gruppenDabei(t, gruppen);
   return {
@@ -81,8 +76,8 @@ export function filterListe(gruppen: Gruppe[]): Filter[] {
     })),
     {
       key: "karten",
-      label: "Karten / Anmeldung",
-      beschreibung: "Termine mit Eintrittskarte oder Voranmeldung",
+      label: "Karten",
+      beschreibung: "Termine mit Eintrittskarte",
       passt: (t: Termin) => t.anmeldung !== null,
     },
     { key: "intern", label: "Intern", beschreibung: "Eigene Veranstaltungen der KG", passt: (t) => t.art === "intern" },

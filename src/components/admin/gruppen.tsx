@@ -172,7 +172,7 @@ export function GruppenVerwaltung({ gruppen, anzahl }: { gruppen: Gruppe[]; anza
             </div>
             <label className="flex items-center justify-between gap-4 rounded-[var(--radius-control)] bg-bg px-3 py-2.5 text-[13.5px]">
               <span>
-                Gehört zu „Alle“ / „Jeder Verfügbare“
+                Gehört zu „Alle“
                 <span className="block text-[12.5px] text-subtle">Familie z. B. nicht – die wird extra angekreuzt.</span>
               </span>
               <Switch checked={entwurf.in_alle} onCheckedChange={(v) => setEntwurf({ ...entwurf, in_alle: v })} />

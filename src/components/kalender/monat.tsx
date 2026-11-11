@@ -146,7 +146,7 @@ export function Monatsansicht({
                         key={e.t.id}
                         className={cn(
                           "h-[5px] w-full rounded-full",
-                          e.t.umfang === "alle" ? "bg-accent" : e.t.umfang === "auswahl" ? "bg-accent/45" : "bg-subtle/45",
+                          e.t.umfang === "alle" ? "bg-accent" : "bg-accent/45",
                           e.t.status === "vorbehalt" && "opacity-60",
                         )}
                       />

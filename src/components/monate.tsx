@@ -12,8 +12,8 @@ import { datumLang, jetztInBerlin, MONATE, zeitplan } from "@/lib/zeit";
 
 const WT = ["M", "D", "M", "D", "F", "S", "S"];
 
-/** Farbe eines Termins: Alle = rot, Auswahl = hellrot, Jeder Verfügbare = grau */
-const FARBE = { alle: "bg-marke-700", auswahl: "bg-marke-300", jeder_verfuegbare: "bg-stone-400" } as const;
+/** Farbe eines Termins: Alle = rot, Auswahl = hellrot */
+const FARBE = { alle: "bg-marke-700", auswahl: "bg-marke-300" } as const;
 
 const istTag = (x: string | null): x is string => !!x && /^\d{4}-\d{2}-\d{2}$/.test(x);
 

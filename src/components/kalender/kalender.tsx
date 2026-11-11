@@ -676,7 +676,7 @@ function DetailsInhalt({ t, gruppen, vorher }: { t: Termin; gruppen: Gruppe[]; v
           </Zeile>
           {t.anmeldung ? (
             <Zeile label="Karten">
-              <KartenBadge t={t} gruppen={gruppen} />
+              <KartenBadge t={t} gruppen={gruppen} mitBestellt />
             </Zeile>
           ) : null}
           {t.bemerkung ? <Zeile label="Bemerkung">{t.bemerkung}</Zeile> : null}

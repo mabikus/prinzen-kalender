@@ -6,10 +6,10 @@
 // - KG-Plan "Uhrzeit" + "Treffpunkt"  -> treffzeit / treffpunkt
 //   (ohne Treffpunkt ist die Uhrzeit die Zeit vor Ort -> beginn)
 // - "Beginn 19:11" aus dem Veranstaltungstext -> beginn
-// - Teilnahme-Spalte: "Alle" -> umfang alle, "Jeder Verfügbare" -> jeder_verfuegbare,
+// - Teilnahme-Spalte: "Alle" -> umfang alle, "Jeder Verfügbare" -> ebenfalls alle,
 //   "Nur Prinz + Vorstand" -> Prinz + Vorstand,
 //   Kästchen (Teilnahme wird abgefragt) -> erstmal nur Prinz, Gruppen ergänzen
-// - "nur mit vorbestellter Eintrittskarte" / "nur mit Voranmeldung" -> anmeldung
+// - "nur mit vorbestellter Eintrittskarte" / "nur mit Voranmeldung" -> anmeldung eintrittskarte
 // - Unstimmigkeiten zwischen den Listen stehen im Feld `pruefen`.
 //
 // Diese Datei ist nur der Startbestand. Mit `npm run seed:sql` wird daraus
@@ -92,14 +92,14 @@ function t(datum: string, e: Eingabe): Omit<Termin, "id"> & { id?: string } {
   };
 }
 
-/** Arbeitseinsatz "Jeder Verfügbare (Viele Hände …)" */
+/** Arbeitseinsatz "Jeder Verfügbare (Viele Hände …)" – gilt als „Alle“ */
 function helfer(datum: string, zeit: string, titel: string, treffpunkt = LF, e: Partial<Eingabe> = {}) {
   return t(datum, {
     titel,
     treffzeit: zeit,
     treffpunkt,
     art: "intern",
-    umfang: "jeder_verfuegbare",
+    umfang: "alle",
     gruppen: [],
     ...e,
   });
@@ -281,7 +281,7 @@ const roh = [
     treffzeit: "19:00",
     treffpunkt: "Geschäftsstelle Bad Neuenahr",
     veranstalter: "VR Bank",
-    anmeldung: "voranmeldung",
+    anmeldung: "eintrittskarte",
   }),
   helfer("2027-01-21", "17:00", "Aufbau Prinzenball"),
   t("2027-01-21", {
@@ -567,7 +567,7 @@ const roh = [
     treffpunkt: "Köhlerhof",
     tagesprogramm: "Aschermittwoch",
     art: "intern",
-    anmeldung: "voranmeldung",
+    anmeldung: "eintrittskarte",
   }),
 ];
 
