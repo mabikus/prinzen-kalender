@@ -224,7 +224,7 @@ export function MitteilungenHinweis() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 40, opacity: 0 }}
           transition={{ type: "spring", stiffness: 340, damping: 34 }}
-          className="fixed inset-x-3 bottom-[calc(var(--tab-platz)+0.25rem)] z-40 mx-auto max-w-md rounded-[22px] border border-linie bg-panel p-4 shadow-[0_18px_50px_-12px_rgb(0_0_0/0.35)] sm:bottom-6"
+          className="vt-hinweis-push fixed inset-x-3 bottom-[calc(var(--tab-platz)+0.25rem)] z-40 mx-auto max-w-md rounded-[22px] border border-linie bg-panel p-4 shadow-[0_18px_50px_-12px_rgb(0_0_0/0.35)] sm:bottom-6"
         >
           <button
             type="button"

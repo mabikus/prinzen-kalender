@@ -285,12 +285,56 @@ summary::-webkit-details-marker {
   animation: none;
 }
 
+/* Kopfzeile und Tab-Leiste stehen beim Tab-Wechsel fest: eigene Ebenen über dem Inhalt, ohne Bewegung.
+   Sonst gleitet der neue Inhalt (eigene Ebene) über die Glas-Leiste und sie wirkt kurz verschwunden. */
+.vt-kopf {
+  view-transition-name: kopf;
+}
+.vt-tabs {
+  view-transition-name: tabs;
+}
+.vt-hinweis-app {
+  view-transition-name: hinweis-app;
+}
+.vt-hinweis-push {
+  view-transition-name: hinweis-push;
+}
+::view-transition-group(kopf),
+::view-transition-group(tabs),
+::view-transition-group(hinweis-app),
+::view-transition-group(hinweis-push) {
+  z-index: 10;
+  animation: none;
+}
+::view-transition-old(kopf),
+::view-transition-old(tabs),
+::view-transition-old(hinweis-app),
+::view-transition-old(hinweis-push) {
+  display: none;
+}
+::view-transition-new(kopf),
+::view-transition-new(tabs),
+::view-transition-new(hinweis-app),
+::view-transition-new(hinweis-push) {
+  animation: none;
+}
+/* Fußzeile: verschwindet sofort und kommt erst, wenn der neue Inhalt steht (sie blitzte sonst mitten im Bild auf) */
+.vt-fuss {
+  view-transition-name: fuss;
+}
+::view-transition-old(fuss) {
+  display: none;
+}
+::view-transition-new(fuss) {
+  animation: 160ms ease-out 200ms both seite-rein;
+}
+
 /* Tab-Wechsel: alte Seite blendet kurz aus, neue gleitet weich ein (React <ViewTransition default="seite">) */
 ::view-transition-old(.seite) {
-  animation: 140ms ease-out both seite-raus;
+  animation: 100ms ease-out both seite-raus;
 }
 ::view-transition-new(.seite) {
-  animation: 320ms cubic-bezier(0.32, 0.72, 0, 1) both seite-rein;
+  animation: 220ms cubic-bezier(0.32, 0.72, 0, 1) both seite-rein;
 }
 @keyframes seite-raus {
   to {
@@ -300,7 +344,7 @@ summary::-webkit-details-marker {
 @keyframes seite-rein {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(6px);
   }
 }
 @media (prefers-reduced-motion: reduce) {

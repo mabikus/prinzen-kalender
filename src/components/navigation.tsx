@@ -33,7 +33,7 @@ export function NavLinks({ pfad, variante }: { pfad: string | null; variante: Va
       // Schwebende Glas-Leiste wie bei iOS – der Inhalt läuft darunter durch
       <nav
         aria-label="Hauptnavigation"
-        className="glas fixed inset-x-4 bottom-[var(--tab-unten)] z-30 mx-auto max-w-md rounded-full p-1 sm:hidden"
+        className="glas vt-tabs fixed inset-x-4 bottom-[var(--tab-unten)] z-30 mx-auto max-w-md rounded-full p-1 sm:hidden"
       >
         <ul className="grid grid-cols-4">
           {NAV.map((n) => {

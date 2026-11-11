@@ -20,7 +20,7 @@ export default async function OeffentlichLayout({ children, modal }: LayoutProps
   return (
     <>
       {/* Kopfzeile – als App unter der Statusleiste (Safe-Area) */}
-      <header className="sticky top-0 z-20 border-b-[3px] border-kopf-rand bg-kopf pt-[env(safe-area-inset-top)] text-white">
+      <header className="vt-kopf sticky top-0 z-20 border-b-[3px] border-kopf-rand bg-kopf pt-[env(safe-area-inset-top)] text-white">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
             <Logo groesse={44} stand={marke.logoStand} />
@@ -45,7 +45,7 @@ export default async function OeffentlichLayout({ children, modal }: LayoutProps
           {children}
         </ViewTransition>
       </main>
-      <footer className="mx-auto max-w-3xl space-y-1 px-4 pb-[var(--tab-platz)] text-xs text-grau sm:pb-10">
+      <footer className="vt-fuss mx-auto max-w-3xl space-y-1 px-4 pb-[var(--tab-platz)] text-xs text-grau sm:pb-10">
         <p className="pb-2 pt-4 text-center">
           Made with <Heart className="inline size-3.5 -translate-y-px fill-marke-700 text-marke-700" aria-label="Liebe" /> by{" "}
           <a href="https://cyteq.de" target="_blank" rel="noopener" className="font-semibold tracking-[0.08em] text-tinte/70 hover:text-marke-700">
