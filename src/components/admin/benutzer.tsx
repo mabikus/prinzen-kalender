@@ -13,6 +13,7 @@ import {
 import { Kopieren } from "@/components/kopieren";
 import { Button } from "@/components/ui/button";
 import { DatenTabelle } from "@/components/ui/daten-tabelle";
+import { FormularDrawer } from "@/components/ui/formular-drawer";
 import { Badge, Initials, StatusDot } from "@/components/ui/display";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -229,23 +230,27 @@ export function BenutzerVerwaltung({
         ) : null}
       </div>
 
-      <Dialog
-        open={einladen}
-        onOpenChange={setEinladen}
-        title="Administrator einladen"
-        description="Es wird ein Link erstellt, den du per WhatsApp oder E-Mail weitergibst."
-        footer={
+      <FormularDrawer
+        offen={einladen}
+        schliessen={() => setEinladen(false)}
+        geaendert={!!(form.email || form.name)}
+        breite={520}
+        oben="Benutzer"
+        titel="Administrator einladen"
+        fuss={(abbrechen) => (
           <>
-            <Button variant="ghost" onClick={() => setEinladen(false)}>
+            <span className="flex-1" />
+            <Button variant="ghost" onClick={abbrechen}>
               Abbrechen
             </Button>
             <Button type="submit" form="einladen-formular" variant="primary" loading={laeuft}>
               Link erstellen
             </Button>
           </>
-        }
+        )}
       >
-        <form id="einladen-formular" onSubmit={einladungSenden} className="space-y-4">
+        <p className="mb-4 px-1 text-[13.5px] text-subtle">Es wird ein Link erstellt, den du per WhatsApp oder E-Mail weitergibst. Damit legt die Person ihr Passwort fest.</p>
+        <form id="einladen-formular" onSubmit={einladungSenden} className="space-y-4 rounded-[14px] bg-panel p-4 shadow-[var(--shadow-card)]">
           <Field label="Name">
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoFocus />
           </Field>
@@ -253,7 +258,7 @@ export function BenutzerVerwaltung({
             <Input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           </Field>
         </form>
-      </Dialog>
+      </FormularDrawer>
 
       <Dialog open={!!link} onOpenChange={(o) => !o && setLink(null)} title={link?.titel ?? ""} description={link?.text}>
         {link ? (

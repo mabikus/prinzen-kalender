@@ -7,10 +7,11 @@ import { gruppeLoeschen, gruppeSpeichern } from "@/app/verwaltung/aktionen";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/controls";
 import { DatenTabelle } from "@/components/ui/daten-tabelle";
+import { FormularDrawer } from "@/components/ui/formular-drawer";
 import { Badge } from "@/components/ui/display";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Dialog, Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, useConfirm } from "@/components/ui/overlay";
+import { Menu, MenuContent, MenuItem, MenuSeparator, MenuTrigger, useConfirm } from "@/components/ui/overlay";
 import { PageHeader } from "@/components/ui/page";
 import { toast } from "@/components/ui/toast";
 import type { Gruppe } from "@/lib/types";
@@ -20,7 +21,13 @@ type Entwurf = Omit<Gruppe, "id"> & { id?: string };
 const NEU: Entwurf = { kuerzel: "", name: "", beschreibung: null, personen: null, farbe: "grau", in_alle: true, sortierung: NaN };
 
 export function GruppenVerwaltung({ gruppen, anzahl }: { gruppen: Gruppe[]; anzahl: Record<string, number> }) {
-  const [entwurf, setEntwurf] = useState<Entwurf | null>(null);
+  const [entwurf, setEntwurfRoh] = useState<Entwurf | null>(null);
+  const [geaendert, setGeaendert] = useState(false);
+  // Öffnen/Schließen setzt „geändert“ zurück, Tippen setzt es (onChange am Formular)
+  const setEntwurf = (e: Entwurf | null) => {
+    if (!e || e.id !== entwurf?.id || !entwurf) setGeaendert(false);
+    setEntwurfRoh(e);
+  };
   const [laeuft, starte] = useTransition();
   const router = useRouter();
   const confirm = useConfirm();
@@ -123,23 +130,27 @@ export function GruppenVerwaltung({ gruppen, anzahl }: { gruppen: Gruppe[]; anza
         leerTitel="Noch keine Gruppen"
       />
 
-      <Dialog
-        open={!!entwurf}
-        onOpenChange={(o) => !o && setEntwurf(null)}
-        title={entwurf?.id ? "Gruppe bearbeiten" : "Neue Gruppe"}
-        footer={
+      <FormularDrawer
+        offen={!!entwurf}
+        schliessen={() => setEntwurf(null)}
+        geaendert={geaendert}
+        breite={520}
+        oben={entwurf?.id ? "Gruppe" : "Neue Gruppe"}
+        titel={entwurf?.id ? entwurf.name || "Gruppe bearbeiten" : "Gruppe anlegen"}
+        fuss={(abbrechen) => (
           <>
-            <Button variant="ghost" onClick={() => setEntwurf(null)}>
+            <span className="flex-1" />
+            <Button variant="ghost" onClick={abbrechen}>
               Abbrechen
             </Button>
             <Button type="submit" form="gruppe-formular" variant="primary" loading={laeuft}>
-              Speichern
+              {entwurf?.id ? "Speichern" : "Anlegen"}
             </Button>
           </>
-        }
+        )}
       >
         {entwurf ? (
-          <form id="gruppe-formular" onSubmit={speichern} className="space-y-4">
+          <form id="gruppe-formular" onSubmit={speichern} onChange={() => setGeaendert(true)} className="space-y-4 rounded-[14px] bg-panel p-4 shadow-[var(--shadow-card)]">
             <div className="grid grid-cols-[6rem_1fr] gap-3">
               <Field label="Kürzel">
                 <Input value={entwurf.kuerzel} onChange={(e) => setEntwurf({ ...entwurf, kuerzel: e.target.value })} />
@@ -152,21 +163,24 @@ export function GruppenVerwaltung({ gruppen, anzahl }: { gruppen: Gruppe[]; anza
               <Input value={entwurf.beschreibung ?? ""} onChange={(e) => setEntwurf({ ...entwurf, beschreibung: e.target.value || null })} />
             </Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Personen" hint="Für die Kartenberechnung">
+              <Field label="Personen" hint="Vorschlag für jeden Termin – dort änderbar">
                 <Input
-                  type="number"
-                  min={0}
                   inputMode="numeric"
                   value={entwurf.personen ?? ""}
-                  onChange={(e) => setEntwurf({ ...entwurf, personen: e.target.value === "" ? null : Number(e.target.value) })}
+                  onChange={(e) => {
+                    const z = e.target.value.replace(/\D/g, "").slice(0, 3);
+                    setEntwurf({ ...entwurf, personen: z === "" ? null : Number(z) });
+                  }}
                 />
               </Field>
-              <Field label="Reihenfolge">
+              <Field label="Reihenfolge" hint="Kleinere Zahl steht weiter oben">
                 <Input
-                  type="number"
                   inputMode="numeric"
                   value={Number.isNaN(entwurf.sortierung) ? "" : entwurf.sortierung}
-                  onChange={(e) => setEntwurf({ ...entwurf, sortierung: e.target.value === "" ? NaN : Number(e.target.value) })}
+                  onChange={(e) => {
+                    const z = e.target.value.replace(/\D/g, "").slice(0, 4);
+                    setEntwurf({ ...entwurf, sortierung: z === "" ? NaN : Number(z) });
+                  }}
                 />
               </Field>
             </div>
@@ -175,11 +189,17 @@ export function GruppenVerwaltung({ gruppen, anzahl }: { gruppen: Gruppe[]; anza
                 Gehört zu „Alle“
                 <span className="block text-[12.5px] text-subtle">Familie z. B. nicht – die wird extra angekreuzt.</span>
               </span>
-              <Switch checked={entwurf.in_alle} onCheckedChange={(v) => setEntwurf({ ...entwurf, in_alle: v })} />
+              <Switch
+                checked={entwurf.in_alle}
+                onCheckedChange={(v) => {
+                  setGeaendert(true);
+                  setEntwurf({ ...entwurf, in_alle: v });
+                }}
+              />
             </label>
           </form>
         ) : null}
-      </Dialog>
+      </FormularDrawer>
     </>
   );
 }
