@@ -29,8 +29,9 @@ export async function pushAbmelden(endpoint: string): Promise<void> {
 export async function pushProbe(endpoint: string): Promise<{ ok: boolean; grund?: string }> {
   if (!hatDatenbank() || typeof endpoint !== "string") return { ok: false, grund: "Keine Datenbank verbunden." };
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unbekannt";
-  if (!(await versuchErlaubt(`push-probe:${ip}`, 10, 15 * 60_000)))
-    return { ok: false, grund: "Zu viele Proben – bitte in einer Viertelstunde noch einmal." };
+  // Großzügig: die Probe geht nur an das eigene Gerät. Neuer Schlüssel-Name setzt die alten Zähler zurück.
+  if (!(await versuchErlaubt(`push-probe2:${ip}`, 40, 10 * 60_000)))
+    return { ok: false, grund: "Zu viele Proben – bitte in zehn Minuten noch einmal." };
   const b = await mitteilenMitBericht(
     { titel: "Mitteilungen sind an", text: "So sieht es aus, wenn sich ein Termin ändert.", url: "/einstellungen", kennung: "probe" },
     { nurEndpoint: endpoint },
