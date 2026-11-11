@@ -174,3 +174,23 @@ export function datumLang(datum: string): string {
 export function zeitText(min: number): string {
   return hhmm(min);
 }
+
+/**
+ * Eingetippte Uhrzeit → "HH:MM" (null = ungültig). Versteht "17", "9", "1730", "930", "17:30", "17.30", "17,30",
+ * "17h30", "17 30" und "17:3" (→ 17:30).
+ */
+export function uhrzeitLesen(eingabe: string): string | null {
+  const s = eingabe.trim().toLowerCase().replace(/\s*uhr$/, "");
+  let h: number;
+  let m: number;
+  const getrennt = /^(\d{1,2})\s*[:.,h ]\s*(\d{1,2})$/.exec(s);
+  if (getrennt) {
+    h = Number(getrennt[1]);
+    m = Number(getrennt[2].length === 1 ? getrennt[2] + "0" : getrennt[2]);
+  } else if (/^\d{1,4}$/.test(s)) {
+    if (s.length <= 2) [h, m] = [Number(s), 0];
+    else [h, m] = [Number(s.slice(0, -2)), Number(s.slice(-2))];
+  } else return null;
+  if (h > 23 || m > 59) return null;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}

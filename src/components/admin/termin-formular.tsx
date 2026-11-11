@@ -9,7 +9,7 @@ import { Segmented } from "@/components/ui/controls";
 import { toast } from "@/components/ui/toast";
 import { personenBedarf } from "@/lib/labels";
 import type { Gruppe, Termin, Umfang } from "@/lib/types";
-import { datumLang } from "@/lib/zeit";
+import { datumLang, uhrzeitLesen } from "@/lib/zeit";
 
 export type Vorlage = Partial<Pick<Termin, "datum" | "treffzeit" | "beginn" | "ende">>;
 
@@ -180,6 +180,109 @@ function ZeitZeile({
   );
 }
 
+/**
+ * Uhrzeit zum Eintippen (statt der nativen Uhr-Auswahl): „1700“, „17“ oder „17.30“ wird beim Verlassen zu „17:00“.
+ * Pfeil hoch/runter verstellt um 15 Minuten, Enter übernimmt. Ungültiges bleibt stehen und wird rot.
+ */
+function UhrzeitZeile({
+  label,
+  wert,
+  setze,
+  leerText,
+  loeschbar,
+}: {
+  label: string;
+  wert: string | null;
+  setze: (v: string | null) => void;
+  leerText: string;
+  loeschbar?: boolean;
+}) {
+  // Entwurf nur während der Eingabe – sonst zeigt das Feld den gespeicherten Wert
+  const [entwurf, setEntwurf] = useState<string | null>(null);
+  const falsch = entwurf !== null && entwurf.trim() !== "" && uhrzeitLesen(entwurf) === null;
+  const uebernehmen = () => {
+    if (entwurf === null) return;
+    if (entwurf.trim() === "") setze(null);
+    else {
+      const z = uhrzeitLesen(entwurf);
+      if (!z) return;
+      setze(z);
+    }
+    setEntwurf(null);
+  };
+  const schieben = (min: number) => {
+    const basis = uhrzeitLesen(entwurf ?? wert ?? "") ?? "18:00";
+    const [h, m] = basis.split(":").map(Number);
+    const neu = (((h * 60 + m + min) % 1440) + 1440) % 1440;
+    const z = `${String(Math.floor(neu / 60)).padStart(2, "0")}:${String(neu % 60).padStart(2, "0")}`;
+    setEntwurf(null);
+    setze(z);
+  };
+  return (
+    <label className="flex min-h-[52px] cursor-text items-center gap-3 px-4">
+      <span className="shrink-0 text-[16px] text-ink">{label}</span>
+      <span
+        className={cn(
+          "ml-auto flex items-center rounded-[8px] px-3 py-1.5 text-[16px] tabular-nums transition-shadow",
+          wert || entwurf !== null ? "bg-active" : "",
+          falsch
+            ? "bg-panel shadow-[inset_0_0_0_1.5px_var(--danger)]"
+            : "focus-within:bg-panel focus-within:shadow-[inset_0_0_0_1.5px_var(--accent)]",
+        )}
+      >
+        <input
+          value={entwurf ?? wert ?? ""}
+          onFocus={(e) => {
+            setEntwurf(wert ?? "");
+            e.target.select();
+          }}
+          onChange={(e) => setEntwurf(e.target.value.replace(/[^\d:.,h ]/gi, "").slice(0, 5))}
+          onBlur={uebernehmen}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              uebernehmen();
+              e.currentTarget.blur();
+            } else if (e.key === "Escape") {
+              setEntwurf(null);
+              e.currentTarget.blur();
+            } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+              e.preventDefault();
+              schieben(e.key === "ArrowUp" ? 15 : -15);
+            }
+          }}
+          inputMode="numeric"
+          enterKeyHint="done"
+          autoComplete="off"
+          placeholder={leerText}
+          aria-label={label}
+          aria-invalid={falsch || undefined}
+          title={falsch ? "Bitte eine Uhrzeit wie 17:30 eingeben" : undefined}
+          className={cn(
+            "w-[3.4rem] bg-transparent text-right font-medium text-ink outline-none placeholder:font-normal placeholder:text-subtle",
+            !wert && entwurf === null && "w-[5.5rem]",
+          )}
+        />
+        {wert || entwurf ? <span className="ml-1 text-ink">Uhr</span> : null}
+      </span>
+      {loeschbar && wert ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            setEntwurf(null);
+            setze(null);
+          }}
+          aria-label={`${label} leeren`}
+          className="grid size-7 place-items-center rounded-full bg-active text-subtle hover:text-ink"
+        >
+          <X className="size-3.5" strokeWidth={2.5} />
+        </button>
+      ) : null}
+    </label>
+  );
+}
+
 /** Auswahl als Zeile (natives Menü) */
 function AuswahlZeile({
   label,
@@ -263,7 +366,6 @@ function Zaehler({
   );
 }
 
-const hhmmText = (v: string | null) => (v ? `${v} Uhr` : undefined);
 
 /**
  * Termin anlegen oder bearbeiten – auf eigener Seite und im Kalender.
@@ -369,13 +471,13 @@ export function TerminFormular({
       </Liste>
 
       <Liste titel="Treffen" fuss="Wann und wo wir uns treffen. Im Kalender steht der Termin ab der Treffzeit.">
-        <ZeitZeile label="Treffzeit" typ="time" wert={w.treffzeit} setze={(v) => setze("treffzeit", v)} anzeige={hhmmText(w.treffzeit)} leerText="hinzufügen" loeschbar />
+        <UhrzeitZeile label="Treffzeit" wert={w.treffzeit} setze={(v) => setze("treffzeit", v)} leerText="hinzufügen" loeschbar />
         <TextZeile label="Treffpunkt" wert={w.treffpunkt} setze={(v) => setze("treffpunkt", v)} platzhalter="z. B. Hotel zum Stern" liste="pk-orte" />
       </Liste>
 
       <Liste titel="Veranstaltung" fuss="Ohne Ende wird die Dauer geschätzt. Die Adresse hilft bei der Navigation und steht im Kalender-Abo.">
-        <ZeitZeile label="Beginn" typ="time" wert={w.beginn} setze={(v) => setze("beginn", v)} anzeige={hhmmText(w.beginn)} leerText="hinzufügen" loeschbar />
-        <ZeitZeile label="Ende" typ="time" wert={w.ende} setze={(v) => setze("ende", v)} anzeige={hhmmText(w.ende)} leerText="optional" loeschbar />
+        <UhrzeitZeile label="Beginn" wert={w.beginn} setze={(v) => setze("beginn", v)} leerText="hinzufügen" loeschbar />
+        <UhrzeitZeile label="Ende" wert={w.ende} setze={(v) => setze("ende", v)} leerText="optional" loeschbar />
         <TextZeile label="Veranstaltungsort" wert={w.ort} setze={(v) => setze("ort", v)} platzhalter="falls anders als Treffpunkt" liste="pk-orte" />
         {adresseOffen ? (
           <>
