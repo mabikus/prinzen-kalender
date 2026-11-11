@@ -81,6 +81,8 @@ export const termine = pgTable(
     umfang: terminUmfang("umfang").notNull().default("auswahl"),
     anmeldung: terminAnmeldung("anmeldung"),
     karten_bestellt: integer("karten_bestellt"),
+    /** Abweichende Personenzahl je Gruppe nur für diesen Termin (Gruppen-ID → Anzahl) */
+    personen: jsonb("personen").$type<Record<string, number>>().notNull().default(sql`'{}'::jsonb`),
     hinweis: text("hinweis"),
     bemerkung: text("bemerkung"),
     quelle: text("quelle").array().notNull().default(sql`'{}'::text[]`),

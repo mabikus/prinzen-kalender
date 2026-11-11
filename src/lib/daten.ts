@@ -62,6 +62,7 @@ function ausDb(r: TerminZeile, gruppen: string[]): Termin {
     gruppen,
     anmeldung: r.anmeldung,
     karten_bestellt: r.karten_bestellt,
+    personen: r.personen ?? {},
     hinweis: r.hinweis,
     bemerkung: r.bemerkung,
     quelle: r.quelle,

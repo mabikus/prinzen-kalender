@@ -17,7 +17,7 @@ import {
 import { ANMELDUNG_ICON, GruppenBadges, I } from "@/components/termin";
 import { adresseText, kartenLink } from "@/lib/adresse";
 import { ladeDatenZwischengespeichert } from "@/lib/daten";
-import { ANMELDUNG, ART, personenBedarf, STATUS, UMFANG } from "@/lib/labels";
+import { ANMELDUNG, ART, personenBedarf, personenVon, STATUS, UMFANG } from "@/lib/labels";
 import { aktuellerAdmin } from "@/lib/sitzung";
 import { datumLang, zeitplan, zeitText } from "@/lib/zeit";
 
@@ -236,7 +236,7 @@ export async function TerminDetail({ params, imBlatt }: { params: Promise<{ id: 
           {bedarf.dabei.map((g) => (
             <div key={g.id} className="flex items-center justify-between px-4 py-2.5 text-[15px]">
               <span>{g.name}</span>
-              <span className={g.personen == null ? "text-marke-700" : "tabular-nums text-grau"}>{g.personen ?? "Anzahl fehlt"}</span>
+              <span className={personenVon(t, g) == null ? "text-marke-700" : "tabular-nums text-grau"}>{personenVon(t, g) ?? "Anzahl fehlt"}</span>
             </div>
           ))}
         </Karte>

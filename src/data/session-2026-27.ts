@@ -84,6 +84,7 @@ function t(datum: string, e: Eingabe): Omit<Termin, "id"> & { id?: string } {
     gruppen: P,
     anmeldung: null,
     karten_bestellt: null,
+    personen: {},
     hinweis: null,
     bemerkung: null,
     quelle: ["kg"],

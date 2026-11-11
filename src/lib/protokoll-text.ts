@@ -41,6 +41,7 @@ export const FELD: Record<string, string> = {
   gruppen: "Gruppen",
   anmeldung: "Karten/Anmeldung",
   karten_bestellt: "Bestellt",
+  personen: "Personen am Termin",
   hinweis: "Hinweis",
   bemerkung: "Bemerkung",
   pruefen: "Prüfen",
@@ -52,6 +53,10 @@ export function wert(v: unknown): string {
   if (v === null || v === undefined || v === "") return "–";
   if (Array.isArray(v)) return v.length ? v.join(", ") : "–";
   if (typeof v === "boolean") return v ? "ja" : "nein";
+  if (typeof v === "object") {
+    const e = Object.entries(v as Record<string, unknown>);
+    return e.length ? e.map(([k, n]) => `${k} ${String(n)}`).join(", ") : "–";
+  }
   return String(v);
 }
 

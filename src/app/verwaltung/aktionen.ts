@@ -72,6 +72,7 @@ export interface TerminEingabe {
   gruppen: string[];
   anmeldung: Anmeldung | null;
   karten_bestellt: number | null;
+  personen: Record<string, number>;
   hinweis: string | null;
   bemerkung: string | null;
   pruefen: string | null;
@@ -113,6 +114,16 @@ async function zuTermin(e: TerminEingabe): Promise<Termin> {
   }
   const gruppenIds = new Set(daten.gruppen.map((g) => g.id));
   const karten = e.karten_bestellt;
+  const umfang = wahl<Umfang>(e.umfang, ["auswahl", "alle"], "auswahl");
+  const gruppen = [...new Set(e.gruppen)].filter((g) => gruppenIds.has(g));
+  // Abweichende Personenzahl nur für Gruppen, die dabei sind, und nur, wenn sie von der Gruppenzahl abweicht –
+  // sonst gilt eine spätere Änderung der Gruppe auch für diesen Termin.
+  const personen: Record<string, number> = {};
+  for (const g of daten.gruppen) {
+    const n = e.personen?.[g.id];
+    const dabei = gruppen.includes(g.id) || (umfang === "alle" && g.in_alle);
+    if (dabei && typeof n === "number" && Number.isInteger(n) && n >= 0 && n <= 999 && n !== g.personen) personen[g.id] = n;
+  }
   return {
     id,
     datum,
@@ -131,10 +142,11 @@ async function zuTermin(e: TerminEingabe): Promise<Termin> {
     veranstalter: leer(e.veranstalter),
     art: wahl<Art>(e.art, ["intern", "extern"], "extern"),
     status: wahl<Status>(e.status, ["bestaetigt", "vorbehalt"], "bestaetigt"),
-    umfang: wahl<Umfang>(e.umfang, ["auswahl", "alle"], "auswahl"),
-    gruppen: [...new Set(e.gruppen)].filter((g) => gruppenIds.has(g)),
+    umfang,
+    gruppen,
     anmeldung: e.anmeldung === "eintrittskarte" ? e.anmeldung : null,
     karten_bestellt: typeof karten === "number" && Number.isInteger(karten) && karten >= 0 ? karten : null,
+    personen,
     hinweis: leer(e.hinweis),
     bemerkung: leer(e.bemerkung),
     quelle: alt?.quelle ?? [],

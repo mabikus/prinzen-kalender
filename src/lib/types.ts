@@ -76,6 +76,9 @@ export interface Termin {
   anmeldung: Anmeldung | null;
   /** Wie viele Karten bereits bestellt sind – nur intern (Verwaltung), nie öffentlich anzeigen */
   karten_bestellt: number | null;
+  /** Abweichende Personenzahl je Gruppe nur für diesen Termin (Gruppen-ID → Anzahl), z. B. „vom Elferrat nur 2“.
+   *  Ohne Eintrag gilt die Zahl der Gruppe. */
+  personen: Record<string, number>;
   /** Sonstiger wichtiger Hinweis, z. B. "Abfahrt 12:00 Uhr!" */
   hinweis: string | null;
   bemerkung: string | null;

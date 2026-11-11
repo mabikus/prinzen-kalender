@@ -37,12 +37,18 @@ export function gruppenDabei(t: Termin, gruppen: Gruppe[]): Gruppe[] {
   return gruppen.filter((g) => gruppeDabei(t, g));
 }
 
+/** Personen einer Gruppe bei diesem Termin: abweichende Zahl am Termin, sonst die Zahl der Gruppe */
+export function personenVon(t: Pick<Termin, "personen">, g: Gruppe): number | null {
+  const n = t.personen?.[g.id];
+  return typeof n === "number" ? n : g.personen;
+}
+
 /** Wie viele Personen kommen mit? (für Eintrittskarten) */
 export function personenBedarf(t: Termin, gruppen: Gruppe[]) {
   const dabei = gruppenDabei(t, gruppen);
   return {
-    summe: dabei.reduce((s, g) => s + (g.personen ?? 0), 0),
-    ohneAngabe: dabei.filter((g) => g.personen == null),
+    summe: dabei.reduce((s, g) => s + (personenVon(t, g) ?? 0), 0),
+    ohneAngabe: dabei.filter((g) => personenVon(t, g) == null),
     dabei,
   };
 }

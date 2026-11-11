@@ -34,6 +34,7 @@ function leererTermin(v: Vorlage = {}): TerminEingabe {
     gruppen: ["prinz"],
     anmeldung: null,
     karten_bestellt: null,
+    personen: {},
     hinweis: null,
     bemerkung: null,
     pruefen: null,
@@ -215,31 +216,47 @@ function AuswahlZeile({
   );
 }
 
-function Zaehler({ wert, setze }: { wert: number | null; setze: (v: number | null) => void }) {
+function Zaehler({
+  wert,
+  setze,
+  label = "Anzahl bestellt",
+  platzhalter = "0",
+  klein,
+  hervorheben,
+}: {
+  wert: number | null;
+  setze: (v: number | null) => void;
+  label?: string;
+  platzhalter?: string;
+  /** kompakt für Listenzeilen (Personen je Gruppe) */
+  klein?: boolean;
+  /** Wert weicht vom Vorschlag ab */
+  hervorheben?: boolean;
+}) {
   const n = wert ?? 0;
+  const knopf = cn("grid place-items-center text-ink hover:bg-line disabled:opacity-40", klein ? "h-8 w-9" : "h-9 w-11");
   return (
-    <div className="flex items-center overflow-hidden rounded-[8px] bg-active">
-      <button
-        type="button"
-        onClick={() => setze(Math.max(0, n - 1))}
-        aria-label="weniger"
-        className="grid h-9 w-11 place-items-center text-ink hover:bg-line disabled:opacity-40"
-        disabled={n <= 0}
-      >
+    <div className={cn("flex items-center overflow-hidden rounded-[8px] bg-active", hervorheben && "shadow-[inset_0_0_0_1.5px_var(--accent)]")}>
+      <button type="button" onClick={() => setze(Math.max(0, n - 1))} aria-label={`${label}: weniger`} className={knopf} disabled={n <= 0}>
         <Minus className="size-4" strokeWidth={2.25} />
       </button>
       <input
         inputMode="numeric"
         value={wert ?? ""}
-        placeholder="0"
+        placeholder={platzhalter}
         onChange={(e) => {
-          const z = e.target.value.replace(/\D/g, "");
+          const z = e.target.value.replace(/\D/g, "").slice(0, 3);
           setze(z === "" ? null : Number(z));
         }}
-        aria-label="Anzahl bestellt"
-        className="h-9 w-12 border-x border-line bg-transparent text-center text-[16px] font-semibold tabular-nums outline-none"
+        onFocus={(e) => e.target.select()}
+        aria-label={label}
+        className={cn(
+          "border-x border-line bg-transparent text-center font-semibold tabular-nums outline-none",
+          klein ? "h-8 w-10 text-[15px]" : "h-9 w-12 text-[16px]",
+          hervorheben && "text-accent-ink",
+        )}
       />
-      <button type="button" onClick={() => setze(n + 1)} aria-label="mehr" className="grid h-9 w-11 place-items-center text-ink hover:bg-line">
+      <button type="button" onClick={() => setze(n + 1)} aria-label={`${label}: mehr`} className={knopf}>
         <Plus className="size-4" strokeWidth={2.25} />
       </button>
     </div>
@@ -290,6 +307,12 @@ export function TerminFormular({
   const selberTag = alleTermine.filter((t) => t.datum === w.datum && t.id !== termin?.id);
 
   const auto = (g: Gruppe) => w.umfang !== "auswahl" && g.in_alle;
+  const setzePersonen = (g: Gruppe, v: number | null) => {
+    const neu = { ...w.personen };
+    if (v === null || v === g.personen) delete neu[g.id];
+    else neu[g.id] = v;
+    setze("personen", neu);
+  };
   const umschalten = (id: string) =>
     setze("gruppen", w.gruppen.includes(id) ? w.gruppen.filter((g) => g !== id) : [...w.gruppen, id]);
   const bedarf = personenBedarf({ ...(w as Termin), id: termin?.id ?? "", quelle: [] }, gruppen);
@@ -436,27 +459,61 @@ export function TerminFormular({
         {gruppen.map((g) => {
           const a = auto(g);
           const an = a || w.gruppen.includes(g.id);
+          const eigen = w.personen[g.id];
+          const gesetzt = typeof eigen === "number";
+          // „statt …“ nur, wenn die Gruppe überhaupt eine Zahl hat – sonst ist es einfach die Angabe für diesen Termin
+          const abweichend = gesetzt && g.personen != null && eigen !== g.personen;
           return (
-            <button
-              key={g.id}
-              type="button"
-              role="checkbox"
-              aria-checked={an}
-              disabled={a}
-              onClick={() => umschalten(g.id)}
-              className="flex min-h-[48px] w-full items-center gap-3 px-4 text-left disabled:cursor-default"
-            >
-              <span className={cn("min-w-0 flex-1 truncate text-[16px]", a ? "text-subtle" : "text-ink")}>{g.name}</span>
-              {g.personen != null ? <span className="text-[13px] tabular-nums text-subtle">{g.personen}</span> : null}
-              <span
+            <div key={g.id} className="flex min-h-[48px] items-center gap-3 pr-4">
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={an}
+                disabled={a}
+                onClick={() => umschalten(g.id)}
+                className="flex min-h-[48px] min-w-0 flex-1 items-center pl-4 text-left disabled:cursor-default"
+              >
+                <span className={cn("min-w-0 flex-1 truncate text-[16px]", an ? "text-ink" : "text-muted")}>{g.name}</span>
+              </button>
+              {an ? (
+                // Vorschlag ist die Zahl der Gruppe – je Termin änderbar (z. B. „vom Elferrat nur 2“)
+                <span className="flex items-center gap-1.5">
+                  {abweichend ? (
+                    <button
+                      type="button"
+                      onClick={() => setzePersonen(g, null)}
+                      title={`Zurück auf ${g.personen ?? "keine Angabe"} (Zahl der Gruppe)`}
+                      className="rounded-md px-1.5 py-1 text-[12px] text-subtle hover:bg-hover hover:text-ink"
+                    >
+                      statt {g.personen ?? "–"}
+                    </button>
+                  ) : null}
+                  <Zaehler
+                    klein
+                    wert={gesetzt ? eigen : g.personen}
+                    platzhalter="?"
+                    setze={(v) => setzePersonen(g, v)}
+                    label={`Personen ${g.name}`}
+                    hervorheben={abweichend}
+                  />
+                </span>
+              ) : g.personen != null ? (
+                <span className="text-[13px] tabular-nums text-subtle">{g.personen}</span>
+              ) : null}
+              <button
+                type="button"
+                tabIndex={-1}
+                aria-hidden
+                disabled={a}
+                onClick={() => umschalten(g.id)}
                 className={cn(
-                  "grid size-6 place-items-center rounded-full transition-colors",
+                  "grid size-6 shrink-0 place-items-center rounded-full transition-colors disabled:cursor-default",
                   an ? (a ? "bg-accent/45 text-white" : "bg-accent text-accent-fg") : "shadow-[inset_0_0_0_1.5px_var(--line-strong)]",
                 )}
               >
                 {an ? <Check className="size-3.5" strokeWidth={3} /> : null}
-              </span>
-            </button>
+              </button>
+            </div>
           );
         })}
       </Liste>

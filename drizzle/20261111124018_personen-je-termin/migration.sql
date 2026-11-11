@@ -1,0 +1,1 @@
+ALTER TABLE "termine" ADD COLUMN "personen" jsonb DEFAULT '{}' NOT NULL;
