@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { CircleHelp, Clock, Copy, FileDown, Lock, MoreHorizontal, Pencil, Plus, Ticket, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,12 +13,35 @@ import { personenBedarf, werText } from "@/lib/labels";
 import type { Gruppe, Termin } from "@/lib/types";
 import { datumKurz, jetztInBerlin, MONATE, startzeit } from "@/lib/zeit";
 import { useTerminAktionen } from "./termin-aktionen";
+import { TerminDrawer, type DrawerZiel } from "./termin-drawer";
 
 export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin[]; gruppen: Gruppe[]; untertitel: string }) {
   const router = useRouter();
   const aktionen = useTerminAktionen();
   const [heute] = useState(() => jetztInBerlin().datum);
-  const oeffnen = (t: Termin) => router.push(`/verwaltung/termine/${encodeURIComponent(t.id)}`);
+  const sp = useSearchParams();
+  // Drawer: ?t=<id> bzw. ?neu=1 (auch für Links von außen, z. B. „Bearbeiten“ in der Ansicht)
+  const [ziel, setZiel] = useState<DrawerZiel | null>(() => {
+    const id = sp.get("t");
+    if (id) {
+      const t = termine.find((x) => x.id === id);
+      return t ? { termin: t } : null;
+    }
+    if (sp.get("neu") === "1") {
+      const d = sp.get("datum");
+      return { termin: null, vorlage: d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? { datum: d } : undefined };
+    }
+    return null;
+  });
+  const adresse = (z: DrawerZiel | null) => {
+    const q = z ? (z.termin ? `?t=${encodeURIComponent(z.termin.id)}` : "?neu=1") : "";
+    window.history.replaceState(window.history.state, "", `/verwaltung/termine${q}`);
+  };
+  const zeige = (z: DrawerZiel | null) => {
+    setZiel(z);
+    adresse(z);
+  };
+  const oeffnen = (t: Termin) => zeige({ termin: t });
 
   const spalten: Spalte<Termin>[] = [
     {
@@ -106,11 +128,9 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
         actions={
           <>
           <PdfMenue />
-          <Button asChild variant="primary">
-            <Link href="/verwaltung/termine/neu">
-              <Plus />
-              Neuer Termin
-            </Link>
+          <Button variant="primary" onClick={() => zeige({ termin: null })}>
+            <Plus />
+            Neuer Termin
           </Button>
           </>
         }
@@ -139,7 +159,7 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
         }}
         zeilenTon={(t) => (t.datum < heute ? "gedaempft" : undefined)}
         aufZeile={oeffnen}
-        aktionen={(t) => <TerminMenue t={t} aktionen={aktionen} />}
+        aktionen={(t) => <TerminMenue t={t} aktionen={aktionen} bearbeiten={() => oeffnen(t)} />}
         karte={(t) => (
           <span className="flex items-center gap-4">
             <span className="w-[5.5rem] shrink-0 text-[13px] text-subtle tabular">
@@ -166,6 +186,24 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
         )}
         leerTitel="Keine Termine"
         leerText="Mit dieser Auswahl gibt es keine Termine."
+      />
+      <TerminDrawer
+        ziel={ziel}
+        schliessen={() => zeige(null)}
+        gruppen={gruppen}
+        alleTermine={termine}
+        onGespeichert={() => {
+          zeige(null);
+          router.refresh();
+        }}
+        onDuplizieren={(t) => {
+          zeige(null);
+          void aktionen.duplizieren(t);
+        }}
+        onLoeschen={(t) => {
+          zeige(null);
+          void aktionen.loeschen(t);
+        }}
       />
     </>
   );
@@ -226,8 +264,7 @@ function Karten({ t, gruppen }: { t: Termin; gruppen: Gruppe[] }) {
   );
 }
 
-function TerminMenue({ t, aktionen }: { t: Termin; aktionen: ReturnType<typeof useTerminAktionen> }) {
-  const router = useRouter();
+function TerminMenue({ t, aktionen, bearbeiten }: { t: Termin; aktionen: ReturnType<typeof useTerminAktionen>; bearbeiten: () => void }) {
   return (
     <Menu>
       <MenuTrigger asChild>
@@ -236,7 +273,7 @@ function TerminMenue({ t, aktionen }: { t: Termin; aktionen: ReturnType<typeof u
         </Button>
       </MenuTrigger>
       <MenuContent>
-        <MenuItem onSelect={() => router.push(`/verwaltung/termine/${encodeURIComponent(t.id)}`)}>
+        <MenuItem onSelect={bearbeiten}>
           <Pencil />
           Bearbeiten
         </MenuItem>

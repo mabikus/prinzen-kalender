@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense, ViewTransition } from "react";
-import { TriangleAlert } from "lucide-react";
+import { Heart, TriangleAlert } from "lucide-react";
 import { FarbschemaKnopf } from "@/components/farbschema";
 import { Logo } from "@/components/logo";
 import { NavLinks, Navigation } from "@/components/navigation";
@@ -46,6 +46,12 @@ export default async function OeffentlichLayout({ children, modal }: LayoutProps
         </ViewTransition>
       </main>
       <footer className="mx-auto max-w-3xl space-y-1 px-4 pb-[var(--tab-platz)] text-xs text-grau sm:pb-10">
+        <p className="pb-2 pt-4 text-center">
+          Made with <Heart className="inline size-3.5 -translate-y-px fill-marke-700 text-marke-700" aria-label="Liebe" /> by{" "}
+          <a href="https://cyteq.de" target="_blank" rel="noopener" className="font-semibold tracking-[0.08em] text-tinte/70 hover:text-marke-700">
+            CYTEQ
+          </a>
+        </p>
         {quelle === "startdaten" && <p>Datenquelle: Startdaten im Repo (Datenbank noch nicht verbunden).</p>}
         {offen && (
           <p className="flex items-center gap-1.5">

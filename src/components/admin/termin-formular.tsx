@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
-import { Bell, Check, ChevronDown, Lock, Minus, Plus, Ticket, TriangleAlert, X } from "lucide-react";
+import { Check, ChevronDown, Lock, Minus, Plus, Ticket, TriangleAlert, X } from "lucide-react";
 import { terminSpeichern, type TerminEingabe } from "@/app/verwaltung/aktionen";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
-import { Segmented, Switch } from "@/components/ui/controls";
+import { Segmented } from "@/components/ui/controls";
 import { toast } from "@/components/ui/toast";
 import { personenBedarf } from "@/lib/labels";
 import type { Gruppe, Termin, Umfang } from "@/lib/types";
@@ -369,8 +368,8 @@ function Zaehler({
 
 
 /**
- * Termin anlegen oder bearbeiten – auf eigener Seite und im Kalender.
- * `onGespeichert` bekommt den gespeicherten Termin (z. B. Blatt schließen, Kalender aktualisieren).
+ * Termin anlegen oder bearbeiten – nur im Termin-Drawer (termin-drawer.tsx), der Speichern und „Mitteilen“ trägt.
+ * `onGespeichert` bekommt den gespeicherten Termin (Drawer schließen, Liste/Kalender aktualisieren).
  */
 export function TerminFormular({
   termin,
@@ -378,30 +377,32 @@ export function TerminFormular({
   gruppen,
   alleTermine,
   onGespeichert,
-  onAbbrechen,
   formId = "termin-formular",
-  ohneAktionen,
   onLaeuft,
+  mitteilen = false,
+  onGeaendert,
 }: {
   termin: Termin | null;
   vorlage?: Vorlage;
   gruppen: Gruppe[];
   alleTermine: Termin[];
   onGespeichert: (t: Termin) => void;
-  onAbbrechen?: () => void;
   formId?: string;
-  /** Knöpfe nicht anzeigen (das Blatt hat eigene) */
-  ohneAktionen?: boolean;
   /** Meldet, ob gerade gespeichert wird (für Knöpfe außerhalb) */
   onLaeuft?: (laeuft: boolean) => void;
+  /** Push-Mitteilung beim Speichern (Schalter in der Leiste des Drawers) */
+  mitteilen?: boolean;
+  /** Erste Änderung am Formular (für „Verwerfen?“ beim Schließen) */
+  onGeaendert?: () => void;
 }) {
   const [w, setW] = useState<TerminEingabe>(() => (termin ? { ...termin } : leererTermin(vorlage)));
   const [fehler, setFehler] = useState<string>();
   const [adresseOffen, setAdresseOffen] = useState(() => !!(w.strasse || w.plz || w.stadt));
   const [laeuft, starte] = useTransition();
-  // Push-Mitteilung beim Speichern – bewusst aus: nicht jeder Tippfehler soll alle Handys klingeln lassen
-  const [mitteilen, setMitteilen] = useState(false);
-  const setze = <K extends keyof TerminEingabe>(k: K, v: TerminEingabe[K]) => setW((x) => ({ ...x, [k]: v }));
+  const setze = <K extends keyof TerminEingabe>(k: K, v: TerminEingabe[K]) => {
+    onGeaendert?.();
+    setW((x) => ({ ...x, [k]: v }));
+  };
   useEffect(() => onLaeuft?.(laeuft), [laeuft, onLaeuft]);
 
   const vorschlaege = (f: (t: Termin) => (string | null)[]) =>
@@ -449,7 +450,6 @@ export function TerminFormular({
                 : "Noch hat kein Gerät Mitteilungen eingeschaltet."
               : `Mitteilung an ${n} ${n === 1 ? "Gerät" : "Geräte"} verschickt.`,
       });
-      setMitteilen(false);
       onGespeichert(r.daten);
     });
   };
@@ -702,37 +702,8 @@ export function TerminFormular({
         <TextZeile label="Programm" wert={w.tagesprogramm} setze={(v) => setze("tagesprogramm", v)} platzhalter="–" liste="pk-programme" />
       </Liste>
 
-      <Liste
-        titel="Mitteilung"
-        fuss={
-          mitteilen
-            ? w.vertraulich
-              ? "Geht beim Speichern nur an Geräte, die mit der PIN freigeschaltet sind."
-              : "Geht beim Speichern als Push-Mitteilung an alle Geräte mit eingeschalteten Mitteilungen – mit dem, was sich geändert hat."
-            : "Aus: Es geht keine Mitteilung raus (z. B. bei Tippfehlern)."
-        }
-      >
-        <label className="flex min-h-[52px] cursor-pointer items-center gap-3 px-4">
-          <Bell className="size-[18px] shrink-0 text-subtle" />
-          <span className="min-w-0 flex-1 text-[16px] text-ink">{termin ? "Änderung mitteilen" : "Neuen Termin mitteilen"}</span>
-          <Switch checked={mitteilen} onCheckedChange={setMitteilen} aria-label={termin ? "Änderung mitteilen" : "Neuen Termin mitteilen"} />
-        </label>
-      </Liste>
-
-      {ohneAktionen ? (
-        <button type="submit" hidden aria-hidden tabIndex={-1} disabled={laeuft} />
-      ) : (
-        <div className="sticky bottom-0 -mx-4 flex justify-end gap-2 border-t border-line bg-bg/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur sm:mx-0 sm:rounded-[var(--radius-card)] sm:border sm:px-4 sm:pb-3">
-          {onAbbrechen ? (
-            <Button variant="ghost" size="lg" onClick={onAbbrechen}>
-              Abbrechen
-            </Button>
-          ) : null}
-          <Button type="submit" variant="primary" size="lg" loading={laeuft} className="flex-1 sm:flex-none">
-            {termin ? "Speichern" : "Termin anlegen"}
-          </Button>
-        </div>
-      )}
+      {/* Enter im Formular speichert; die Knöpfe sitzen in der Leiste des Drawers */}
+      <button type="submit" hidden aria-hidden tabIndex={-1} disabled={laeuft} />
     </form>
   );
 }

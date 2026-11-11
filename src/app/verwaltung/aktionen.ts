@@ -14,7 +14,7 @@ import {
   passwortLinkErstellen,
   setzeAktiv,
 } from "@/lib/benutzer";
-import { ladeDaten, loescheGruppe, loescheTermin, speichereGruppe, speichereTermin, type Wer } from "@/lib/daten";
+import { ladeDaten, ladeProtokoll, loescheGruppe, loescheTermin, speichereGruppe, speichereTermin, type Wer } from "@/lib/daten";
 import { FARBLISTE } from "@/lib/labels";
 import { slug } from "@/lib/slug";
 import type { Anmeldung, Art, Farbe, Gruppe, Status, Termin, Umfang } from "@/lib/types";
@@ -403,4 +403,9 @@ export async function pinSpeichern(eingabe: string | null) {
     await protokolliereAktion(wer(a), pin ? "pin.geaendert" : "pin.entfernt", { id: "app", titel: "Vertrauliche Termine" });
     updateTag(PIN_TAG);
   });
+}
+
+/** Verlauf eines Termins für den Drawer (die letzten Änderungen) */
+export async function terminVerlauf(id: string) {
+  return sicher(async () => ladeProtokoll({ objektId: id, limit: 20 }));
 }

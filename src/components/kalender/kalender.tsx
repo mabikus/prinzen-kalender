@@ -29,8 +29,8 @@ import {
   type TerminEingabe,
 } from "@/app/verwaltung/aktionen";
 import { GruppenBadges, KartenBadge } from "@/components/termin";
-import { Blatt } from "@/components/admin/blatt";
-import { TerminFormular, type Vorlage } from "@/components/admin/termin-formular";
+import { TerminDrawer } from "@/components/admin/termin-drawer";
+import type { Vorlage } from "@/components/admin/termin-formular";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { adresseText, kartenLink } from "@/lib/adresse";
@@ -111,7 +111,6 @@ export function Kalender({
   const [filter, setFilter] = useState("");
   const [dialog, setDialog] = useState<{ termin: Termin | null; vorlage?: Vorlage } | null>(null);
   const [hilfe, setHilfe] = useState(false);
-  const [speichert, setSpeichert] = useState(false);
   const [zwischenablage, setZwischenablage] = useState<Termin | null>(null);
   const verlauf = useRef<Schritt[]>([]);
   const wisch = useRef<{ x: number; y: number } | null>(null);
@@ -473,47 +472,38 @@ export function Kalender({
         ) : null}
       </div>
 
-      <Blatt
-        offen={!!dialog}
+      <TerminDrawer
+        ziel={dialog}
         schliessen={() => setDialog(null)}
-        formId="kalender-termin"
-        laeuft={speichert}
-        titel={dialog?.termin ? "Termin bearbeiten" : "Neuer Termin"}
-        untertitel={dialog?.termin ? datumLang(dialog.termin.datum) : dialog?.vorlage?.datum ? datumLang(dialog.vorlage.datum) : undefined}
-        sichernText={dialog?.termin ? "Sichern" : "Anlegen"}
-      >
-        {dialog ? (
-          <TerminFormular
-            key={dialog.termin?.id ?? `neu-${dialog.vorlage?.datum}-${dialog.vorlage?.treffzeit}`}
-            formId="kalender-termin"
-            ohneAktionen
-            onLaeuft={setSpeichert}
-            termin={dialog.termin}
-            vorlage={dialog.vorlage}
-            gruppen={gruppen}
-            alleTermine={termine}
-            onGespeichert={(t) => {
-              const alt = dialog.termin;
-              if (alt) {
-                ersetze(t);
-                merke({ text: `„${t.titel}“ geändert`, rueck: () => terminSpeichern(alt as TerminEingabe) });
-              } else {
-                setTermine((l) => [...l, t]);
-                merke({
-                  text: `„${t.titel}“ angelegt`,
-                  rueck: async () => {
-                    const d = await terminLoeschen(t.id);
-                    if (d.ok) setTermine((l) => l.filter((x) => x.id !== t.id));
-                    return d;
-                  },
-                });
-              }
-              setAuswahl(t.id);
-              setDialog(null);
-            }}
-          />
-        ) : null}
-      </Blatt>
+        gruppen={gruppen}
+        alleTermine={termine}
+        onDuplizieren={(t) => {
+          setDialog(null);
+          void duplizieren(t, 0);
+        }}
+        onLoeschen={(t) => {
+          setDialog(null);
+          void loeschen(t);
+        }}
+        onGespeichert={(t, alt) => {
+          if (alt) {
+            ersetze(t);
+            merke({ text: `„${t.titel}“ geändert`, rueck: () => terminSpeichern(alt as TerminEingabe) });
+          } else {
+            setTermine((l) => [...l, t]);
+            merke({
+              text: `„${t.titel}“ angelegt`,
+              rueck: async () => {
+                const d = await terminLoeschen(t.id);
+                if (d.ok) setTermine((l) => l.filter((x) => x.id !== t.id));
+                return d;
+              },
+            });
+          }
+          setAuswahl(t.id);
+          setDialog(null);
+        }}
+      />
 
       <Dialog open={hilfe} onOpenChange={setHilfe} title="Tastenkürzel" width={520}>
         <dl className="grid grid-cols-[auto_1fr] items-center gap-x-6 gap-y-2.5 text-[13.5px]">

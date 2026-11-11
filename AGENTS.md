@@ -24,6 +24,8 @@ Tailwind 4 · Radix · lucide · sonner · cmdk. Oberfläche und Texte auf Deuts
 - Verwaltung im Design der KBN-App: Schrift Plus Jakarta Sans/Bricolage (nur unter `[data-verwaltung]`), Seitenleiste
   `src/components/admin/shell.tsx` (Menüpunkte in `menue.ts`; Zahnrad → Einstellungen mit eigenem Menü), Listen nur über
   `src/components/ui/daten-tabelle.tsx` (Pills, Suche mit „/“, sortierbare Spalten, Blätterleiste, Karten am Handy).
+- Termine bearbeiten nur im Termin-Drawer `src/components/admin/termin-drawer.tsx` (Liste, Kalender; `/verwaltung/termine/<id>`
+  leitet auf `?t=<id>` um). Unten fest: Schalter „Mitteilen“ + Abbrechen/Speichern. Kein zweites Bearbeitungsfenster bauen.
 - UI-Bausteine aus Inkfuchs: `src/components/ui/*` – Farben nur über Tokens in `globals.css` (Rot-Weiß), keine Hex-Werte.
 - Kalender: `src/components/kalender/*` – Rechenlogik in `geometrie.ts` (mit Vitest-Tests).
 - Gruppenlogik, Filter, Kartenbedarf: `src/lib/labels.ts`; Zeitlogik: `src/lib/zeit.ts`; Feed: `src/lib/ics.ts`.
