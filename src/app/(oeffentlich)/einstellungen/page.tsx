@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { ChevronRight, Lock, UserCog } from "lucide-react";
 import { I } from "@/components/termin";
 import { PinFreischalten } from "@/components/pin-freischalten";
+import { InstallBereich } from "@/components/installieren";
 import { freigeschaltet, ladePin } from "@/lib/vertraulich";
 
 export const metadata = { title: "Einstellungen" };
@@ -18,6 +19,8 @@ export default function EinstellungenSeite() {
       <Suspense fallback={<div aria-hidden className="h-[220px] animate-pulse rounded-lg bg-stone-200/40" />}>
         <Vertraulich />
       </Suspense>
+
+      <InstallBereich />
 
       <Link
         href="/verwaltung"
