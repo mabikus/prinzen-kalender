@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Clock, Ticket } from "lucide-react";
+import { Clock, Lock, Ticket } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import type { Termin } from "@/lib/types";
 import { datumKurz } from "@/lib/zeit";
@@ -245,6 +245,7 @@ export function Zeitraster({
                         ausgewaehlt === e.t.id && "ring-2 ring-ink ring-offset-1",
                       )}
                     >
+                      {e.t.vertraulich ? <Lock className="mr-1 inline size-3 -translate-y-px" aria-label="Vertraulich" /> : null}
                       {e.t.titel}
                     </button>
                   </TerminMenue>
@@ -384,6 +385,7 @@ function Kachel({
         <div className={cn("flex items-center gap-1 whitespace-nowrap tabular-nums", klein ? "shrink-0 text-[11px] opacity-90" : "text-[11px] opacity-90")}>
           {hhmm(e.start)}
           {klein ? null : <span className="hidden @[7.5rem]:inline">– {hhmm(e.ende)}</span>}
+          {t.vertraulich ? <Lock className="size-3" aria-label="Vertraulich" /> : null}
           {t.anmeldung ? <Ticket className="size-3" /> : null}
           {t.status === "vorbehalt" ? <Clock className="size-3" /> : null}
         </div>

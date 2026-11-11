@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  Lock,
   CalendarPlus,
   ChevronLeft,
   ChevronRight,
@@ -606,7 +607,13 @@ function Details({
     <aside className="flex w-[320px] shrink-0 flex-col border-l border-line bg-panel">
       <div className="flex items-start justify-between gap-2 border-b border-line px-4 py-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-ink">
+          <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-ink">
+            {t.vertraulich ? (
+              <>
+                <Lock className="size-3" aria-hidden />
+                Vertraulich ·{" "}
+              </>
+            ) : null}
             {t.tagesprogramm ?? (t.art === "intern" ? "Intern" : "Extern")}
           </p>
           <h2 className="font-display text-[19px] font-semibold leading-snug">{t.titel}</h2>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Clock, Ticket } from "lucide-react";
+import { Clock, Lock, Ticket } from "lucide-react";
 import { cn } from "@/components/ui/cn";
 import type { Termin } from "@/lib/types";
 import { hhmm, type Eintrag } from "./geometrie";
@@ -174,6 +174,7 @@ export function Monatsansicht({
                         title={e.t.titel}
                       >
                         {e.ganztags ? null : <span className="shrink-0 tabular-nums opacity-80">{hhmm(e.start)}</span>}
+                        {e.t.vertraulich ? <Lock className="size-3 shrink-0" aria-label="Vertraulich" /> : null}
                         {e.t.anmeldung ? <Ticket className="size-3 shrink-0" /> : null}
                         {e.t.status === "vorbehalt" ? <Clock className="size-3 shrink-0" /> : null}
                         <span className="truncate">{e.t.titel}</span>
