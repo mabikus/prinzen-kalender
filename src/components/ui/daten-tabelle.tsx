@@ -53,6 +53,7 @@ export function DatenTabelle<T>({
   karte,
   zeilenTon,
   seitengroesse = 20,
+  aktionenBreite = 52,
   werkzeuge,
   leerTitel = "Keine Einträge",
   leerText,
@@ -74,6 +75,8 @@ export function DatenTabelle<T>({
   /** Zeile gedämpft (z. B. vergangen) */
   zeilenTon?: (z: T) => "gedaempft" | undefined;
   seitengroesse?: number;
+  /** Breite der Aktionsspalte (Standard: ein Knopf) */
+  aktionenBreite?: number;
   /** Knöpfe rechts neben der Suche */
   werkzeuge?: ReactNode;
   leerTitel?: string;
@@ -258,7 +261,7 @@ export function DatenTabelle<T>({
                 {spalten.map((s) => (
                   <col key={s.id} style={s.breite ? { width: s.breite } : undefined} />
                 ))}
-                {aktionen ? <col style={{ width: 52 }} /> : null}
+                {aktionen ? <col style={{ width: aktionenBreite }} /> : null}
               </colgroup>
               <thead>
                 <tr className="border-b border-line">

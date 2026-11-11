@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { CircleHelp, Clock, Copy, FileDown, Lock, MoreHorizontal, Pencil, Plus, Ticket, Trash2 } from "lucide-react";
+import { CircleHelp, Clock, Copy, Eye, FileDown, Lock, MoreHorizontal, Pencil, Plus, Ticket, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
 import { Tooltip } from "@/components/ui/controls";
@@ -14,6 +14,7 @@ import type { Gruppe, Termin } from "@/lib/types";
 import { datumKurz, jetztInBerlin, MONATE, startzeit } from "@/lib/zeit";
 import { useTerminAktionen } from "./termin-aktionen";
 import { TerminDrawer, type DrawerZiel } from "./termin-drawer";
+import { SchnellansichtDrawer } from "./termin-schnellansicht";
 
 export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin[]; gruppen: Gruppe[]; untertitel: string }) {
   const router = useRouter();
@@ -42,6 +43,7 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
     adresse(z);
   };
   const oeffnen = (t: Termin) => zeige({ termin: t });
+  const [vorschau, setVorschau] = useState<Termin | null>(null);
 
   const spalten: Spalte<Termin>[] = [
     {
@@ -159,7 +161,17 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
         }}
         zeilenTon={(t) => (t.datum < heute ? "gedaempft" : undefined)}
         aufZeile={oeffnen}
-        aktionen={(t) => <TerminMenue t={t} aktionen={aktionen} bearbeiten={() => oeffnen(t)} />}
+        aktionenBreite={88}
+        aktionen={(t) => (
+          <span className="inline-flex items-center gap-0.5">
+            <Tooltip content="Schnellansicht">
+              <Button variant="ghost" size="icon-sm" aria-label={`Schnellansicht ${t.titel}`} onClick={() => setVorschau(t)}>
+                <Eye />
+              </Button>
+            </Tooltip>
+            <TerminMenue t={t} aktionen={aktionen} bearbeiten={() => oeffnen(t)} />
+          </span>
+        )}
         karte={(t) => (
           <span className="flex items-center gap-4">
             <span className="w-[5.5rem] shrink-0 text-[13px] text-subtle tabular">
@@ -186,6 +198,26 @@ export function TermineListe({ termine, gruppen, untertitel }: { termine: Termin
         )}
         leerTitel="Keine Termine"
         leerText="Mit dieser Auswahl gibt es keine Termine."
+      />
+      <SchnellansichtDrawer
+        t={vorschau ? (termine.find((x) => x.id === vorschau.id) ?? null) : null}
+        gruppen={gruppen}
+        alle={termine}
+        schliessen={() => setVorschau(null)}
+        aktionen={{
+          bearbeiten: (t) => {
+            setVorschau(null);
+            oeffnen(t);
+          },
+          duplizieren: (t) => {
+            setVorschau(null);
+            void aktionen.duplizieren(t);
+          },
+          loeschen: (t) => {
+            setVorschau(null);
+            void aktionen.loeschen(t);
+          },
+        }}
       />
       <TerminDrawer
         ziel={ziel}

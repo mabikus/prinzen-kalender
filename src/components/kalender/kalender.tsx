@@ -1,22 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  Lock,
   CalendarPlus,
   ChevronLeft,
   ChevronRight,
-  CircleHelp,
-  Copy,
-  Eye,
   Keyboard,
-  MapPin,
-  Pencil,
   Plus,
-  Trash2,
-  TriangleAlert,
-  X,
 } from "lucide-react";
 import {
   terminDuplizieren,
@@ -28,17 +18,16 @@ import {
   type Ergebnis,
   type TerminEingabe,
 } from "@/app/verwaltung/aktionen";
-import { GruppenBadges, KartenBadge } from "@/components/termin";
 import { TerminDrawer } from "@/components/admin/termin-drawer";
+import { SchnellansichtDrawer, SchnellansichtPanel } from "@/components/admin/termin-schnellansicht";
 import type { Vorlage } from "@/components/admin/termin-formular";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/ui/cn";
-import { adresseText, kartenLink } from "@/lib/adresse";
 import { Segmented, Select } from "@/components/ui/controls";
 import { Kbd } from "@/components/ui/display";
 import { Dialog, useConfirm } from "@/components/ui/overlay";
 import { toast } from "@/components/ui/toast";
-import { gruppeDabei, STATUS, UMFANG } from "@/lib/labels";
+import { gruppeDabei, STATUS } from "@/lib/labels";
 import type { Gruppe, Status, Termin } from "@/lib/types";
 import { datumKurz, datumLang, jetztInBerlin, MONATE } from "@/lib/zeit";
 import {
@@ -537,15 +526,7 @@ export function Kalender({
   );
 }
 
-function Zeile({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-[5.5rem_1fr] gap-2 py-1.5 text-[13px]">
-      <dt className="text-subtle">{label}</dt>
-      <dd className="min-w-0 text-ink">{children}</dd>
-    </div>
-  );
-}
-
+/** Schnellansicht des gewählten Termins: PC angedockt rechts, Handy/Tablet als Blatt */
 function Details({
   breit,
   t,
@@ -565,156 +546,9 @@ function Details({
   duplizieren: () => void;
   loeschen: () => void;
 }) {
-  const vorher = t.anschluss_an ? alle.find((x) => x.id === t.anschluss_an) : undefined;
-  // Handy/Tablet: Details als Blatt von unten statt Seitenleiste
-  if (!breit)
-    return (
-      <Dialog
-        open
-        onOpenChange={(o) => !o && schliessen()}
-        title={t.titel}
-        description={datumLang(t.datum)}
-        footer={
-          <div className="grid w-full grid-cols-2 gap-2">
-            <Button variant="primary" onClick={bearbeiten}>
-              <Pencil />
-              Bearbeiten
-            </Button>
-            <Button variant="secondary" onClick={duplizieren}>
-              <Copy />
-              Duplizieren
-            </Button>
-            <Button variant="secondary" asChild>
-              <Link href={`/termin/${encodeURIComponent(t.id)}`}>
-                <Eye />
-                Ansicht
-              </Link>
-            </Button>
-            <Button variant="danger-ghost" onClick={loeschen}>
-              <Trash2 />
-              Löschen
-            </Button>
-          </div>
-        }
-      >
-        <DetailsInhalt t={t} gruppen={gruppen} vorher={vorher} />
-      </Dialog>
-    );
-  return (
-    <aside className="flex w-[320px] shrink-0 flex-col border-l border-line bg-panel">
-      <div className="flex items-start justify-between gap-2 border-b border-line px-4 py-3">
-        <div className="min-w-0">
-          <p className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-accent-ink">
-            {t.vertraulich ? (
-              <>
-                <Lock className="size-3" aria-hidden />
-                Vertraulich ·{" "}
-              </>
-            ) : null}
-            {t.tagesprogramm ?? (t.art === "intern" ? "Intern" : "Extern")}
-          </p>
-          <h2 className="font-display text-[19px] font-semibold leading-snug">{t.titel}</h2>
-          <p className="text-[13px] text-subtle">{datumLang(t.datum)}</p>
-        </div>
-        <Button variant="ghost" size="icon-sm" aria-label="Schließen" onClick={schliessen}>
-          <X />
-        </Button>
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-        <DetailsInhalt t={t} gruppen={gruppen} vorher={vorher} />
-      </div>
-      <div className={cn("grid grid-cols-2 gap-2 border-t border-line p-3")}>
-        <Button variant="primary" size="sm" onClick={bearbeiten}>
-          <Pencil />
-          Bearbeiten
-        </Button>
-        <Button variant="secondary" size="sm" onClick={duplizieren}>
-          <Copy />
-          Duplizieren
-        </Button>
-        <Button variant="secondary" size="sm" asChild>
-          <Link href={`/termin/${encodeURIComponent(t.id)}`} target="_blank">
-            <Eye />
-            Ansicht
-          </Link>
-        </Button>
-        <Button variant="danger-ghost" size="sm" onClick={loeschen}>
-          <Trash2 />
-          Löschen
-        </Button>
-      </div>
-    </aside>
-  );
-}
-
-function DetailsInhalt({ t, gruppen, vorher }: { t: Termin; gruppen: Gruppe[]; vorher?: Termin }) {
-  return (
-    <div className="space-y-4">
-        {t.hinweis ? (
-          <p className="flex items-start gap-2 rounded-[var(--radius-control)] bg-accent-soft p-2.5 text-[13px] font-medium text-accent-ink">
-            <TriangleAlert className="mt-0.5 size-4 shrink-0" />
-            {t.hinweis}
-          </p>
-        ) : null}
-        <dl className="divide-y divide-line">
-          {t.treffzeit || t.treffpunkt ? (
-            <Zeile label="Treffen">
-              <strong className="tabular-nums">{t.treffzeit}</strong> {t.treffpunkt}
-            </Zeile>
-          ) : null}
-          {vorher ? <Zeile label="Zeit">im Anschluss an „{vorher.titel}“</Zeile> : null}
-          {t.beginn || t.ort ? (
-            <Zeile label="Beginn">
-              <strong className="tabular-nums">{t.beginn}</strong> {t.ort}
-            </Zeile>
-          ) : null}
-          {adresseText(t) ? <Zeile label="Adresse">{adresseText(t)}</Zeile> : null}
-          {t.ende ? <Zeile label="Ende">{t.ende}</Zeile> : null}
-          {t.veranstalter ? <Zeile label="Veranstalter">{t.veranstalter}</Zeile> : null}
-          <Zeile label="Status">{STATUS[t.status]}</Zeile>
-          <Zeile label="Wer">
-            <div className="flex flex-wrap gap-1">
-              <GruppenBadges t={t} gruppen={gruppen} />
-            </div>
-            {t.umfang !== "auswahl" ? <span className="mt-1 block text-[12px] text-subtle">{UMFANG[t.umfang].beschreibung}</span> : null}
-          </Zeile>
-          {t.anmeldung ? (
-            <Zeile label="Karten">
-              <KartenBadge t={t} gruppen={gruppen} mitBestellt />
-            </Zeile>
-          ) : null}
-          {t.bemerkung ? <Zeile label="Bemerkung">{t.bemerkung}</Zeile> : null}
-        </dl>
-        {t.pruefen ? (
-          <p className="flex items-start gap-2 rounded-[var(--radius-control)] bg-active p-2.5 text-[12.5px] text-muted">
-            <CircleHelp className="mt-0.5 size-4 shrink-0" />
-            {t.pruefen}
-          </p>
-        ) : null}
-        {adresseText(t) ? (
-          <a
-            href={kartenLink(t.ort ?? t.treffpunkt, adresseText(t))}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-1.5 text-[13px] text-accent-ink hover:underline"
-          >
-            <MapPin className="size-4" />
-            Veranstaltungsort auf der Karte
-          </a>
-        ) : null}
-        {t.treffpunkt && t.treffpunkt !== "im Anschluss" ? (
-          <a
-            href={kartenLink(t.treffpunkt)}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1.5 text-[13px] text-accent-ink hover:underline"
-          >
-            <MapPin className="size-4" />
-            Treffpunkt auf der Karte
-          </a>
-        ) : null}
-          </div>
-  );
+  const aktionen = { bearbeiten, duplizieren, loeschen };
+  if (!breit) return <SchnellansichtDrawer t={t} gruppen={gruppen} alle={alle} aktionen={aktionen} schliessen={schliessen} />;
+  return <SchnellansichtPanel t={t} gruppen={gruppen} alle={alle} aktionen={aktionen} schliessen={schliessen} />;
 }
 
 const WT_KURZ = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
