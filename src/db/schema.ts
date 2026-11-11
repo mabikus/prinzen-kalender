@@ -264,4 +264,22 @@ export const pushAbos = pgTable("push_abos", {
   pin_schluessel: text("pin_schluessel"),
   erstellt_am: timestamp("erstellt_am", { withTimezone: true }).notNull().defaultNow(),
   zuletzt_zugestellt: timestamp("zuletzt_zugestellt", { withTimezone: true }),
+  /** Mitteilungen bei neuen, geänderten und abgesagten Terminen */
+  aenderungen: boolean("aenderungen").notNull().default(true),
+  /** Erinnerung so viele Minuten vor Treffzeit/Beginn (null = keine) */
+  erinnerung_minuten: integer("erinnerung_minuten"),
 });
+
+/** Schon verschickte Erinnerungen – jede nur einmal; verschobener Termin = neuer Zeitpunkt = neue Erinnerung */
+export const pushErinnerungen = pgTable(
+  "push_erinnerungen",
+  {
+    endpoint: text("endpoint")
+      .notNull()
+      .references(() => pushAbos.endpoint, { onDelete: "cascade" }),
+    termin_id: text("termin_id").notNull(),
+    start: timestamp("start", { withTimezone: true }).notNull(),
+    gesendet_am: timestamp("gesendet_am", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.endpoint, t.termin_id, t.start] })],
+);

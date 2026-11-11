@@ -3,7 +3,14 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { Bell, BellOff, BellRing, Check, X } from "lucide-react";
-import { pushAbmelden, pushAnmelden, pushProbe, pushSchluessel } from "@/app/(oeffentlich)/push-aktion";
+import {
+  pushAbmelden,
+  pushAnmelden,
+  pushEinstellungenLesen,
+  pushEinstellungenSetzen,
+  pushProbe,
+  pushSchluessel,
+} from "@/app/(oeffentlich)/push-aktion";
 
 // Push-Mitteilungen bei Terminänderungen. iPhone/iPad: nur in der installierten App (ab iOS 16.4) und nur nach
 // Antippen eines Knopfs (die Erlaubnis-Frage darf nicht ungefragt kommen). Android/PC: auch im Browser.
@@ -143,6 +150,7 @@ export function MitteilungenBereich() {
           <p className="flex items-center gap-2 font-medium text-marke-700">
             <Check className="size-5" /> Eingeschaltet auf diesem Gerät
           </p>
+          <GeraetAuswahl />
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -183,6 +191,88 @@ export function MitteilungenBereich() {
       ) : null}
       {meldung ? <p className="text-[15px] text-grau">{meldung}</p> : null}
     </section>
+  );
+}
+
+const ERINNERUNG: { wert: number | null; text: string }[] = [
+  { wert: null, text: "Aus" },
+  { wert: 30, text: "30 Min." },
+  { wert: 60, text: "1 Std." },
+  { wert: 120, text: "2 Std." },
+];
+
+/** Was dieses Gerät bekommt: Änderungen/Absagen an oder aus, Erinnerung vor dem Termin – sofort gespeichert */
+function GeraetAuswahl() {
+  const [e, setE] = useState<{ aenderungen: boolean; erinnerung: number | null } | null>(null);
+  const [gespeichert, setGespeichert] = useState(false);
+  useEffect(() => {
+    let aktiv = true;
+    void aktuellesAbo().then(async (abo) => {
+      const w = abo ? await pushEinstellungenLesen(abo.endpoint) : null;
+      if (aktiv) setE(w ?? { aenderungen: true, erinnerung: null });
+    });
+    return () => {
+      aktiv = false;
+    };
+  }, []);
+  if (!e) return <div aria-hidden className="h-[118px]" />;
+  const setzen = async (neu: { aenderungen: boolean; erinnerung: number | null }) => {
+    setE(neu);
+    setGespeichert(false);
+    const abo = await aktuellesAbo();
+    if (abo && (await pushEinstellungenSetzen(abo.endpoint, neu))) {
+      setGespeichert(true);
+      window.setTimeout(() => setGespeichert(false), 1800);
+    }
+  };
+  return (
+    <div className="divide-y divide-linie overflow-hidden rounded-lg border border-linie">
+      <label className="flex cursor-pointer items-center justify-between gap-4 px-4 py-3">
+        <span>
+          <span className="block font-medium">Bei Änderungen und Absagen</span>
+          <span className="block text-[14px] text-grau">Neue Termine, geänderte Zeiten oder Orte, Absagen</span>
+        </span>
+        <input
+          type="checkbox"
+          role="switch"
+          checked={e.aenderungen}
+          onChange={(x) => void setzen({ ...e, aenderungen: x.target.checked })}
+          className="peer sr-only"
+        />
+        <span
+          aria-hidden
+          className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-marke-700 ${e.aenderungen ? "bg-marke-700" : "bg-stone-300"}`}
+        >
+          <span
+            className={`absolute top-[2px] size-[27px] rounded-full bg-white shadow transition-[left] duration-200 ${e.aenderungen ? "left-[22px]" : "left-[2px]"}`}
+          />
+        </span>
+      </label>
+      <div className="space-y-2 px-4 py-3">
+        <span className="block font-medium">Erinnerung vor dem Termin</span>
+        <span className="block text-[14px] text-grau">Vor der Treffzeit, sonst vor dem Beginn – für jeden Termin.</span>
+        <div role="radiogroup" aria-label="Erinnerung vor dem Termin" className="grid grid-cols-4 gap-1 rounded-[10px] bg-stone-100 p-1">
+          {ERINNERUNG.map((o) => {
+            const an = e.erinnerung === o.wert;
+            return (
+              <button
+                key={o.text}
+                type="button"
+                role="radio"
+                aria-checked={an}
+                onClick={() => void setzen({ ...e, erinnerung: o.wert })}
+                className={`h-9 rounded-[8px] text-[14px] font-semibold transition-colors ${an ? "bg-white text-marke-700 shadow-sm dark:bg-stone-200" : "text-tinte/70"}`}
+              >
+                {o.text}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <p className={`px-4 py-2 text-[13px] text-grau transition-opacity ${gespeichert ? "opacity-100" : "opacity-0"}`} aria-live="polite">
+        Gespeichert
+      </p>
+    </div>
   );
 }
 

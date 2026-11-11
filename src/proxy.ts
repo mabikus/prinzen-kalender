@@ -15,7 +15,7 @@ function hauptHost(): string | null {
 // - Ansicht: geheimer Zugangslink (ZUGANG_TOKEN)
 // - Anmeldung, Einrichtung, Einladung und /api/auth sind ohne Zugangslink erreichbar
 
-const OHNE_ZUGANG = ["/anmelden", "/einrichtung", "/einladung", "/api/auth", "/api/version"];
+const OHNE_ZUGANG = ["/anmelden", "/einrichtung", "/einladung", "/api/auth", "/api/version", "/api/erinnerungen"];
 
 export function proxy(request: NextRequest) {
   const url = request.nextUrl;

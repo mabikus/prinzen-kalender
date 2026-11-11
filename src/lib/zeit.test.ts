@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { uhrzeitLesen } from "./zeit";
+import { berlinZeitpunkt, uhrzeitLesen } from "./zeit";
 
 describe("uhrzeitLesen", () => {
   it.each([
@@ -18,4 +18,10 @@ describe("uhrzeitLesen", () => {
   ])("%s → %s", (ein, aus) => expect(uhrzeitLesen(ein)).toBe(aus));
 
   it.each(["", "24", "1760", "abc", "17:", "12345"])("%s ist ungültig", (ein) => expect(uhrzeitLesen(ein)).toBeNull());
+});
+
+describe("berlinZeitpunkt", () => {
+  it("Winterzeit (UTC+1)", () => expect(berlinZeitpunkt("2026-11-13", "18:15").toISOString()).toBe("2026-11-13T17:15:00.000Z"));
+  it("Sommerzeit (UTC+2)", () => expect(berlinZeitpunkt("2026-07-01", "18:15").toISOString()).toBe("2026-07-01T16:15:00.000Z"));
+  it("Rosenmontag 2027", () => expect(berlinZeitpunkt("2027-02-08", "11:11").toISOString()).toBe("2027-02-08T10:11:00.000Z"));
 });

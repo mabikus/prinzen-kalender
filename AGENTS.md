@@ -39,6 +39,9 @@ Tailwind 4 · Radix · lucide · sonner · cmdk. Oberfläche und Texte auf Deuts
   Einschalten in der App (`src/components/mitteilungen.tsx`, iPhone nur als installierte App), Versand nur bewusst:
   Häkchen „Änderung mitteilen“ im Termin-Formular bzw. „Absage mitteilen“ beim Löschen. Vertrauliche Termine nur an Geräte,
   die beim Einschalten mit der aktuellen PIN freigeschaltet waren. Empfang/Antippen im Service Worker `public/sw.js`.
+  Je Gerät: „Bei Änderungen“ an/aus und Erinnerung 30/60/120 Min. vor Treffzeit/Beginn. Erinnerungen verschickt der
+  Vercel-Cron (`vercel.json`, alle 5 Min.) über `/api/erinnerungen` → `erinnerungenVerschicken()`; jede nur einmal
+  (`push_erinnerungen`), mit `CRON_SECRET` nur von Vercel aufrufbar.
 - Darstellung (App-Name, Unterzeile, Logo): Verwaltung → Darstellung, Tabelle `einstellungen`, Laden über `src/lib/marke-laden.ts`
   (`"use cache"` + `cacheTag("marke")`, nach dem Speichern `updateTag`). Bild-Adressen tragen `?v=<logo_stand>`.
 - Prüfen vor dem Commit: `npx tsc --noEmit`, `npm run lint`, `npm test`.

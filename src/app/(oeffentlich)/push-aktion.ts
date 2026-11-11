@@ -3,7 +3,16 @@
 import { cookies, headers } from "next/headers";
 import { hatDatenbank } from "@/db";
 import { versuchErlaubt } from "@/lib/limit";
-import { abbestellen, abonnieren, istAbo, mitteilenMitBericht, oeffentlicherSchluessel } from "@/lib/push";
+import {
+  abbestellen,
+  abonnieren,
+  einstellungenLesen,
+  einstellungenSetzen,
+  istAbo,
+  mitteilenMitBericht,
+  oeffentlicherSchluessel,
+  type GeraetEinstellungen,
+} from "@/lib/push";
 import { istFreigeschaltet, PIN_COOKIE } from "@/lib/vertraulich";
 
 /** Öffentlicher Push-Schlüssel (null = Push nicht möglich, z. B. ohne Datenbank) */
@@ -39,4 +48,15 @@ export async function pushProbe(endpoint: string): Promise<{ ok: boolean; grund?
   if (b.erreicht > 0) return { ok: true };
   if (b.geraete === 0) return { ok: false, grund: "Dieses Gerät ist beim Server nicht angemeldet – bitte aus- und wieder einschalten." };
   return { ok: false, grund: b.fehler[0] ?? "Unbekannter Fehler" };
+}
+
+/** Einstellungen dieses Geräts (null = beim Server nicht angemeldet) */
+export async function pushEinstellungenLesen(endpoint: string): Promise<GeraetEinstellungen | null> {
+  if (!hatDatenbank() || typeof endpoint !== "string") return null;
+  return einstellungenLesen(endpoint);
+}
+
+export async function pushEinstellungenSetzen(endpoint: string, e: GeraetEinstellungen): Promise<boolean> {
+  if (!hatDatenbank() || typeof endpoint !== "string" || !e || typeof e !== "object") return false;
+  return einstellungenSetzen(endpoint, { aenderungen: e.aenderungen === true, erinnerung: typeof e.erinnerung === "number" ? e.erinnerung : null });
 }

@@ -194,3 +194,23 @@ export function uhrzeitLesen(eingabe: string): string | null {
   if (h > 23 || m > 59) return null;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
+
+/** Berliner Ortszeit (Datum + "HH:MM") als Zeitpunkt – mit Sommer-/Winterzeit */
+export function berlinZeitpunkt(datum: string, hhmm: string): Date {
+  const [j, m, d] = datum.split("-").map(Number);
+  const [h, min] = hhmm.split(":").map(Number);
+  const alsUtc = Date.UTC(j, m - 1, d, h, min);
+  // Versatz Berlins zu UTC an diesem Tag ermitteln (Intl kennt die Zeitumstellung)
+  const teile = new Intl.DateTimeFormat("en-US", {
+    timeZone: ZEITZONE,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  }).formatToParts(new Date(alsUtc));
+  const w = (typ: string) => Number(teile.find((p) => p.type === typ)?.value);
+  const dortAlsUtc = Date.UTC(w("year"), w("month") - 1, w("day"), w("hour"), w("minute"));
+  return new Date(alsUtc - (dortAlsUtc - alsUtc));
+}
