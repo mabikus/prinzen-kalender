@@ -15,6 +15,7 @@ import { Lock,
   type LucideIcon,
 } from "lucide-react";
 import { ANMELDUNG_ICON, GruppenBadges, I } from "@/components/termin";
+import { DetailsKopieren } from "@/components/details-kopieren";
 import { adresseText, kartenLink } from "@/lib/adresse";
 import { ladeAnsicht } from "@/lib/vertraulich";
 import { ANMELDUNG, ART, personenBedarf, personenVon, STATUS, UMFANG } from "@/lib/labels";
@@ -129,6 +130,19 @@ export async function TerminDetail({ params, imBlatt }: { params: Promise<{ id: 
   // Veranstaltungsort: eigener Name, sonst (bei Adresse) der Treffpunkt bzw. die Adresse selbst
   const venue = (t.ort && t.ort !== t.treffpunkt) || adresse ? (t.ort ?? t.treffpunkt ?? adresse!) : null;
 
+  // Zum Kopieren: Titel, Datum, Treffen/Beginn mit Ort (und ein wichtiger Hinweis)
+  const kopierText = [
+    t.titel,
+    datumLang(t.datum),
+    t.treffzeit ? `Treffen ${t.treffzeit} Uhr${t.treffpunkt ? ` – ${t.treffpunkt}` : ""}` : null,
+    t.beginn ? `Beginn ${t.beginn} Uhr${venue ? ` – ${venue}` : ""}` : null,
+    !t.treffzeit && !t.beginn ? (vorher ? `im Anschluss an „${vorher.titel}“` : "Uhrzeit noch offen") : null,
+    adresse && adresse !== venue ? adresse : null,
+    t.hinweis ? `Hinweis: ${t.hinweis}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
   // Zeitleiste: Treffen · Beginn · Ende (nur was es gibt)
   const zeiten: { label: string; wert: string; ca?: boolean }[] = [];
   if (t.treffzeit) zeiten.push({ label: "Treffen", wert: t.treffzeit });
@@ -154,6 +168,7 @@ export async function TerminDetail({ params, imBlatt }: { params: Promise<{ id: 
           ) : null}
           <span className="text-marke-700">{ART[t.art]}</span>
           {t.tagesprogramm ? <span className="text-grau">· {t.tagesprogramm}</span> : null}
+          <DetailsKopieren text={kopierText} />
         </div>
         <h1 className="font-serif text-[28px] font-semibold leading-[1.15] text-tinte [hyphens:auto] [overflow-wrap:anywhere] sm:text-[34px]" lang="de">
           {t.titel}
